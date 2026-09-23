@@ -1,231 +1,142 @@
-/* Reset básico para caixa de borda */
 * {
-    /* box-sizing: border-box faz com que padding e border sejam incluídos na largura/altura
-       ao invés de serem adicionados depois. Isso facilita o cálculo de tamanhos */
     box-sizing: border-box;
 }
 
-/* Estilo global do corpo com paleta verde suave */
+
 body {
-    /* Remove espaçamento padrão do navegador */
     margin: 0;
-    /* Define a fonte padrão para todo o texto da página */
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    /* Fundo verde muito claro e suave para tema de pesca */
-    background: #e9f3e8;
-    /* Cor do texto escura com tom esverdeado */
+    background: var(--cor-fundo);
     color: #203a28;
 }
 
-/* Container principal que ocupa toda a altura da janela */
 .admin-layout {
-    /* Define altura mínima como 100% da altura da viewport */
     min-height: 100vh;
-    /* Flexbox coloca os elementos filhos em coluna (verticalmente) */
     display: flex;
-    /* Organiza os filhos em coluna (cabeçalho no topo, conteúdo abaixo) */
     flex-direction: column;
 }
 
-/* Cabeçalho fixo no topo com identidade visual */
 .admin-header {
-    /* Fixa o elemento no topo mesmo ao fazer scroll */
     position: sticky;
-    /* Topo: 0 mantém o cabeçalho sempre visível no início */
     top: 0;
-    /* z-index controla qual elemento aparece por cima dos outros; 1000 é muito alto */
     z-index: 1000;
-    /* Fundo branco com leve tom verde */
     background: #f8fcf6;
-    /* Linha divisória sutil abaixo do cabeçalho */
     border-bottom: 1px solid #d3e5d2;
-    /* Espaçamento interno do cabeçalho */
     padding: 0.75rem 1.25rem;
-    /* Flexbox para alinhar logo e botões horizontalmente */
     display: flex;
-    /* Espaça os elementos para extremos opostos */
     justify-content: space-between;
-    /* Alinha verticalmente ao centro */
     align-items: center;
-    /* Espaço entre elementos filhos */
     gap: 1rem;
 }
 
-/* Estilo da marca RondoPesca no cabeçalho */
 .admin-header .brand {
-    /* Peso da fonte (700 = negrito) */
     font-weight: 700;
-    /* Tamanho grande para destaque */
     font-size: 1.2rem;
-    /* Cor verde escura para o nome principal */
     color: #1f5f30;
 }
 
-/* Cor do sobrenome "Pesca" em tom verde médio */
 .admin-header .brand span {
     color: #386a3d;
 }
 
-/* Menu lateral (sidebar) com navegação */
 .sidebar {
-    /* Largura fixa da sidebar */
     width: 250px;
-    /* Altura começa após o cabeçalho (68px) até o fim da tela */
     min-height: calc(100vh - 68px);
-    /* Flexbox organiza itens verticalmente */
     display: flex;
-    /* Coloca filhos em coluna (menu, espaço vazio, footer) */
     flex-direction: column;
-    /* Esconde o conteúdo que sai do limite da sidebar */
     overflow: hidden;
-    /* Verde médio para a sidebar - cor padrão */
     background: #2f6d3a;
 }
 
-/* Classe auxiliar para aplicar verde suave (usado com Bootstrap) */
 .bg-soft-green {
-    /* !important força essa cor a ser usada mesmo com outras classes */
     background: #5d9262 !important;
 }
 
-/* Cabeçalho interno da sidebar com nome do site */
 .sidebar-header {
-    /* Linha divisória sutil separando o header do menu */
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* Links de menu dentro da sidebar */
 .sidebar .nav-link {
-    /* Branco com certa transparência para ler bem no fundo verde */
     color: rgba(255, 255, 255, 0.92);
-    /* Espaçamento interno do link */
     padding: 0.75rem 0.75rem;
-    /* Deixa os links com cantos arredondados */
     border-radius: 0.5rem;
 }
 
-/* Estilo quando o link é hover (mouse por cima) ou está ativo */
 .sidebar .nav-link:hover,
 .sidebar .nav-link.active {
-    /* Fundo branco semitransparente para destaque ao passar o mouse */
     background: rgba(255, 255, 255, 0.18);
-    /* Texto branco total quando ativo ou hover */
     color: #ffffff;
-    /* Remove sublinhado de link */
     text-decoration: none;
 }
 
-/* Rodapé da sidebar com espaço para informações adicionais */
 .sidebar-footer {
-    /* mt-auto empurra esse elemento para o final da sidebar */
     margin-top: auto;
 }
 
-/* Corpo principal que contém sidebar e conteúdo */
 .admin-body {
-    /* Flex com valor 1 faz esse elemento crescer e ocupar espaço disponível */
     flex: 1;
 }
 
-/* Área de conteúdo principal da página */
 .content {
-    /* Altura mínima preenchendo tudo abaixo do cabeçalho */
     min-height: calc(100vh - 68px);
 }
 
-/* Cards de resumo (KPIs) com estilo especial */
 .summary-card {
-    /* Remove a borda padrão do card */
     border: none;
-    /* Gradiente suave de branco para verde claro */
     background: linear-gradient(135deg, #ffffff, #ecf8ed);
-    /* Cantos muito arredondados para estética moderna */
     border-radius: 1rem;
 }
 
-/* Estilo padrão para todos os cards da página */
 .card {
-    /* Cantos arredondados uniformes */
     border-radius: 1rem;
 }
 
-/* Espaço reservado para gráficos futuros */
 .chart-placeholder {
-    /* Altura mínima para dar espaço visível */
     min-height: 260px;
-    /* Borda tracejada verde para indicar que é um espaço futuro */
     border: 2px dashed #9dc7a0;
-    /* Cantos arredondados */
     border-radius: 1rem;
-    /* Fundo muito transparente do verde para não competir visualmente */
     background: rgba(47, 109, 58, 0.08);
 }
 
-/* Rodapé da página */
 .admin-footer {
-    /* Linha superior separando do conteúdo */
     border-top: 1px solid #d3e5d2;
-    /* Tamanho de texto ligeiramente menor */
     font-size: 0.95rem;
 }
 
-/* Botão de ação em estilo outline (contorno) com cor verde */
 .btn-outline-success {
-    /* Cor do texto e contorno em verde escuro */
     color: #1f5f30;
-    /* Cor da borda em verde escuro */
     border-color: #1f5f30;
 }
 
-/* Quando o botão é hover (mouse por cima) */
 .btn-outline-success:hover {
-    /* Fundo fica verde escuro */
     background: #1f5f30;
-    /* Texto fica branco para contraste */
     color: #ffffff;
 }
 
-/* Media query para telas médias e pequenas (máximo 991px) */
 @media (max-width: 991.98px) {
-    /* Em telas médias e pequenas, a sidebar aparece como painel sobreposto */
     .sidebar {
-        /* Posiciona de forma absoluta sobre o conteúdo */
         position: absolute;
-        /* Logo abaixo do cabeçalho */
         top: 68px;
-        /* Alinhado ao lado esquerdo */
         left: 0;
-        /* Ocupa toda a largura disponível */
         width: 100%;
-        /* Altura automática conforme o conteúdo */
         height: auto;
-        /* z-index alto para ficar sobre o conteúdo principal */
         z-index: 1050;
-        /* Sombra suave para destacar do fundo */
         box-shadow: 0 0 18px rgba(0, 0, 0, 0.12);
     }
 
-    /* Espaçamento adicional no topo do conteúdo para não ficar muito perto */
     .content {
         padding-top: 1rem;
     }
 }
 
-/* Media query para telas muito pequenas (máximo 767px - celulares) */
 @media (max-width: 767.98px) {
-    /* Em celulares, o cabeçalho permite quebra de linha */
     .admin-header {
-        /* Permite elementos irem para próxima linha se necessário */
         flex-wrap: wrap;
-        /* Espaçamento reduzido em telas muito pequenas */
         padding: 0.75rem 1rem;
     }
 
-    /* Botões e elementos da direita ocupam largura total */
     .header-right {
-        /* Ocupa toda a largura disponível */
         width: 100%;
-        /* Espaça os elementos nos extremos */
         justify-content: space-between;
     }
 }
