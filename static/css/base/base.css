@@ -169,6 +169,136 @@ body {
     font-size: 0.95rem;
 }
 
+/* Página de contato */
+.contact-page {
+    --contact-green: #76ad3d;
+    --contact-blue: #0a3445;
+    --contact-muted: #687a70;
+    max-width: 1320px;
+    margin: 0 auto;
+    color: #203a28;
+}
+
+.contact-heading {
+    margin: 0.5rem 0 2.5rem;
+}
+
+.contact-heading h1 {
+    color: var(--contact-blue);
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    margin-bottom: 0.6rem;
+}
+
+.contact-heading p {
+    color: var(--contact-muted);
+    font-size: 1.05rem;
+}
+
+.contact-card {
+    height: 100%;
+    padding: clamp(1.25rem, 2.5vw, 2rem) !important;
+    border: 1px solid #e4ebe5;
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 0.75rem 2rem rgba(20, 45, 30, 0.07);
+}
+
+.contact-card h2 {
+    color: var(--contact-blue);
+    font-size: 1.3rem;
+    font-weight: 700;
+    border-bottom: 1px solid #e5ebe6;
+    padding-bottom: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.contact-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    margin-top: 1.35rem;
+}
+
+.contact-info i {
+    display: inline-flex;
+    flex: 0 0 2.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.85rem;
+    background: #eff6e9;
+    color: #578b2e;
+    font-size: 1.2rem;
+}
+
+.contact-info strong {
+    display: block;
+    color: #203a28;
+    font-size: 0.98rem;
+    margin: 0.1rem 0 0.2rem;
+}
+
+.contact-info p {
+    margin: 0;
+    color: var(--contact-muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+.contact-form .form-label {
+    margin-bottom: 0.5rem;
+    color: #294437;
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.contact-form .form-control,
+.contact-form .form-select {
+    min-height: 2.9rem;
+    border-color: #dce5de;
+    border-radius: 0.65rem;
+    background-color: #fcfdfb;
+    color: #203a28;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.contact-form .form-control:focus,
+.contact-form .form-select:focus {
+    border-color: var(--contact-green);
+    background-color: #fff;
+    box-shadow: 0 0 0 0.22rem rgba(118, 173, 61, 0.16);
+}
+
+.contact-form textarea.form-control {
+    min-height: 10rem;
+    padding-top: 0.8rem;
+    resize: vertical;
+}
+
+.btn-contact {
+    min-height: 3.15rem;
+    border: 0;
+    border-radius: 0.65rem;
+    background: var(--contact-green);
+    color: #102b22;
+    font-weight: 700;
+    transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn-contact:hover {
+    background: #659638;
+    color: #fff;
+    box-shadow: 0 0.5rem 1rem rgba(88, 135, 46, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-contact:focus-visible {
+    box-shadow: 0 0 0 0.22rem rgba(118, 173, 61, 0.3);
+}
+
 /* Botão de ação em estilo outline (contorno) com cor verde */
 .btn-outline-success {
     /* Cor do texto e contorno em verde escuro */
@@ -411,5 +541,19 @@ body {
         width: 100%;
         /* Espaça os elementos nos extremos */
         justify-content: space-between;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .contact-heading {
+        margin: 0.25rem 0 1.5rem;
+    }
+
+    .contact-heading p {
+        font-size: 0.95rem;
+    }
+
+    .contact-card {
+        border-radius: 0.85rem;
     }
 }
