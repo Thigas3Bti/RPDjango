@@ -46,7 +46,9 @@
                      d-none d-md-block = esconde em telas pequenas, mostra em médias e grandes -->
                 <div class="d-none d-md-block text-muted" id="currentDate"></div>
                 <!-- Botão de acesso rápido para entrar no sistema -->
+                {% if not request.user.is_authenticated %}
                 <a class="btn btn-outline-success btn-sm" href="#">Entrar</a>
+                {% endif %}
             </div>
         </header>
 
