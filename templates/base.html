@@ -82,7 +82,115 @@
             <main class="content flex-fill p-4">
 
                 {% block content %}
+                <div class="dashboard-home">
+                    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm">
+                        <div class="row align-items-center g-4">
+                            <div class="col-lg-8">
+                                <span class="dashboard-kicker">RONDO PESCA · SUA COMUNIDADE</span>
+                                <h1 class="display-6 fw-bold mt-2 mb-2">
+                                    Bem-vindo, {{ request.user.first_name|default:request.user.username }}!
+                                </h1>
+                                <p class="mb-0 text-muted">
+                                    Prepare sua próxima pescaria com boas dicas, planejamento e respeito à natureza.
+                                </p>
+                            </div>
+                            <div class="col-lg-4 text-lg-end">
+                                <a class="btn btn-success px-4" href="#agenda-hoje">Planejar minha pescaria</a>
+                            </div>
+                        </div>
+                    </section>
 
+                    <section class="row g-4 mb-4" id="agenda-hoje">
+                        <div class="col-12 col-xl-7">
+                            <div class="card dashboard-card h-100 shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                        <div>
+                                            <span class="dashboard-kicker">SEU PLANEJAMENTO</span>
+                                            <h2 class="h4 fw-bold mt-2 mb-1">Para hoje</h2>
+                                            <p class="text-muted mb-0">Uma boa pescaria começa antes de chegar à água.</p>
+                                        </div>
+                                        <span class="dashboard-label">Checklist</span>
+                                    </div>
+                                    <ul class="dashboard-checklist list-unstyled mb-0">
+                                        <li><span class="dashboard-check">1</span><span><strong>Confira o local</strong><small>Veja a previsão do tempo, o nível da água e as regras de pesca da região.</small></span></li>
+                                        <li><span class="dashboard-check">2</span><span><strong>Separe o equipamento</strong><small>Revise linha, anzóis, iscas e o estado da sua vara antes de sair.</small></span></li>
+                                        <li><span class="dashboard-check">3</span><span><strong>Cuide da segurança</strong><small>Avise alguém sobre o destino e leve água, proteção solar e um kit básico.</small></span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-xl-5">
+                            <article class="card dashboard-card dashboard-tip h-100 shadow-sm" id="dicas">
+                                <div class="card-body p-4">
+                                    <span class="dashboard-kicker">DICA DE PESCADOR EXPERIENTE</span>
+                                    <h2 class="h4 fw-bold mt-2">Ajuste o freio do molinete</h2>
+                                    <p class="text-muted">
+                                        Evite deixar o freio totalmente travado. Um ajuste que permite a saída controlada da linha ajuda a evitar rompimentos durante a briga com o peixe.
+                                    </p>
+                                    <div class="dashboard-tip-note">
+                                        <strong>Para quem está começando:</strong> teste a regulagem puxando a linha com a mão antes do primeiro arremesso.
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="row g-4 mb-4">
+                        <div class="col-12 col-lg-7" id="eventos">
+                            <div class="card dashboard-card h-100 shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                        <div>
+                                            <span class="dashboard-kicker">FIQUE POR DENTRO</span>
+                                            <h2 class="h4 fw-bold mt-2 mb-1">Próximos eventos</h2>
+                                        </div>
+                                        <span class="dashboard-label">Comunidade</span>
+                                    </div>
+                                    <div class="dashboard-empty-state">
+                                        <h3 class="h6 fw-bold mb-2">Sua agenda de encontros começa aqui</h3>
+                                        <p class="text-muted mb-0">
+                                            Ainda não há eventos publicados. Enquanto isso, procure encontros e torneios promovidos por grupos de pesca da sua região e confirme as regras locais antes de participar.
+                                        </p>
+                                    </div>
+                                    <div class="row g-3 mt-1">
+                                        <div class="col-md-6">
+                                            <div class="dashboard-event-idea h-100">
+                                                <span class="dashboard-event-tag">IDEIA PARA A AGENDA</span>
+                                                <h3 class="h6 fw-bold mt-2 mb-1">Encontro de iniciantes</h3>
+                                                <p class="small text-muted mb-0">Combine uma pescaria em grupo para trocar experiências e aprender técnicas.</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="dashboard-event-idea h-100">
+                                                <span class="dashboard-event-tag">IDEIA PARA A AGENDA</span>
+                                                <h3 class="h6 fw-bold mt-2 mb-1">Ação de cuidado do local</h3>
+                                                <p class="small text-muted mb-0">Organize com a comunidade uma atividade para recolher resíduos nas margens.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-5">
+                            <div class="card dashboard-card h-100 shadow-sm">
+                                <div class="card-body p-4">
+                                    <span class="dashboard-kicker">ANTES DE SAIR</span>
+                                    <h2 class="h4 fw-bold mt-2 mb-3">O que levar</h2>
+                                    <ul class="dashboard-essentials list-unstyled mb-0">
+                                        <li>Vara, molinete e linha revisados</li>
+                                        <li>Anzóis, iscas e alicate</li>
+                                        <li>Água, lanche e proteção solar</li>
+                                        <li>Documento e itens básicos de segurança</li>
+                                        <li>Saco para trazer seu lixo de volta</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
                 {% endblock %}
                 <footer class="admin-footer text-center mt-4 py-3 text-muted">
                     <!-- Texto de copyright com ano e descrição do template -->
