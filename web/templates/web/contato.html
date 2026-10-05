@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contato | RondoPesca</title>
+    <style>
+        body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f5f8f3; color: #18313a; font-family: "Segoe UI", Tahoma, sans-serif; }
+        main { width: min(560px, calc(100% - 32px)); padding: 42px 34px; border-radius: 22px; background: #fff; box-shadow: 0 18px 45px rgba(8, 43, 59, .14); text-align: center; }
+        img { width: 90px; height: 90px; object-fit: contain; }
+        h1 { color: #082b3b; }
+        p { color: #5d7277; line-height: 1.6; }
+        a { display: inline-block; margin-top: 15px; padding: 12px 20px; border-radius: 999px; background: #8cc63f; color: #082b3b; font-weight: 700; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <main>
+        <img src="{% static 'images/Icone_Rondopesca.png' %}" alt="Logo RondoPesca">
+        <h1>Contato</h1>
+        <p>Em breve você poderá enviar suas dúvidas, sugestões e histórias de pesca por esta página.</p>
+        <a href="{% url 'home' %}">Voltar para o início</a>
+    </main>
+</body>
+</html>

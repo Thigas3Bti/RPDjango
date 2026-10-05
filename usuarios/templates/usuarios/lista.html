@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Usuários{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">Usuários cadastrados</h1>
+
+{% if usuarios %}
+    <div class="list-group">
+        {% for usuario in usuarios %}
+            <div class="list-group-item">
+                <h2 class="h5 mb-1">{{ usuario.nome }}</h2>
+                <p class="mb-0 text-muted">{{ usuario.email }}</p>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="text-muted">Nenhum usuário cadastrado.</p>
+{% endif %}
+{% endblock %}
