@@ -68,13 +68,14 @@
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Comunidade</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Dicas</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Eventos</a></li>
-                    <li class="nav-item mb-2"><a href="#" class="nav-link">Contato</a></li>
+                    <li class="nav-item mb-2"><a href="{% url 'contato' %}" class="nav-link">Contato</a></li>
                 </ul>
                 <!-- Rodapé da sidebar que é empurrado para o final usando margin-top: auto no CSS -->
                 <div class="sidebar-footer px-3 mt-auto pb-4">
                     <small class="text-white-50">Acesso rápido</small>
                     <!-- Texto informativo sobre o uso do menu -->
                     <p class="small mt-2 text-white-50 mb-0">Clique nos itens do menu para navegar.</p>
+                    <a href="{% url 'contato' %}" class="btn btn-outline-light btn-sm mt-3">Fale conosco</a>
                 </div>
             </nav>
 

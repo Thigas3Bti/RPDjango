@@ -1,25 +1,194 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contato | RondoPesca</title>
-    <style>
-        body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f5f8f3; color: #18313a; font-family: "Segoe UI", Tahoma, sans-serif; }
-        main { width: min(560px, calc(100% - 32px)); padding: 42px 34px; border-radius: 22px; background: #fff; box-shadow: 0 18px 45px rgba(8, 43, 59, .14); text-align: center; }
-        img { width: 90px; height: 90px; object-fit: contain; }
-        h1 { color: #082b3b; }
-        p { color: #5d7277; line-height: 1.6; }
-        a { display: inline-block; margin-top: 15px; padding: 12px 20px; border-radius: 999px; background: #8cc63f; color: #082b3b; font-weight: 700; text-decoration: none; }
-    </style>
-</head>
-<body>
-    <main>
-        <img src="{% static 'images/Icone_Rondopesca.png' %}" alt="Logo RondoPesca">
-        <h1>Contato</h1>
-        <p>Em breve você poderá enviar suas dúvidas, sugestões e histórias de pesca por esta página.</p>
-        <a href="{% url 'home' %}">Voltar para o início</a>
-    </main>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Contato | RondoPesca{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    .contact-page {
+        max-width: 1220px;
+        margin: 0 auto;
+        color: #203a28;
+    }
+
+    .contact-heading {
+        margin: 1.25rem 0 2.75rem;
+    }
+
+    .contact-heading h1 {
+        color: #0a3445;
+        font-size: clamp(2rem, 4vw, 2.6rem);
+        font-weight: 700;
+    }
+
+    .contact-heading p {
+        color: #64736b;
+    }
+
+    .contact-card {
+        height: 100%;
+        border: 1px solid rgba(32, 58, 40, 0.06);
+        border-radius: 0.6rem;
+        background: #fff;
+        box-shadow: 0 0.15rem 0.4rem rgba(20, 45, 30, 0.08);
+    }
+
+    .contact-card h2 {
+        color: #0a3445;
+        font-size: 1.25rem;
+        font-weight: 700;
+        border-bottom: 1px solid #d9e2dc;
+        padding-bottom: 0.65rem;
+    }
+
+    .contact-info {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .contact-info i {
+        color: #76ad3d;
+        font-size: 1.35rem;
+        line-height: 1.4;
+    }
+
+    .contact-info p {
+        margin: 0.15rem 0 0;
+        color: #64736b;
+        font-size: 0.95rem;
+    }
+
+    .contact-form .form-label {
+        margin-bottom: 0.4rem;
+        font-weight: 600;
+    }
+
+    .contact-form .form-control,
+    .contact-form .form-select {
+        min-height: 2.6rem;
+        border-color: #d5ded8;
+        border-radius: 0.4rem;
+    }
+
+    .contact-form .form-control:focus,
+    .contact-form .form-select:focus {
+        border-color: #76ad3d;
+        box-shadow: 0 0 0 0.2rem rgba(118, 173, 61, 0.18);
+    }
+
+    .contact-form textarea.form-control {
+        min-height: 8rem;
+        resize: vertical;
+    }
+
+    .btn-contact {
+        min-height: 3rem;
+        border-color: #76ad3d;
+        background: #76ad3d;
+        color: #102b22;
+        font-weight: 700;
+    }
+
+    .btn-contact:hover {
+        border-color: #639333;
+        background: #639333;
+        color: #fff;
+    }
+
+    @media (max-width: 575.98px) {
+        .contact-heading {
+            margin: 0.5rem 0 1.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="contact-page py-2">
+    <header class="contact-heading text-center">
+        <h1>Fale com o RondoPesca</h1>
+        <p class="mb-0">Tire suas dúvidas, envie sugestões ou compartilhe sua experiência de pesca.</p>
+    </header>
+
+    <div class="row justify-content-center g-4">
+        <div class="col-12 col-lg-4">
+            <section class="contact-card p-4 p-lg-4" aria-labelledby="contact-information-title">
+                <h2 id="contact-information-title">Informações de Contato</h2>
+
+                <div class="contact-info">
+                    <i class="bi bi-chat-dots" aria-hidden="true"></i>
+                    <div>
+                        <strong>Comunidade:</strong>
+                        <p>Um espaço para pescadores compartilharem dúvidas e experiências.</p>
+                    </div>
+                </div>
+
+                <div class="contact-info">
+                    <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                    <div>
+                        <strong>Localização:</strong>
+                        <p>Rondônia, Brasil</p>
+                    </div>
+                </div>
+
+                <div class="contact-info">
+                    <i class="bi bi-envelope" aria-hidden="true"></i>
+                    <div>
+                        <strong>Fale conosco:</strong>
+                        <p>Use o formulário ao lado para enviar sua mensagem.</p>
+                    </div>
+                </div>
+
+                <div class="contact-info">
+                    <i class="bi bi-send" aria-hidden="true"></i>
+                    <div>
+                        <strong>Assuntos:</strong>
+                        <p>Dúvidas, sugestões, dicas e experiências de pesca.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-12 col-lg-8">
+            <section class="contact-card p-4 p-lg-4" aria-labelledby="contact-form-title">
+                <h2 id="contact-form-title">Envie uma Mensagem</h2>
+                <form class="contact-form" aria-label="Formulário de contato">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="contact-name" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="contact-name" name="nome"
+                                   placeholder="Seu nome" autocomplete="name" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="contact-email" class="form-label">E-mail</label>
+                            <input type="email" class="form-control" id="contact-email" name="email"
+                                   placeholder="seu@email.com" autocomplete="email" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="contact-topic" class="form-label">Assunto</label>
+                            <select class="form-select" id="contact-topic" name="assunto" required>
+                                <option value="" selected disabled>Selecione uma opção...</option>
+                                <option>Dúvida</option>
+                                <option>Sugestão</option>
+                                <option>Dica ou experiência de pesca</option>
+                                <option>Outro assunto</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label for="contact-message" class="form-label">Mensagem</label>
+                            <textarea class="form-control" id="contact-message" name="mensagem"
+                                      placeholder="Escreva sua mensagem aqui..." required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-contact w-100">
+                                <i class="bi bi-send me-2" aria-hidden="true"></i>Enviar Mensagem
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+</section>
+{% endblock %}
