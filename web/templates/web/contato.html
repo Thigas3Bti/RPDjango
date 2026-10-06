@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Contato | RondoPesca{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock %}
+
+{% block content %}
+<section class="contact-page py-2">
+    <header class="contact-heading text-center">
+        <h1>Fale com o RondoPesca</h1>
+        <p class="mb-0">Tire suas dúvidas, envie sugestões ou compartilhe sua experiência de pesca.</p>
+    </header>
+
+    <div class="row justify-content-center g-4">
+        <div class="col-12 col-lg-4">
+            <section class="contact-card p-4 p-lg-4" aria-labelledby="contact-information-title">
+                <h2 id="contact-information-title">Informações de Contato</h2>
+
+                <div class="contact-info">
+                    <i class="bi bi-chat-dots" aria-hidden="true"></i>
+                    <div>
+                        <strong>Comunidade:</strong>
+                        <p>Um espaço para pescadores compartilharem dúvidas e experiências.</p>
+                    </div>
+                </div>
+
+                <div class="contact-info">
+                    <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                    <div>
+                        <strong>Localização:</strong>
+                        <p>Rondônia, Brasil</p>
+                    </div>
+                </div>
+
+                <div class="contact-info">
+                    <i class="bi bi-envelope" aria-hidden="true"></i>
+                    <div>
+                        <strong>Fale conosco:</strong>
+                        <p>Use o formulário ao lado para enviar sua mensagem.</p>
+                    </div>
+                </div>
+
+                <div class="contact-info">
+                    <i class="bi bi-send" aria-hidden="true"></i>
+                    <div>
+                        <strong>Assuntos:</strong>
+                        <p>Dúvidas, sugestões, dicas e experiências de pesca.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-12 col-lg-8">
+            <section class="contact-card p-4 p-lg-4" aria-labelledby="contact-form-title">
+                <h2 id="contact-form-title">Envie uma Mensagem</h2>
+                <form class="contact-form" aria-label="Formulário de contato">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="contact-name" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="contact-name" name="nome"
+                                   placeholder="Seu nome" autocomplete="name" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="contact-email" class="form-label">E-mail</label>
+                            <input type="email" class="form-control" id="contact-email" name="email"
+                                   placeholder="seu@email.com" autocomplete="email" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="contact-topic" class="form-label">Assunto</label>
+                            <select class="form-select" id="contact-topic" name="assunto" required>
+                                <option value="" selected disabled>Selecione uma opção...</option>
+                                <option>Dúvida</option>
+                                <option>Sugestão</option>
+                                <option>Dica ou experiência de pesca</option>
+                                <option>Outro assunto</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label for="contact-message" class="form-label">Mensagem</label>
+                            <textarea class="form-control" id="contact-message" name="mensagem"
+                                      placeholder="Escreva sua mensagem aqui..." required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-contact w-100">
+                                <i class="bi bi-send me-2" aria-hidden="true"></i>Enviar Mensagem
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+</section>
+{% endblock %}
