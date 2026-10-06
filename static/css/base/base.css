@@ -1,1 +1,559 @@
-asdd
+/* Reset básico para caixa de borda */
+* {
+    /* box-sizing: border-box faz com que padding e border sejam incluídos na largura/altura
+       ao invés de serem adicionados depois. Isso facilita o cálculo de tamanhos */
+    box-sizing: border-box;
+}
+
+/* Estilo global do corpo com paleta verde suave */
+body {
+    /* Remove espaçamento padrão do navegador */
+    margin: 0;
+    /* Define a fonte padrão para  o texto da página */
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    /* Fundo verde muito claro e suave para tema de pesca */
+    background: #e9f3e8;
+    /* Cor do texto escura com tom esverdeado */
+    color: #203a28;
+}
+
+/* Container principal que ocupa  a altura da janela */
+.admin-layout {
+    /* Define altura mínima como 100% da altura da viewport */
+    min-height: 100vh;
+    /* Flexbox coloca os elementos filhos em coluna (verticalmente) */
+    display: flex;
+    /* Organiza os filhos em coluna (cabeçalho no topo, conteúdo abaixo) */
+    flex-direction: column;
+}
+
+/* Cabeçalho fixo no topo com identidade visual */
+.admin-header {
+    /* Fixa o elemento no topo mesmo ao fazer scroll */
+    position: sticky;
+    /* Topo: 0 mantém o cabeçalho sempre visível no início */
+    top: 0;
+    /* z-index controla qual elemento aparece por cima dos outros; 1000 é muito alto */
+    z-index: 1000;
+    /* Fundo branco com leve tom verde */
+    background: #f8fcf6;
+    /* Linha divisória sutil abaixo do cabeçalho */
+    border-bottom: 1px solid #d3e5d2;
+    /* Espaçamento interno do cabeçalho */
+    padding: 0.75rem 1.25rem;
+    /* Flexbox para alinhar logo e botões horizontalmente */
+    display: flex;
+    /* Espaça os elementos para extremos opostos */
+    justify-content: space-between;
+    /* Alinha verticalmente ao centro */
+    align-items: center;
+    /* Espaço entre elementos filhos */
+    gap: 1rem;
+}
+
+/* Estilo da marca RondoPesca no cabeçalho */
+.admin-header .brand {
+    /* Peso da fonte (700 = negrito) */
+    font-weight: 700;
+    /* Tamanho grande para destaque */
+    font-size: 1.2rem;
+    /* Cor verde escura para o nome principal */
+    color: #1f5f30;
+}
+
+/* Cor do sobrenome "Pesca" em tom verde médio */
+.admin-header .brand span {
+    color: #386a3d;
+}
+
+/* Menu lateral (sidebar) com navegação */
+.sidebar {
+    /* Largura fixa da sidebar */
+    width: 250px;
+    /* Altura começa após o cabeçalho (68px) até o fim da tela */
+    min-height: calc(100vh - 68px);
+    /* Flexbox organiza itens verticalmente */
+    display: flex;
+    /* Coloca filhos em coluna (menu, espaço vazio, footer) */
+    flex-direction: column;
+    /* Esconde o conteúdo que sai do limite da sidebar */
+    overflow: hidden;
+    /* Verde médio para a sidebar - cor padrão */
+    background: #2f6d3a;
+}
+
+/* Classe auxiliar para aplicar verde suave (usado com Bootstrap) */
+.bg-soft-green {
+    /* !important força essa cor a ser usada mesmo com outras classes */
+    background: #5d9262 !important;
+}
+
+/* Cabeçalho interno da sidebar com nome do site */
+.sidebar-header {
+    /* Linha divisória sutil separando o header do menu */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Links de menu dentro da sidebar */
+.sidebar .nav-link {
+    /* Branco com certa transparência para ler bem no fundo verde */
+    color: rgba(255, 255, 255, 0.92);
+    /* Espaçamento interno do link */
+    padding: 0.75rem 0.75rem;
+    /* Deixa os links com cantos arredondados */
+    border-radius: 0.5rem;
+}
+
+/* Estilo quando o link é hover (mouse por cima) ou está ativo */
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    /* Fundo branco semitransparente para destaque ao passar o mouse */
+    background: rgba(255, 255, 255, 0.18);
+    /* Texto branco total quando ativo ou hover */
+    color: #ffffff;
+    /* Remove sublinhado de link */
+    text-decoration: none;
+}
+
+/* Rodapé da sidebar com espaço para informações adicionais */
+.sidebar-footer {
+    /* mt-auto empurra esse elemento para o final da sidebar */
+    margin-top: auto;
+}
+
+/* Corpo principal que contém sidebar e conteúdo */
+.admin-body {
+    /* Flex com valor 1 faz esse elemento crescer e ocupar espaço disponível */
+    flex: 1;
+}
+
+/* Área de conteúdo principal da página */
+.content {
+    /* Altura mínima preenchendo tudo abaixo do cabeçalho */
+    min-height: calc(100vh - 68px);
+}
+
+/* Cards de resumo (KPIs) com estilo especial */
+.summary-card {
+    /* Remove a borda padrão do card */
+    border: none;
+    /* Gradiente suave de branco para verde claro */
+    background: linear-gradient(135deg, #ffffff, #ecf8ed);
+    /* Cantos muito arredondados para estética moderna */
+    border-radius: 1rem;
+}
+
+/* Estilo padrão para todos os cards da página */
+.card {
+    /* Cantos arredondados uniformes */
+    border-radius: 1rem;
+}
+
+/* Espaço reservado para gráficos futuros */
+.chart-placeholder {
+    /* Altura mínima para dar espaço visível */
+    min-height: 260px;
+    /* Borda tracejada verde para indicar que é um espaço futuro */
+    border: 2px dashed #9dc7a0;
+    /* Cantos arredondados */
+    border-radius: 1rem;
+    /* Fundo muito transparente do verde para não competir visualmente */
+    background: rgba(47, 109, 58, 0.08);
+}
+
+/* Rodapé da página */
+.admin-footer {
+    /* Linha superior separando do conteúdo */
+    border-top: 1px solid #d3e5d2;
+    /* Tamanho de texto ligeiramente menor */
+    font-size: 0.95rem;
+}
+
+/* Página de contato */
+.contact-page {
+    --contact-green: #76ad3d;
+    --contact-blue: #0a3445;
+    --contact-muted: #687a70;
+    max-width: 1320px;
+    margin: 0 auto;
+    color: #203a28;
+}
+
+.contact-heading {
+    margin: 0.5rem 0 2.5rem;
+}
+
+.contact-heading h1 {
+    color: var(--contact-blue);
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    margin-bottom: 0.6rem;
+}
+
+.contact-heading p {
+    color: var(--contact-muted);
+    font-size: 1.05rem;
+}
+
+.contact-card {
+    height: 100%;
+    padding: clamp(1.25rem, 2.5vw, 2rem) !important;
+    border: 1px solid #e4ebe5;
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 0.75rem 2rem rgba(20, 45, 30, 0.07);
+}
+
+.contact-card h2 {
+    color: var(--contact-blue);
+    font-size: 1.3rem;
+    font-weight: 700;
+    border-bottom: 1px solid #e5ebe6;
+    padding-bottom: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.contact-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    margin-top: 1.35rem;
+}
+
+.contact-info i {
+    display: inline-flex;
+    flex: 0 0 2.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.85rem;
+    background: #eff6e9;
+    color: #578b2e;
+    font-size: 1.2rem;
+}
+
+.contact-info strong {
+    display: block;
+    color: #203a28;
+    font-size: 0.98rem;
+    margin: 0.1rem 0 0.2rem;
+}
+
+.contact-info p {
+    margin: 0;
+    color: var(--contact-muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+.contact-form .form-label {
+    margin-bottom: 0.5rem;
+    color: #294437;
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.contact-form .form-control,
+.contact-form .form-select {
+    min-height: 2.9rem;
+    border-color: #dce5de;
+    border-radius: 0.65rem;
+    background-color: #fcfdfb;
+    color: #203a28;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.contact-form .form-control:focus,
+.contact-form .form-select:focus {
+    border-color: var(--contact-green);
+    background-color: #fff;
+    box-shadow: 0 0 0 0.22rem rgba(118, 173, 61, 0.16);
+}
+
+.contact-form textarea.form-control {
+    min-height: 10rem;
+    padding-top: 0.8rem;
+    resize: vertical;
+}
+
+.btn-contact {
+    min-height: 3.15rem;
+    border: 0;
+    border-radius: 0.65rem;
+    background: var(--contact-green);
+    color: #102b22;
+    font-weight: 700;
+    transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn-contact:hover {
+    background: #659638;
+    color: #fff;
+    box-shadow: 0 0.5rem 1rem rgba(88, 135, 46, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-contact:focus-visible {
+    box-shadow: 0 0 0 0.22rem rgba(118, 173, 61, 0.3);
+}
+
+/* Botão de ação em estilo outline (contorno) com cor verde */
+.btn-outline-success {
+    /* Cor do texto e contorno em verde escuro */
+    color: #1f5f30;
+    /* Cor da borda em verde escuro */
+    border-color: #1f5f30;
+}
+
+/* Quando o botão é hover (mouse por cima) */
+.btn-outline-success:hover {
+    /* Fundo fica verde escuro */
+    background: #1f5f30;
+    /* Texto fica branco para contraste */
+    color: #ffffff;
+}
+
+/* Tela de login */
+.login-page {
+    min-height: calc(100vh - 140px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 460px;
+    border: 1px solid #d3e5d2;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #ffffff, #f3faf1);
+}
+
+.login-card h1 {
+    color: #1f5f30;
+}
+
+.login-form p {
+    margin-bottom: 1rem;
+}
+
+.login-form label {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: #203a28;
+    font-weight: 600;
+}
+
+.login-form input {
+    display: block;
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #b8cfb6;
+    border-radius: 0.5rem;
+    background-color: #fff;
+}
+
+.login-form input:focus {
+    border-color: #5d9262;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(93, 146, 98, 0.2);
+}
+
+.login-form ul.errorlist {
+    margin: 0 0 0.5rem;
+    padding-left: 1.25rem;
+    color: #b02a37;
+    font-size: 0.9rem;
+}
+
+/* Página inicial do painel */
+.dashboard-home {
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
+.dashboard-welcome {
+    border: 1px solid #d3e5d2;
+    border-left: 5px solid #5d9262;
+    border-radius: 1rem;
+    background: linear-gradient(120deg, #ffffff, #edf6e9);
+}
+
+.dashboard-welcome h1,
+.dashboard-card h2 {
+    color: #1f5f30;
+}
+
+.dashboard-kicker {
+    color: #5d9262;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+}
+
+.dashboard-card {
+    border: 1px solid #e0eadf;
+    background-color: #fff;
+}
+
+.dashboard-label,
+.dashboard-event-tag {
+    display: inline-block;
+    border-radius: 999px;
+    background: #edf6e9;
+    color: #386a3d;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.4rem 0.7rem;
+    white-space: nowrap;
+}
+
+.dashboard-checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid #edf1ec;
+}
+
+.dashboard-checklist li:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.dashboard-check {
+    display: inline-flex;
+    flex: 0 0 2rem;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #edf6e9;
+    color: #1f5f30;
+    font-weight: 700;
+}
+
+.dashboard-checklist strong {
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.dashboard-checklist small {
+    display: block;
+    color: #6c757d;
+    line-height: 1.5;
+}
+
+.dashboard-tip {
+    border-top: 4px solid #76ad3d;
+    background: linear-gradient(145deg, #ffffff, #f4f8ef);
+}
+
+.dashboard-tip-note {
+    border-radius: 0.65rem;
+    background: #edf6e9;
+    color: #315b37;
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+}
+
+.dashboard-empty-state {
+    border: 1px dashed #b8cfb6;
+    border-radius: 0.75rem;
+    background: #f8fcf6;
+    padding: 1rem;
+}
+
+.dashboard-event-idea {
+    height: 100%;
+    border: 1px solid #e0eadf;
+    border-radius: 0.75rem;
+    padding: 1rem;
+}
+
+.dashboard-event-tag {
+    background: transparent;
+    padding: 0;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+}
+
+.dashboard-essentials li {
+    position: relative;
+    padding: 0.7rem 0 0.7rem 1.5rem;
+    border-bottom: 1px solid #edf1ec;
+}
+
+.dashboard-essentials li:last-child {
+    border-bottom: 0;
+}
+
+.dashboard-essentials li::before {
+    position: absolute;
+    left: 0;
+    color: #5d9262;
+    content: "\2713";
+    font-weight: 700;
+}
+
+/* Media query para telas médias e pequenas (máximo 991px) */
+@media (max-width: 991.98px) {
+    /* Em telas médias e pequenas, a sidebar aparece como painel sobreposto */
+    .sidebar {
+        /* Posiciona de forma absoluta sobre o conteúdo */
+        position: absolute;
+        /* Logo abaixo do cabeçalho */
+        top: 68px;
+        /* Alinhado ao lado esquerdo */
+        left: 0;
+        /* Ocupa toda a largura disponível */
+        width: 100%;
+        /* Altura automática conforme o conteúdo */
+        height: auto;
+        /* z-index alto para ficar sobre o conteúdo principal */
+        z-index: 1050;
+        /* Sombra suave para destacar do fundo */
+        box-shadow: 0 0 18px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Espaçamento adicional no topo do conteúdo para não ficar muito perto */
+    .content {
+        padding-top: 1rem;
+    }
+}
+
+/* Media query para telas muito pequenas (máximo 767px - celulares) */
+@media (max-width: 767.98px) {
+    /* Em celulares, o cabeçalho permite quebra de linha */
+    .admin-header {
+        /* Permite elementos irem para próxima linha se necessário */
+        flex-wrap: wrap;
+        /* Espaçamento reduzido em telas muito pequenas */
+        padding: 0.75rem 1rem;
+    }
+
+    /* Botões e elementos da direita ocupam largura total */
+    .header-right {
+        /* Ocupa toda a largura disponível */
+        width: 100%;
+        /* Espaça os elementos nos extremos */
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .contact-heading {
+        margin: 0.25rem 0 1.5rem;
+    }
+
+    .contact-heading p {
+        font-size: 0.95rem;
+    }
+
+    .contact-card {
+        border-radius: 0.85rem;
+    }
+}
