@@ -72,6 +72,7 @@
         <div class="admin-body d-flex">
             <!-- Menu lateral (sidebar) responsivo - aparece como painel em telas pequenas 
                  collapse d-lg-block = começa fechado (collapse) e fica visível (d-block) em telas grandes (lg) -->
+            {% if request.resolver_match.url_name != 'login' %}
             <nav id="sidebarMenu" class="collapse d-lg-block sidebar bg-soft-green text-white">
                 <!-- Cabeçalho interno da sidebar com nome do site -->
                 <div class="sidebar-header p-4">
@@ -96,6 +97,7 @@
                     <a href="{% url 'contato' %}" class="btn btn-outline-light btn-sm mt-3">Fale conosco</a>
                 </div>
             </nav>
+            {% endif %}
 
             <!-- Área de conteúdo principal que se expande para ocupar espaço disponível (flex-fill) -->
             <main class="content flex-fill p-4">
