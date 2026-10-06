@@ -1,7 +1,8 @@
-from django.contrib.auth import login as auth_login
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+
+from .forms import LoginForm
 
 
 def home(request):
@@ -18,15 +19,18 @@ def painel(request):
 
 
 def login(request):
-    form = AuthenticationForm(
+    form = LoginForm(
         request,
         data=request.POST if request.method == 'POST' else None,
     )
-    form.fields['username'].label = 'Username'
-    form.fields['password'].label = 'Senha'
 
     if request.method == 'POST' and form.is_valid():
         auth_login(request, form.get_user())
         return redirect('painel')
 
     return render(request, 'usuarios/acesso/login.html', {'form': form})
+
+
+def logout(request):
+    auth_logout(request)
+    return redirect('home')
