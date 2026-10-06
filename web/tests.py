@@ -48,8 +48,31 @@ class UserMenuTests(TestCase):
 
         self.assertContains(response, 'Menu do usuário')
         self.assertContains(response, 'Ver perfil')
+        self.assertContains(response, f'href="{reverse("perfil")}"')
         self.assertContains(response, reverse('logout'))
         self.assertNotContains(response, '>Entrar</a>')
+
+    def test_profile_requires_login(self):
+        response = self.client.get(reverse('perfil'))
+
+        self.assertRedirects(response, f'{reverse("login")}?next={reverse("perfil")}')
+
+    def test_authenticated_user_can_view_profile(self):
+        user = User.objects.create_user(
+            username='pescador',
+            password='senha-correta',
+            first_name='João',
+            last_name='Silva',
+            email='joao@example.com',
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse('perfil'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Meu perfil')
+        self.assertContains(response, 'João Silva')
+        self.assertContains(response, 'joao@example.com')
 
     def test_logout_clears_session_and_redirects_home(self):
         user = User.objects.create_user(username='pescador', password='senha-correta')

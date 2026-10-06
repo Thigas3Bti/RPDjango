@@ -53,7 +53,7 @@
                         <i class="bi bi-person-circle" aria-hidden="true"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">Ver perfil</a></li>
+                        <li><a class="dropdown-item" href="{% url 'perfil' %}">Ver perfil</a></li>
                         <li>
                             <form method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}
@@ -82,7 +82,7 @@
                 <!-- Lista de links de navegação do menu -->
                 <ul class="nav flex-column px-3">
                     <!-- Cada item do menu é um link que pode ter a classe "active" para destacar o item atual -->
-                    <li class="nav-item mb-2"><a href="#" class="nav-link active">Início</a></li>
+                    <li class="nav-item mb-2"><a href="" class="nav-link active">Início</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Comunidade</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Dicas</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Eventos</a></li>
