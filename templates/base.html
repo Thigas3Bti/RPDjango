@@ -82,11 +82,11 @@
                 <!-- Lista de links de navegação do menu -->
                 <ul class="nav flex-column px-3">
                     <!-- Cada item do menu é um link que pode ter a classe "active" para destacar o item atual -->
-                    <li class="nav-item mb-2"><a href="#" class="nav-link active">Início</a></li>
+                    <li class="nav-item mb-2"><a href="{% url 'inicio' %}" class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">Início</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Comunidade</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Dicas</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Eventos</a></li>
-                    <li class="nav-item mb-2"><a href="{% url 'contato' %}" class="nav-link">Contato</a></li>
+                    <li class="nav-item mb-2"><a href="{% url 'contato' %}" class="nav-link {% if request.resolver_match.url_name == 'contato' %}active{% endif %}">Contato</a></li>
                 </ul>
                 <!-- Rodapé da sidebar que é empurrado para o final usando margin-top: auto no CSS -->
                 <div class="sidebar-footer px-3 mt-auto pb-4">
