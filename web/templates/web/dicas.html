@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Dicas de Pesca | RondoPesca{% endblock %}
+
+{% block content %}
+<div class="dashboard-home">
+    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm">
+        <span class="dashboard-kicker">APRENDA NO SEU RITMO</span>
+        <h1 class="display-6 fw-bold mt-2 mb-2">Guia de pesca: do básico ao avançado</h1>
+        <p class="mb-0 text-muted">Abra cada nível para ver explicações e sugestões práticas. As técnicas variam conforme a espécie, o ambiente e as regras locais.</p>
+    </section>
+
+    {% if messages %}
+    <div class="mb-3" aria-live="polite">
+        {% for message in messages %}
+        <div class="alert alert-success" role="status">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <section class="mb-4" aria-label="Dicas organizadas por nível de experiência">
+        <div class="row align-items-end g-2 mb-3">
+            <div class="col-12 col-md-6 col-lg-4">
+                <label for="filtro-nivel" class="form-label fw-semibold">Filtrar dicas por nível</label>
+                <select class="form-select" id="filtro-nivel">
+                    <option value="todos">Todos os níveis</option>
+                    <option value="iniciante">Iniciante</option>
+                    <option value="intermediario">Intermediário</option>
+                    <option value="avancado">Avançado</option>
+                    <option value="veterano">Veterano</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <p class="small text-muted mb-2" id="resultado-filtro" aria-live="polite">Exibindo todos os níveis.</p>
+            </div>
+            <div class="col-12 col-md-3 text-md-end">
+                <a class="btn btn-success" href="{% url 'adicionar_dica' %}">
+                    <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Adicionar nova dica
+                </a>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-12 col-xl-6 dica-nivel" data-nivel="iniciante">
+                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
+                    <summary class="fw-bold">
+                        <span class="dashboard-kicker d-block mb-1">NÍVEL 1 · PRIMEIROS PASSOS</span>
+                        <span class="h5">Iniciante: segurança e fundamentos</span>
+                        <span class="d-block small text-muted fw-normal mt-1">Entenda o que preparar antes de arremessar.</span>
+                    </summary>
+                    <ul class="mt-3 mb-0 ps-3">
+                        <li class="mb-2"><strong>Conheça as regras do local:</strong> confirme quais espécies podem ser pescadas, limites de captura, períodos de defeso, licença necessária e regras específicas da área. Consulte os órgãos ambientais responsáveis; a legislação pode mudar conforme o lugar e a época.</li>
+                        <li class="mb-2"><strong>Escolha um conjunto simples:</strong> use uma vara e um molinete ou carretilha adequados ao tipo de pesca. Confira as indicações de linha e peso de arremesso do fabricante; equipamento equilibrado facilita o controle e o aprendizado.</li>
+                        <li class="mb-2"><strong>Monte e revise a linha:</strong> pratique um nó apropriado para o tipo de linha e para o anzol, snap ou girador usado. Aperte os nós com cuidado, umedeça monofilamento antes de apertá-lo e substitua trechos ásperos, desfiados ou danificados.</li>
+                        <li class="mb-2"><strong>Treine o arremesso em segurança:</strong> verifique se há pessoas, árvores ou obstáculos atrás e ao redor. Faça movimentos controlados, sem força exagerada; primeiro priorize direção e precisão, depois aumente a distância.</li>
+                        <li><strong>Leve o essencial:</strong> água, proteção solar, alicate, recipiente para recolher o lixo e um meio de comunicação. Em embarcações, use colete salva-vidas adequado; avise alguém sobre seu destino e horário previsto de retorno.</li>
+                    </ul>
+                </details>
+            </div>
+
+            <div class="col-12 col-xl-6 dica-nivel" data-nivel="intermediario">
+                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
+                    <summary class="fw-bold">
+                        <span class="dashboard-kicker d-block mb-1">NÍVEL 2 · OBSERVAÇÃO E CONTROLE</span>
+                        <span class="h5">Intermediário: local, isca e apresentação</span>
+                        <span class="d-block small text-muted fw-normal mt-1">Aprenda a procurar o peixe e a adaptar sua estratégia.</span>
+                    </summary>
+                    <ul class="mt-3 mb-0 ps-3">
+                        <li class="mb-2"><strong>Observe a água antes de escolher o ponto:</strong> margens com vegetação, galhadas, pedras, mudanças de profundidade e encontros de corrente podem concentrar abrigo ou alimento. São pistas, não garantias: considere a espécie, a estação e as condições do dia. Observe também sinais de atividade, como peixes caçando, insetos na superfície ou pequenas presas; evite se aproximar fazendo sombra ou ruído desnecessário.</li>
+                        <li class="mb-2"><strong>Combine isca e espécie:</strong> informe-se sobre a alimentação e o tamanho das presas da espécie-alvo. Iscas naturais e artificiais pedem apresentações diferentes; use apenas iscas permitidas no local e evite introduzir espécies ou organismos na água. Prenda a isca com firmeza, mas sem esconder completamente sua ação; confira-a após um arremesso ou contato com vegetação.</li>
+                        <li class="mb-2"><strong>Teste a apresentação com método:</strong> varie uma coisa de cada vez — profundidade, velocidade, pausas, cor ou tamanho. Isso ajuda a entender qual mudança pode ter feito diferença, em vez de trocar várias partes do conjunto ao mesmo tempo. Comece explorando áreas próximas e depois amplie a distância; arremessos precisos para pontos promissores costumam ser mais úteis do que apenas lançar o mais longe possível.</li>
+                        <li class="mb-2"><strong>Entenda o que a linha informa:</strong> mantenha contato com a isca sem deixá-la presa ou rígida demais. Um toque, uma parada inesperada ou uma mudança de peso podem indicar uma mordida ou contato com o fundo; recolha o excesso de linha com calma e observe antes de reagir.</li>
+                        <li class="mb-2"><strong>Ajuste o freio do molinete ou carretilha:</strong> não o deixe totalmente travado. A linha deve sair de modo controlado quando o peixe puxa; teste a regulagem antes de pescar e faça ajustes progressivos de acordo com o conjunto, o nó e os obstáculos. Aprenda também a lançar com o freio de arremesso adequado: na carretilha, uma regulagem incorreta pode causar cabeleira e perda de linha.</li>
+                        <li class="mb-2"><strong>Trabalhe a isca com regularidade:</strong> use movimentos compatíveis com o tipo de isca e faça pausas para observar a resposta. Se não houver atividade após várias tentativas em profundidades diferentes, mude o ponto ou a estratégia em vez de insistir indefinidamente no mesmo lugar.</li>
+                        <li class="mb-2"><strong>Cuide do peixe capturado:</strong> deixe alicate ou ferramenta de remoção acessível antes de começar. Se a captura e soltura forem permitidas, molhe as mãos, evite apertar guelras e olhos, reduza o tempo fora d'água e apoie o peixe ao devolvê-lo.</li>
+                        <li><strong>Registre as condições:</strong> anote horário, local, nível e transparência da água, clima, isca, profundidade aproximada e resultado, inclusive quando não houver captura. Com o tempo, esses registros ajudam a reconhecer padrões sem transformar uma coincidência em regra.</li>
+                    </ul>
+                </details>
+            </div>
+
+            <div class="col-12 col-xl-6 dica-nivel" data-nivel="avancado">
+                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
+                    <summary class="fw-bold">
+                        <span class="dashboard-kicker d-block mb-1">NÍVEL 3 · AJUSTE TÉCNICO</span>
+                        <span class="h5">Avançado: equipamento e leitura da pescaria</span>
+                        <span class="d-block small text-muted fw-normal mt-1">Ajuste o material e interprete melhor o que acontece na linha.</span>
+                    </summary>
+                    <ul class="mt-3 mb-0 ps-3">
+                        <li class="mb-2"><strong>Dimensione o conjunto para a situação:</strong> considere a ação e potência da vara, o peso da isca, a distância do arremesso, a corrente e a presença de estruturas. Linha, líder, anzóis e nós devem ser compatíveis entre si e inspecionados antes de cada saída. Respeite as faixas indicadas no equipamento: uma isca fora do peso recomendado pode prejudicar o arremesso e danificar a vara.</li>
+                        <li class="mb-2"><strong>Escolha a linha pensando no ambiente:</strong> monofilamento, fluorocarbono e multifilamento têm elasticidade, visibilidade, resistência à abrasão e comportamento diferentes. Não existe uma opção superior em toda situação; considere profundidade, distância, vegetação, pedras e a técnica usada. O líder deve combinar com o tipo de linha principal e com o risco de abrasão.</li>
+                        <li class="mb-2"><strong>Confira os nós na prática:</strong> use nós adequados aos materiais que serão unidos e treine antes da pescaria. Faça um teste de tração progressiva com cuidado, protegendo as mãos; se o nó escorregar, deformar ou danificar a linha, refaça-o. Reavalie o nó depois de prender uma estrutura ou brigar com um peixe.</li>
+                        <li class="mb-2"><strong>Regule o freio com referência, não no chute:</strong> uma balança pode ajudar a medir a força de saída. Como ponto inicial, alguns pescadores usam cerca de 20–30% da resistência nominal da linha, mas isso não é regra universal: nó, desgaste, vara, espécie e obstáculos podem exigir outro ajuste. Meça a saída da linha pelo conjunto montado, não apenas pela marcação impressa no carretel.</li>
+                        <li class="mb-2"><strong>Controle a linha durante a apresentação:</strong> vento e corrente podem formar barriga na linha e reduzir a percepção dos toques. Ajuste o ângulo do arremesso e recolha o excesso sem tirar o movimento natural da isca. Em água corrente, acompanhe a deriva e altere sua posição quando a linha puxar a isca para fora da zona que deseja explorar.</li>
+                        <li class="mb-2"><strong>Leia a profundidade por etapas:</strong> trabalhe uma faixa de cada vez e observe quanto tempo a isca leva para afundar, onde toca o fundo e como a corrente muda seu percurso. Isso ajuda a repetir uma apresentação produtiva e também reduz enroscos; não deixe uma isca afundando sem controle em áreas desconhecidas.</li>
+                        <li class="mb-2"><strong>Durante a briga, mantenha pressão constante:</strong> preserve a linha tensionada e deixe o freio trabalhar. Evite puxões bruscos ou levantar a vara além do ângulo recomendado pelo fabricante; conduza o peixe para longe de obstáculos sem exceder a capacidade do equipamento. Ajuste sua posição para aproveitar o ângulo e mantenha uma rota segura para recolher o peixe.</li>
+                        <li class="mb-2"><strong>Registre testes comparáveis:</strong> anote montagem, diâmetro e comprimento do líder, peso e tipo de isca, profundidade, cadência e condições da água. Repita a mesma abordagem em situações semelhantes antes de concluir que uma alteração melhorou os resultados.</li>
+                        <li><strong>Faça manutenção preventiva:</strong> verifique passadores, ponteira, fricção, manivela, linha e nós. Remova os trechos desgastados e substitua peças danificadas antes que causem uma ruptura ou prejudiquem o arremesso. Após pescar em água salgada ou com muita sujeira, siga as instruções do fabricante para limpeza e secagem do equipamento.</li>
+                    </ul>
+                </details>
+            </div>
+
+            <div class="col-12 col-xl-6 dica-nivel" data-nivel="veterano">
+                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
+                    <summary class="fw-bold">
+                        <span class="dashboard-kicker d-block mb-1">NÍVEL 4 · ESTRATÉGIA E EXPERIÊNCIA</span>
+                        <span class="h5">Veterano: análise, adaptação e conservação</span>
+                        <span class="d-block small text-muted fw-normal mt-1">Use observação e experiência sem deixar de validar suas hipóteses.</span>
+                    </summary>
+                    <ul class="mt-3 mb-0 ps-3">
+                        <li class="mb-2"><strong>Formule hipóteses sobre o comportamento:</strong> relacione estrutura, correnteza, temperatura, transparência e alimento disponível ao comportamento provável da espécie. Valide a hipótese no local; não existe uma condição que garanta captura em todos os rios ou estações. Pense em explicações alternativas — por exemplo, mudança de profundidade ou atividade das presas — antes de atribuir o resultado a uma única variável.</li>
+                        <li class="mb-2"><strong>Adapte-se às mudanças:</strong> acompanhe chuva, vento e variações do nível ou da cor da água. Reavalie tanto o ponto quanto a segurança; abandone o local se correnteza, clima ou acesso se tornarem perigosos. Mudanças rápidas podem tornar margens escorregadias, elevar o nível ou dificultar o retorno, portanto combine previamente um plano de saída.</li>
+                        <li class="mb-2"><strong>Compare resultados com cuidado:</strong> analise várias saídas e inclua pescarias sem captura. Considere diferenças de local e condições antes de concluir que determinada cor, horário ou técnica foi a causa do resultado. Registre também o esforço (tempo, número de arremessos ou pontos) para não comparar experiências muito diferentes como se fossem equivalentes.</li>
+                        <li class="mb-2"><strong>Use observação sistemática:</strong> escolha uma pergunta por pescaria, como “a espécie está usando a margem ou o canal?”. Defina o que observar, mantenha as demais variáveis o mais estáveis possível e anote o que contradiz sua expectativa. Esse método reduz decisões baseadas apenas na memória das capturas mais marcantes.</li>
+                        <li class="mb-2"><strong>Refine a apresentação sem perder controle:</strong> ajuste gradualmente comprimento e resistência do líder, peso da isca, posição do anzol e ângulo da linha conforme corrente, estrutura e comportamento observado. Após cada ajuste, confira se o conjunto continua seguro, se o nó está íntegro e se é possível controlar o peixe sem forçar equipamento ou animal.</li>
+                        <li class="mb-2"><strong>Planeje para obstáculos e recuperação:</strong> antes do arremesso, pense na direção provável da briga, em onde ficará e como retirará o peixe da água. Evite lançar em local onde não possa alcançar a linha ou manejar a captura com segurança; um equipamento forte não elimina o risco de prender ou ferir o peixe.</li>
+                        <li class="mb-2"><strong>Pratique captura e soltura responsável:</strong> quando permitida e adequada à espécie, prepare alicate e ferramenta para retirar o anzol antes de capturar, molhe as mãos, apoie o peixe e reduza o tempo fora d'água. Minimize manipulações e fotos; se o peixe estiver muito debilitado, siga orientação local em vez de presumir que soltá-lo imediatamente será sempre suficiente.</li>
+                        <li class="mb-2"><strong>Reduza impactos além do lixo:</strong> evite pisotear vegetação, danificar ninhos e margens ou deixar linhas que possam prender animais. Não transporte água, iscas vivas ou organismos entre ambientes sem orientação adequada, pois isso pode espalhar espécies ou doenças.</li>
+                        <li><strong>Compartilhe conhecimento com responsabilidade:</strong> ajude outros pescadores com explicações sobre técnica e segurança, indique fontes oficiais para regras e evite divulgar coordenadas de áreas frágeis ou vulneráveis. A experiência também se demonstra ao preservar o recurso para a comunidade e para as próximas temporadas.</li>
+                    </ul>
+                </details>
+            </div>
+        </div>
+        <div class="row g-3 mt-1">
+        {% for dica in dicas_publicadas %}
+        <div class="col-12 col-xl-6 dica-nivel" data-nivel="{{ dica.nivel }}">
+            <article class="card dashboard-card h-100 shadow-sm p-4">
+                <span class="dashboard-kicker">{{ dica.get_nivel_display|upper }} · DICA DA COMUNIDADE</span>
+                <h3 class="h5 fw-bold mt-2">{{ dica.titulo }}</h3>
+                <p class="mb-3">{{ dica.descricao|linebreaksbr }}</p>
+                <small class="text-muted mt-auto">Compartilhada por {{ dica.autor.get_full_name|default:dica.autor.username }} em {{ dica.criada_em|date:"d/m/Y" }}</small>
+            </article>
+        </div>
+        {% endfor %}
+        </div>
+        <p class="small text-muted mt-3 mb-0"><strong>Lembrete:</strong> consulte as normas ambientais e de navegação vigentes para o local. Se houver dúvida sobre a legalidade, segurança ou impacto sobre o peixe, não faça a captura.</p>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const filtro = document.getElementById('filtro-nivel');
+        const niveis = document.querySelectorAll('.dica-nivel[data-nivel]');
+        const resultado = document.getElementById('resultado-filtro');
+
+        if (!filtro || !resultado || niveis.length === 0) {
+            return;
+        }
+
+        filtro.addEventListener('change', function () {
+            niveis.forEach(function (nivel) {
+                const mostrar = filtro.value === 'todos' || nivel.dataset.nivel === filtro.value;
+                nivel.hidden = !mostrar;
+            });
+
+            resultado.textContent = filtro.value === 'todos'
+                ? 'Exibindo todos os níveis.'
+                : 'Exibindo dicas do nível selecionado.';
+        });
+    });
+</script>
+{% endblock %}
