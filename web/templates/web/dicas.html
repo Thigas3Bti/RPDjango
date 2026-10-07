@@ -6,7 +6,7 @@
 <div class="dashboard-home">
     <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm">
         <span class="dashboard-kicker">APRENDA NO SEU RITMO</span>
-        <h1 class="display-6 fw-bold mt-2 mb-2">Guia de pesca: do básico ao avançado</h1>
+        <h1 class="display-6 fw-bold mt-2 mb-2">Dicas de pesca: do básico ao avançado</h1>
         <p class="mb-0 text-muted">Abra cada nível para ver explicações e sugestões práticas. As técnicas variam conforme a espécie, o ambiente e as regras locais.</p>
     </section>
 
@@ -18,29 +18,32 @@
     </div>
     {% endif %}
 
-    <section class="mb-4" aria-label="Dicas organizadas por nível de experiência">
-        <div class="row align-items-end g-2 mb-3">
-            <div class="col-12 col-md-6 col-lg-4">
-                <label for="filtro-nivel" class="form-label fw-semibold">Filtrar dicas por nível</label>
-                <select class="form-select" id="filtro-nivel">
-                    <option value="todos">Todos os níveis</option>
-                    <option value="iniciante">Iniciante</option>
-                    <option value="intermediario">Intermediário</option>
-                    <option value="avancado">Avançado</option>
-                    <option value="veterano">Veterano</option>
-                </select>
+    <section class="mb-4" id="dicas" aria-labelledby="dicas-title">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-3">
+            <div>
+                <span class="dashboard-kicker">GUIA DE NÍVEIS</span>
+                <h2 class="h3 fw-bold mt-2 mb-1" id="dicas-title">Encontre dicas para sua experiência</h2>
             </div>
-            <div class="col-12 col-md-3">
-                <p class="small text-muted mb-2" id="resultado-filtro" aria-live="polite">Exibindo todos os níveis.</p>
-            </div>
-            <div class="col-12 col-md-3 text-md-end">
-                <a class="btn btn-success" href="{% url 'adicionar_dica' %}">
+            <div class="d-flex flex-column flex-sm-row align-items-sm-end gap-3 mt-3 mt-md-0">
+                <div>
+                    <label for="filtro-nivel-dicas" class="form-label mb-1 fw-semibold">Mostrar nível:</label>
+                    <select class="form-select" id="filtro-nivel-dicas" aria-controls="lista-niveis-dicas">
+                        <option value="todos">Todos os níveis</option>
+                        <option value="iniciante">Iniciante</option>
+                        <option value="intermediario">Intermediário</option>
+                        <option value="avancado">Avançado</option>
+                        <option value="veterano">Veterano</option>
+                    </select>
+                </div>
+                <a class="btn btn-success text-nowrap" href="{% url 'adicionar_dica' %}">
                     <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Adicionar nova dica
                 </a>
             </div>
         </div>
-        <div class="row g-3">
-            <div class="col-12 col-xl-6 dica-nivel" data-nivel="iniciante">
+        <p class="small text-muted mb-3" id="estado-filtro-dicas" aria-live="polite">Exibindo todos os níveis.</p>
+
+    <div class="row g-3" id="lista-niveis-dicas">
+            <div class="col-12 col-xl-6 nivel-dica" data-nivel="iniciante">
                 <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
                     <summary class="fw-bold">
                         <span class="dashboard-kicker d-block mb-1">NÍVEL 1 · PRIMEIROS PASSOS</span>
@@ -57,7 +60,7 @@
                 </details>
             </div>
 
-            <div class="col-12 col-xl-6 dica-nivel" data-nivel="intermediario">
+            <div class="col-12 col-xl-6 nivel-dica" data-nivel="intermediario">
                 <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
                     <summary class="fw-bold">
                         <span class="dashboard-kicker d-block mb-1">NÍVEL 2 · OBSERVAÇÃO E CONTROLE</span>
@@ -77,7 +80,7 @@
                 </details>
             </div>
 
-            <div class="col-12 col-xl-6 dica-nivel" data-nivel="avancado">
+            <div class="col-12 col-xl-6 nivel-dica" data-nivel="avancado">
                 <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
                     <summary class="fw-bold">
                         <span class="dashboard-kicker d-block mb-1">NÍVEL 3 · AJUSTE TÉCNICO</span>
@@ -98,11 +101,11 @@
                 </details>
             </div>
 
-            <div class="col-12 col-xl-6 dica-nivel" data-nivel="veterano">
+            <div class="col-12 col-xl-6 nivel-dica" data-nivel="veterano">
                 <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
                     <summary class="fw-bold">
                         <span class="dashboard-kicker d-block mb-1">NÍVEL 4 · ESTRATÉGIA E EXPERIÊNCIA</span>
-                        <span class="h5">Veterano: análise, adaptação e conservação</span>
+                        <span class="h5">Veterano: análise, adaptação e responsabilidade</span>
                         <span class="d-block small text-muted fw-normal mt-1">Use observação e experiência sem deixar de validar suas hipóteses.</span>
                     </summary>
                     <ul class="mt-3 mb-0 ps-3">
@@ -118,20 +121,18 @@
                     </ul>
                 </details>
             </div>
-        </div>
-        <div class="row g-3 mt-1">
         {% for dica in dicas_publicadas %}
-        <div class="col-12 col-xl-6 dica-nivel" data-nivel="{{ dica.nivel }}">
-            <article class="card dashboard-card h-100 shadow-sm p-4">
-                <span class="dashboard-kicker">{{ dica.get_nivel_display|upper }} · DICA DA COMUNIDADE</span>
-                <h3 class="h5 fw-bold mt-2">{{ dica.titulo }}</h3>
-                <p class="mb-3">{{ dica.descricao|linebreaksbr }}</p>
-                <small class="text-muted mt-auto">Compartilhada por {{ dica.autor.get_full_name|default:dica.autor.username }} em {{ dica.criada_em|date:"d/m/Y" }}</small>
-            </article>
-        </div>
+            <div class="col-12 col-xl-6 nivel-dica" data-nivel="{{ dica.nivel }}">
+                <article class="card dashboard-card h-100 shadow-sm p-4">
+                    <span class="dashboard-kicker">{{ dica.get_nivel_display|upper }} · DICA DA COMUNIDADE</span>
+                    <h3 class="h5 fw-bold mt-2">{{ dica.titulo }}</h3>
+                    <p class="mb-3">{{ dica.descricao|linebreaksbr }}</p>
+                    <small class="text-muted mt-auto">Compartilhada por {{ dica.autor.get_full_name|default:dica.autor.username }} em {{ dica.criada_em|date:"d/m/Y" }}</small>
+                </article>
+            </div>
         {% endfor %}
-        </div>
-        <p class="small text-muted mt-3 mb-0"><strong>Lembrete:</strong> consulte as normas ambientais e de navegação vigentes para o local. Se houver dúvida sobre a legalidade, segurança ou impacto sobre o peixe, não faça a captura.</p>
+    </div>
+    <p class="small text-muted mt-3 mb-0"><strong>Lembrete:</strong> consulte as normas ambientais e de navegação vigentes para o local. Se houver dúvida sobre a legalidade, segurança ou impacto sobre o peixe, não faça a captura.</p>
     </section>
 </div>
 {% endblock %}
@@ -139,23 +140,22 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const filtro = document.getElementById('filtro-nivel');
-        const niveis = document.querySelectorAll('.dica-nivel[data-nivel]');
-        const resultado = document.getElementById('resultado-filtro');
+        const filtro = document.getElementById('filtro-nivel-dicas');
+        const cards = document.querySelectorAll('.nivel-dica[data-nivel]');
+        const estado = document.getElementById('estado-filtro-dicas');
 
-        if (!filtro || !resultado || niveis.length === 0) {
+        if (!filtro || !estado || cards.length === 0) {
             return;
         }
 
         filtro.addEventListener('change', function () {
-            niveis.forEach(function (nivel) {
-                const mostrar = filtro.value === 'todos' || nivel.dataset.nivel === filtro.value;
-                nivel.hidden = !mostrar;
+            cards.forEach(function (card) {
+                card.hidden = filtro.value !== 'todos' && card.dataset.nivel !== filtro.value;
             });
 
-            resultado.textContent = filtro.value === 'todos'
+            estado.textContent = filtro.value === 'todos'
                 ? 'Exibindo todos os níveis.'
-                : 'Exibindo dicas do nível selecionado.';
+                : 'Exibindo somente as dicas do nível selecionado.';
         });
     });
 </script>
