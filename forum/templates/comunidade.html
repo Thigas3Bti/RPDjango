@@ -3,12 +3,20 @@
 {% block title %}Comunidade | RondoPesca{% endblock %}
 
 {% block content %}
-<div class="community-page" data-author="{{ request.user.first_name|default:request.user.username|default:'Pescador' }}">
+<div class="community-page">
     <section class="community-hero mb-4">
         <span class="community-kicker">RONDO PESCA · GENTE QUE VIVE A PESCARIA</span>
         <h1 class="mt-2 mb-2">Comunidade de pescadores</h1>
         <p class="mb-0">Compartilhe suas pescarias, publique uma foto, troque dicas e aprenda com quem também ama estar perto da água.</p>
     </section>
+
+    {% if messages %}
+    <div class="mb-3" aria-live="polite">
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}" role="status">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <div class="community-layout">
         <div class="community-main">
@@ -25,20 +33,79 @@
             <section class="community-card" aria-labelledby="feed-title">
                 <div class="community-feed-toolbar border-bottom">
                     <h2 id="feed-title"><i class="bi bi-chat-square-text me-2 text-success" aria-hidden="true"></i>Publicações</h2>
-                    <label class="visually-hidden" for="feed-sort">Ordenar publicações</label>
-                    <select id="feed-sort" class="form-select form-select-sm">
-                        <option value="recent">Mais recentes</option>
-                        <option value="popular">Mais curtidas</option>
-                    </select>
+                    <form method="get">
+                        <label class="visually-hidden" for="feed-sort">Ordenar publicações</label>
+                        <select id="feed-sort" name="ordenar" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="recentes" {% if ordenacao != 'popular' %}selected{% endif %}>Mais recentes</option>
+                            <option value="popular" {% if ordenacao == 'popular' %}selected{% endif %}>Mais curtidas</option>
+                        </select>
+                    </form>
                 </div>
-                <div id="community-feed" aria-live="polite">
-                    <div class="community-empty">
-                        <i class="bi bi-water" aria-hidden="true"></i>
-                        <h3>O primeiro post pode ser o seu!</h3>
-                        <p>Ainda não há publicações. Compartilhe uma história, uma foto ou uma dúvida de pescaria para começar a conversa.</p>
+
+                {% for publicacao in publicacoes %}
+                <article id="publicacao-{{ publicacao.pk }}" class="community-post">
+                    <header class="community-post-header">
+                        <span class="community-avatar"><i class="bi bi-person-fill" aria-hidden="true"></i></span>
+                        <div>
+                            <div class="community-post-author">{{ publicacao.autor.get_full_name|default:publicacao.autor.username }}</div>
+                            <time class="community-post-time" datetime="{{ publicacao.criada_em|date:'c' }}">{{ publicacao.criada_em|date:"d/m/Y H:i" }}</time>
+                        </div>
+                    </header>
+
+                    {% if publicacao.titulo %}
+                    <h3 class="community-post-title">{{ publicacao.titulo }}</h3>
+                    {% endif %}
+
+                    {% if publicacao.texto %}
+                    <p class="community-post-text">{{ publicacao.texto }}</p>
+                    {% endif %}
+
+                    {% if publicacao.foto %}
+                    <img class="community-post-image" src="{{ publicacao.foto.url }}" alt="{% if publicacao.titulo %}Foto da publicação: {{ publicacao.titulo }}{% else %}Foto compartilhada na comunidade{% endif %}">
+                    {% endif %}
+
+                    <div class="community-post-actions">
+                        {% if request.user.is_authenticated %}
+                        <form method="post" action="{% url 'curtir' publicacao.pk %}">
+                            {% csrf_token %}
+                            <button class="community-action{% if publicacao.curtida_usuario %} is-liked{% endif %}" type="submit" aria-pressed="{{ publicacao.curtida_usuario|yesno:'true,false' }}">
+                                <i class="bi {% if publicacao.curtida_usuario %}bi-heart-fill{% else %}bi-heart{% endif %} me-1" aria-hidden="true"></i>{{ publicacao.total_curtidas }} curtida{{ publicacao.total_curtidas|pluralize:"s" }}
+                            </button>
+                        </form>
+                        {% else %}
+                        <a class="community-action text-decoration-none" href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">
+                            <i class="bi bi-heart me-1" aria-hidden="true"></i>{{ publicacao.total_curtidas }} curtida{{ publicacao.total_curtidas|pluralize:"s" }}
+                        </a>
+                        {% endif %}
+                        <span class="community-action"><i class="bi bi-chat me-1" aria-hidden="true"></i>{{ publicacao.comentarios.all|length }} comentário{{ publicacao.comentarios.all|length|pluralize:"s" }}</span>
                     </div>
+
+                    <div class="community-comments">
+                        {% for comentario in publicacao.comentarios.all %}
+                        <div class="community-comment">
+                            <strong>{{ comentario.autor.get_full_name|default:comentario.autor.username }}</strong>
+                            <p>{{ comentario.texto }}</p>
+                        </div>
+                        {% endfor %}
+
+                        {% if request.user.is_authenticated %}
+                        <form class="community-comment-form" method="post" action="{% url 'comentar' publicacao.pk %}">
+                            {% csrf_token %}
+                            {{ comentario_form.texto }}
+                            <button class="btn btn-outline-success" type="submit">Comentar</button>
+                        </form>
+                        {% else %}
+                        <a class="small link-success" href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Entre para comentar</a>
+                        {% endif %}
+                    </div>
+                </article>
+                {% empty %}
+                <div class="community-empty">
+                    <i class="bi bi-water" aria-hidden="true"></i>
+                    <h3>O primeiro post pode ser o seu!</h3>
+                    <p>Ainda não há publicações. Compartilhe uma história, uma foto ou uma dúvida de pescaria para começar a conversa.</p>
                 </div>
-                <div id="community-error" class="alert alert-danger m-3 d-none" role="alert"></div>
+                {% endfor %}
             </section>
         </div>
 
@@ -56,185 +123,9 @@
                 </ul>
             </section>
             <section class="community-card community-aside-card">
-                <p class="community-aside-highlight rounded mb-0"><i class="bi bi-clock-history me-2" aria-hidden="true"></i>As publicações desta demonstração ficam disponíveis somente durante esta sessão do navegador.</p>
+                <p class="community-aside-highlight rounded mb-0"><i class="bi bi-cloud-check me-2" aria-hidden="true"></i>Publicações, fotos, curtidas e comentários ficam salvos no site e visíveis para a comunidade.</p>
             </section>
         </aside>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    (() => {
-        const storageKey = "rondopesca-community-posts";
-        const page = document.querySelector(".community-page");
-        const feed = document.getElementById("community-feed");
-        const sortSelect = document.getElementById("feed-sort");
-        const errorMessage = document.getElementById("community-error");
-        const author = page.dataset.author || "Pescador";
-        let posts = [];
-
-        const showError = (message) => {
-            errorMessage.textContent = message;
-            errorMessage.classList.remove("d-none");
-        };
-
-        const savePosts = () => {
-            try {
-                sessionStorage.setItem(storageKey, JSON.stringify(posts));
-                errorMessage.classList.add("d-none");
-                return true;
-            } catch (error) {
-                showError("Não foi possível salvar as alterações nesta sessão do navegador. Remova uma foto grande ou tente novamente.");
-                return false;
-            }
-        };
-
-        const formatDate = (date) => new Intl.DateTimeFormat("pt-BR", {
-            day: "2-digit",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit"
-        }).format(date);
-
-        const makeComment = (comment) => {
-            const item = document.createElement("div");
-            item.className = "community-comment";
-            const name = document.createElement("strong");
-            name.textContent = comment.author;
-            const text = document.createElement("p");
-            text.textContent = comment.text;
-            item.append(name, text);
-            return item;
-        };
-
-        const renderPosts = () => {
-            feed.replaceChildren();
-            if (!posts.length) {
-                const empty = document.createElement("div");
-                empty.className = "community-empty";
-                const icon = document.createElement("i");
-                icon.className = "bi bi-water";
-                icon.setAttribute("aria-hidden", "true");
-                const heading = document.createElement("h3");
-                heading.textContent = "O primeiro post pode ser o seu!";
-                const description = document.createElement("p");
-                description.textContent = "Ainda não há publicações. Compartilhe uma história, uma foto ou uma dúvida de pescaria para começar a conversa.";
-                empty.append(icon, heading, description);
-                feed.append(empty);
-                return;
-            }
-
-            const sortedPosts = [...posts];
-            if (sortSelect.value === "popular") {
-                sortedPosts.sort((first, second) => second.likes - first.likes || new Date(second.createdAt) - new Date(first.createdAt));
-            } else {
-                sortedPosts.sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt));
-            }
-
-            sortedPosts.forEach((post) => {
-                const article = document.createElement("article");
-                article.className = "community-post";
-
-                const header = document.createElement("div");
-                header.className = "community-post-header";
-                const avatar = document.createElement("span");
-                avatar.className = "community-avatar";
-                avatar.innerHTML = '<i class="bi bi-person-fill" aria-hidden="true"></i>';
-                const authorInfo = document.createElement("div");
-                const authorName = document.createElement("div");
-                authorName.className = "community-post-author";
-                authorName.textContent = post.author;
-                const timestamp = document.createElement("div");
-                timestamp.className = "community-post-time";
-                timestamp.textContent = formatDate(new Date(post.createdAt));
-                authorInfo.append(authorName, timestamp);
-                header.append(avatar, authorInfo);
-                article.append(header);
-
-                if (post.title) {
-                    const title = document.createElement("h3");
-                    title.className = "community-post-title";
-                    title.textContent = post.title;
-                    article.append(title);
-                }
-
-                if (post.text) {
-                    const text = document.createElement("p");
-                    text.className = "community-post-text";
-                    text.textContent = post.text;
-                    article.append(text);
-                }
-
-                if (post.photo) {
-                    const image = document.createElement("img");
-                    image.className = "community-post-image";
-                    image.src = post.photo;
-                    image.alt = post.title ? `Foto da publicação: ${post.title}` : "Foto compartilhada na comunidade";
-                    article.append(image);
-                }
-
-                const actions = document.createElement("div");
-                actions.className = "community-post-actions";
-                const likeButton = document.createElement("button");
-                likeButton.className = `community-action${post.liked ? " is-liked" : ""}`;
-                likeButton.type = "button";
-                likeButton.setAttribute("aria-pressed", String(post.liked));
-                likeButton.innerHTML = `<i class="bi ${post.liked ? "bi-heart-fill" : "bi-heart"} me-1" aria-hidden="true"></i>${post.likes} curtida${post.likes === 1 ? "" : "s"}`;
-                likeButton.addEventListener("click", () => {
-                    post.liked = !post.liked;
-                    post.likes += post.liked ? 1 : -1;
-                    savePosts();
-                    renderPosts();
-                });
-
-                const commentCount = document.createElement("span");
-                commentCount.className = "community-action";
-                commentCount.innerHTML = `<i class="bi bi-chat me-1" aria-hidden="true"></i>${post.comments.length} comentário${post.comments.length === 1 ? "" : "s"}`;
-                actions.append(likeButton, commentCount);
-                article.append(actions);
-
-                const comments = document.createElement("div");
-                comments.className = "community-comments";
-                post.comments.forEach((comment) => comments.append(makeComment(comment)));
-                const commentForm = document.createElement("form");
-                commentForm.className = "community-comment-form";
-                const commentInput = document.createElement("input");
-                commentInput.className = "form-control";
-                commentInput.type = "text";
-                commentInput.maxLength = 500;
-                commentInput.placeholder = "Escreva um comentário...";
-                commentInput.setAttribute("aria-label", "Escreva um comentário");
-                commentInput.required = true;
-                const commentButton = document.createElement("button");
-                commentButton.className = "btn btn-outline-success";
-                commentButton.type = "submit";
-                commentButton.textContent = "Comentar";
-                commentForm.append(commentInput, commentButton);
-                commentForm.addEventListener("submit", (event) => {
-                    event.preventDefault();
-                    const commentText = commentInput.value.trim();
-                    if (!commentText) return;
-                    post.comments.push({ author, text: commentText });
-                    savePosts();
-                    renderPosts();
-                });
-                comments.append(commentForm);
-                article.append(comments);
-                feed.append(article);
-            });
-        };
-
-        try {
-            const savedPosts = JSON.parse(sessionStorage.getItem(storageKey) || "[]");
-            if (!Array.isArray(savedPosts)) throw new Error("Formato inválido");
-            posts = savedPosts;
-        } catch (error) {
-            showError("Não foi possível carregar as publicações desta sessão do navegador.");
-        }
-
-        renderPosts();
-        sortSelect.addEventListener("change", renderPosts);
-    })();
-</script>
 {% endblock %}
