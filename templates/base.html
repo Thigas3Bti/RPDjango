@@ -39,7 +39,7 @@
                     ☰
                 </button>
                 <!-- Logo/marca do site com dois tons de verde -->
-                <a class="brand text-decoration-none" href="#">Rondo<span>Pesca</span></a>
+                <a class="brand text-decoration-none" href="{% url 'home' %}">Rondo<span>Pesca</span></a>
             </div>
             <!-- Lado direito do cabeçalho com data e botão de login -->
             <div class="header-right d-flex align-items-center gap-3">
@@ -72,7 +72,7 @@
         <div class="admin-body d-flex">
             <!-- Menu lateral (sidebar) responsivo - aparece como painel em telas pequenas 
                  collapse d-lg-block = começa fechado (collapse) e fica visível (d-block) em telas grandes (lg) -->
-            {% if request.resolver_match.url_name != 'login' %}
+            {% if request.user.is_authenticated %}
             <nav id="sidebarMenu" class="collapse d-lg-block sidebar bg-soft-green text-white">
                 <!-- Cabeçalho interno da sidebar com nome do site -->
                 <div class="sidebar-header p-4">
