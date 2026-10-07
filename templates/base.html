@@ -213,6 +213,253 @@
                     </section>
                 </div>
                 {% endblock %}
+                <!-- Cabeçalho do conteúdo com título e ação principal -->
+<!--                <section class="content-top mb-4">-->
+<!--                    &lt;!&ndash; Flexbox que se reorganiza em telas pequenas (flex-column) e médias/grandes (flex-md-row) &ndash;&gt;-->
+<!--                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">-->
+<!--                        &lt;!&ndash; Seção esquerda com título e descrição &ndash;&gt;-->
+<!--                        <div>-->
+<!--                            &lt;!&ndash; Título principal da página com classe h3 para tamanho adequado &ndash;&gt;-->
+<!--                            <h1 class="h3 mb-1">Bem-vindo ao RondoPesca</h1>-->
+<!--                            &lt;!&ndash; Descrição da plataforma em cor cinzenta (text-muted) &ndash;&gt;-->
+<!--                            <p class="text-muted mb-0">Conectando pescadores de Rondônia com dicas, eventos e notícias locais.</p>-->
+<!--                        </div>-->
+<!--                        &lt;!&ndash; Seção direita com botão de ação &ndash;&gt;-->
+<!--                        <div>-->
+<!--                            &lt;!&ndash; Botão de chamada para ação (CTA) com cor verde do tema &ndash;&gt;-->
+<!--                            <button class="btn btn-success">Explorar comunidade</button>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </section>-->
+
+<!--                &lt;!&ndash; Section com grid de cards resumidos mostrando indicadores chave &ndash;&gt;-->
+<!--                &lt;!&ndash; row g-3 = grid Bootstrap com espaçamento de 3 entre colunas -->
+<!--                     mb-4 = margem inferior para afastar do próximo elemento &ndash;&gt;-->
+<!--                <section class="summary-cards row g-3 mb-4">-->
+<!--                    &lt;!&ndash; Card 1: Publicações - mostra número de novos posts na semana &ndash;&gt;-->
+<!--                    &lt;!&ndash; col-12 col-sm-6 col-xl-3 = 100% em xs, 50% em sm, 25% em xl &ndash;&gt;-->
+<!--                    <div class="col-12 col-sm-6 col-xl-3">-->
+<!--                        &lt;!&ndash; Card com classe summary-card (estilo customizado em CSS) &ndash;&gt;-->
+<!--                        <div class="card summary-card p-3 h-100">-->
+<!--                            &lt;!&ndash; h-100 = altura 100% para ocupar todo espaço disponível no container &ndash;&gt;-->
+<!--                            <div class="card-body">-->
+<!--                                &lt;!&ndash; Etiqueta pequena em cinzento claro &ndash;&gt;-->
+<!--                                <small class="text-muted">Publicações</small>-->
+<!--                                &lt;!&ndash; Número grande destacado com espaço superior &ndash;&gt;-->
+<!--                                <h2 class="mt-2">56</h2>-->
+<!--                                &lt;!&ndash; Descrição do indicador em verde para ênfase &ndash;&gt;-->
+<!--                                <span class="text-success">Novos posts esta semana</span>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    &lt;!&ndash; Card 2: Dicas - mostra conteúdo educativo disponível &ndash;&gt;-->
+<!--                    <div class="col-12 col-sm-6 col-xl-3">-->
+<!--                        <div class="card summary-card p-3 h-100">-->
+<!--                            <div class="card-body">-->
+<!--                                &lt;!&ndash; Etiqueta do segundo card &ndash;&gt;-->
+<!--                                <small class="text-muted">Dicas</small>-->
+<!--                                &lt;!&ndash; Número de dicas de pesca disponíveis &ndash;&gt;-->
+<!--                                <h2 class="mt-2">32</h2>-->
+<!--                                &lt;!&ndash; Descrição em verde &ndash;&gt;-->
+<!--                                <span class="text-success">Conteúdo para iniciantes</span>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    &lt;!&ndash; Card 3: Eventos - mostra encontros e reuniões agendadas &ndash;&gt;-->
+<!--                    <div class="col-12 col-sm-6 col-xl-3">-->
+<!--                        <div class="card summary-card p-3 h-100">-->
+<!--                            <div class="card-body">-->
+<!--                                &lt;!&ndash; Etiqueta do terceiro card &ndash;&gt;-->
+<!--                                <small class="text-muted">Eventos</small>-->
+<!--                                &lt;!&ndash; Número de próximos eventos agendados &ndash;&gt;-->
+<!--                                <h2 class="mt-2">12</h2>-->
+<!--                                &lt;!&ndash; Descrição em vermelho para indicar urgência/atenção &ndash;&gt;-->
+<!--                                <span class="text-danger">Próximos encontros</span>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    &lt;!&ndash; Card 4: Pontos de pesca - locais cadastrados no mapa/banco de dados &ndash;&gt;-->
+<!--                    <div class="col-12 col-sm-6 col-xl-3">-->
+<!--                        <div class="card summary-card p-3 h-100">-->
+<!--                            <div class="card-body">-->
+<!--                                &lt;!&ndash; Etiqueta do quarto card &ndash;&gt;-->
+<!--                                <small class="text-muted">Pontos</small>-->
+<!--                                &lt;!&ndash; Número total de locais de pesca cadastrados &ndash;&gt;-->
+<!--                                <h2 class="mt-2">84</h2>-->
+<!--                                &lt;!&ndash; Descrição em azul para informação neutra &ndash;&gt;-->
+<!--                                <span class="text-primary">Locais cadastrados</span>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </section>-->
+
+<!--                &lt;!&ndash; Seção principal com layout de duas colunas e gap entre elas -->
+<!--                     row g-4 = grid com espaçamento de 4 entre colunas &ndash;&gt;-->
+<!--                <section class="row g-4">-->
+<!--                    &lt;!&ndash; Coluna esquerda (8/12 em telas grandes = 66%, full width em outras) &ndash;&gt;-->
+<!--                    <div class="col-12 col-xl-8">-->
+<!--                        &lt;!&ndash; Card com gráfico de desempenho (espaço reservado) &ndash;&gt;-->
+<!--                        <div class="card mb-4">-->
+<!--                            &lt;!&ndash; Cabeçalho do card com flexbox para alinhar título e data &ndash;&gt;-->
+<!--                            <div class="card-header d-flex justify-content-between align-items-center">-->
+<!--                                &lt;!&ndash; Título do gráfico &ndash;&gt;-->
+<!--                                <h5 class="mb-0">Gráfico de desempenho</h5>-->
+<!--                                &lt;!&ndash; Texto indicando quando foi atualizado &ndash;&gt;-->
+<!--                                <small class="text-muted">Atualizado agora</small>-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash; Corpo do card com placeholder para gráfico &ndash;&gt;-->
+<!--                            <div class="card-body">-->
+<!--                                &lt;!&ndash; Placeholder do gráfico com flexbox para centralizar o texto &ndash;&gt;-->
+<!--                                &lt;!&ndash; min-height 260px geralmente reservado para gráficos &ndash;&gt;-->
+<!--                                <div class="chart-placeholder d-flex flex-column justify-content-center align-items-center text-center">-->
+<!--                                    &lt;!&ndash; Texto que indica que é um espaço reservado &ndash;&gt;-->
+<!--                                    <p class="mb-2"><strong>Gráfico</strong> (espaço reservado)</p>-->
+<!--                                    &lt;!&ndash; Instruções sobre como integrar um gráfico real &ndash;&gt;-->
+<!--                                    <small class="text-muted">Aqui você poderá integrar um gráfico com Chart.js ou outra biblioteca.</small>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                        &lt;!&ndash; Card com tabela de usuários/membros ativos &ndash;&gt;-->
+<!--                        <div class="card">-->
+<!--                            &lt;!&ndash; Cabeçalho do card com título &ndash;&gt;-->
+<!--                            <div class="card-header">-->
+<!--                                &lt;!&ndash; Título identificando o conteúdo da tabela &ndash;&gt;-->
+<!--                                <h5 class="mb-0">Tabela de usuários</h5>-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash; Card body sem padding interno (p-0) para tabela ocupar espaço total &ndash;&gt;-->
+<!--                            <div class="card-body p-0">-->
+<!--                                &lt;!&ndash; Wrapper responsivo que permite scroll horizontal em telas pequenas &ndash;&gt;-->
+<!--                                <div class="table-responsive">-->
+<!--                                    &lt;!&ndash; Tabela com hover (linhas destacadas ao passar mouse) &ndash;&gt;-->
+<!--                                    <table class="table table-hover mb-0">-->
+<!--                                        &lt;!&ndash; Cabeçalho da tabela com cores de fundo light &ndash;&gt;-->
+<!--                                        <thead class="table-light">-->
+<!--                                            <tr>-->
+<!--                                                &lt;!&ndash; Colunas: Nome, Email, Status, Último acesso &ndash;&gt;-->
+<!--                                                <th>Nome</th>-->
+<!--                                                <th>E-mail</th>-->
+<!--                                                <th>Status</th>-->
+<!--                                                <th>Último acesso</th>-->
+<!--                                            </tr>-->
+<!--                                        </thead>-->
+<!--                                        &lt;!&ndash; Corpo da tabela com dados de exemplo &ndash;&gt;-->
+<!--                                        <tbody>-->
+<!--                                            &lt;!&ndash; Primeira linha: Mariana Silva - Ativa &ndash;&gt;-->
+<!--                                            <tr>-->
+<!--                                                <td>Mariana Silva</td>-->
+<!--                                                <td>mariana@empresa.com</td>-->
+<!--                                                &lt;!&ndash; Badge verde bg-success indica status ativo &ndash;&gt;-->
+<!--                                                <td><span class="badge bg-success">Ativo</span></td>-->
+<!--                                                &lt;!&ndash; Data do último acesso &ndash;&gt;-->
+<!--                                                <td>02/08/2026</td>-->
+<!--                                            </tr>-->
+<!--                                            &lt;!&ndash; Segunda linha: Ricardo Alves - Pendente &ndash;&gt;-->
+<!--                                            <tr>-->
+<!--                                                <td>Ricardo Alves</td>-->
+<!--                                                <td>ricardo@empresa.com</td>-->
+<!--                                                &lt;!&ndash; Badge amarela bg-warning text-dark indica status pendente &ndash;&gt;-->
+<!--                                                <td><span class="badge bg-warning text-dark">Pendente</span></td>-->
+<!--                                                <td>28/07/2026</td>-->
+<!--                                            </tr>-->
+<!--                                            &lt;!&ndash; Terceira linha: Larissa Costa - Offline &ndash;&gt;-->
+<!--                                            <tr>-->
+<!--                                                <td>Larissa Costa</td>-->
+<!--                                                <td>larissa@empresa.com</td>-->
+<!--                                                &lt;!&ndash; Badge cinza bg-secondary indica status offline/inativo &ndash;&gt;-->
+<!--                                                <td><span class="badge bg-secondary">Offline</span></td>-->
+<!--                                                <td>25/07/2026</td>-->
+<!--                                            </tr>-->
+<!--                                        </tbody>-->
+<!--                                    </table>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; Coluna direita (4/12 em telas grandes = 33%, full width em outras) &ndash;&gt;-->
+<!--                    <div class="col-12 col-xl-4">-->
+<!--                        &lt;!&ndash; Card com formulário para entrada rápida de dados &ndash;&gt;-->
+<!--                        <div class="card mb-4">-->
+<!--                            &lt;!&ndash; Cabeçalho com título do formulário &ndash;&gt;-->
+<!--                            <div class="card-header">-->
+<!--                                &lt;!&ndash; Título identificando o propósito do formulário &ndash;&gt;-->
+<!--                                <h5 class="mb-0">Formulário rápido</h5>-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash; Corpo do card contendo o formulário &ndash;&gt;-->
+<!--                            <div class="card-body">-->
+<!--                                &lt;!&ndash; Formulário com campos de texto, email e select &ndash;&gt;-->
+<!--                                <form>-->
+<!--                                    &lt;!&ndash; Grupo de formulário 1: Nome do cliente &ndash;&gt;-->
+<!--                                    <div class="mb-3">-->
+<!--                                        &lt;!&ndash; Label descrevendo o campo de entrada &ndash;&gt;-->
+<!--                                        <label class="form-label">Nome do cliente</label>-->
+<!--                                        &lt;!&ndash; Input de texto com placeholder de ajuda &ndash;&gt;-->
+<!--                                        <input type="text" class="form-control" placeholder="Digite o nome">-->
+<!--                                    </div>-->
+<!--                                    &lt;!&ndash; Grupo de formulário 2: Email &ndash;&gt;-->
+<!--                                    <div class="mb-3">-->
+<!--                                        &lt;!&ndash; Label para campo de email &ndash;&gt;-->
+<!--                                        <label class="form-label">E-mail</label>-->
+<!--                                        &lt;!&ndash; Input do tipo email com validação HTML5 &ndash;&gt;-->
+<!--                                        <input type="email" class="form-control" placeholder="cliente@exemplo.com">-->
+<!--                                    </div>-->
+<!--                                    &lt;!&ndash; Grupo de formulário 3: Categoria (lista suspensa) &ndash;&gt;-->
+<!--                                    <div class="mb-3">-->
+<!--                                        &lt;!&ndash; Label para o campo select &ndash;&gt;-->
+<!--                                        <label class="form-label">Categoria</label>-->
+<!--                                        &lt;!&ndash; Lista suspensa com opções de categorias de usuário &ndash;&gt;-->
+<!--                                        <select class="form-select">-->
+<!--                                            &lt;!&ndash; Opção padrão/placeholder &ndash;&gt;-->
+<!--                                            <option selected>Selecionar...</option>-->
+<!--                                            &lt;!&ndash; Opções disponíveis &ndash;&gt;-->
+<!--                                            <option>VIP</option>-->
+<!--                                            <option>Regular</option>-->
+<!--                                            <option>Convidado</option>-->
+<!--                                        </select>-->
+<!--                                    </div>-->
+<!--                                    &lt;!&ndash; Botão de envio/salvamento do formulário &ndash;&gt;-->
+<!--                                    &lt;!&ndash; btn-primary = cor azul/primária do tema -->
+<!--                                         w-100 = largura 100% do container pai &ndash;&gt;-->
+<!--                                    <button type="submit" class="btn btn-primary w-100">Salvar</button>-->
+<!--                                </form>-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                        &lt;!&ndash; Card com notas e instruções de usabilidade do template &ndash;&gt;-->
+<!--                        <div class="card">-->
+<!--                            &lt;!&ndash; Cabeçalho do card &ndash;&gt;-->
+<!--                            <div class="card-header">-->
+<!--                                &lt;!&ndash; Título da seção de notas &ndash;&gt;-->
+<!--                                <h5 class="mb-0">Notas de usabilidade</h5>-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash; Corpo com informações úteis sobre o template &ndash;&gt;-->
+<!--                            <div class="card-body">-->
+<!--                                &lt;!&ndash; Parágrafo explicativo sobre o propósito do template &ndash;&gt;-->
+<!--                                &lt;!&ndash; small = texto pequeno para notas secundárias -->
+<!--                                     text-muted = cor cinzenta para de-enfatizar &ndash;&gt;-->
+<!--                                <p class="small text-muted">Este template é um ponto de partida para interfaces administrativas,-->
+<!--                                    com navegação lateral, cabeçalho fixo e conteúdo centralizado.</p>-->
+<!--                                &lt;!&ndash; Lista com dicas de implementação do template &ndash;&gt;-->
+<!--                                &lt;!&ndash; small mb-0 = texto pequeno sem margem inferior &ndash;&gt;-->
+<!--                                <ul class="small mb-0">-->
+<!--                                    &lt;!&ndash; Dica 1: Adicionar gráficos reais &ndash;&gt;-->
+<!--                                    <li>Adicione gráficos reais em <code>chart-placeholder</code>.</li>-->
+<!--                                    &lt;!&ndash; Dica 2: Integrar com Django para dados dinâmicos &ndash;&gt;-->
+<!--                                    <li>Use Django para preencher itens do menu e dados da tabela.</li>-->
+<!--                                    &lt;!&ndash; Dica 3: Manter menu acessível em mobile &ndash;&gt;-->
+<!--                                    <li>Mantenha o menu acessível em telas pequenas com collapse.</li>-->
+<!--                                </ul>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </section>-->
+
+                <!-- Rodapé do conteúdo/página com copyright -->
+                <!-- text-center = centraliza o texto 
+                     mt-4 = margem superior para separar do conteúdo 
+                     py-3 = padding vertical 
+                     text-muted = cor cinzenta -->
                 <footer class="admin-footer text-center mt-4 py-3 text-muted">
                     <!-- Texto de copyright com ano e descrição do template -->
                     © 2026 - Template administrativo para aplicação Django
