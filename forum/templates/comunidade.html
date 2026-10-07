@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Comunidade | RondoPesca{% endblock %}
+
+{% block content %}
+<div class="community-page" data-author="{{ request.user.first_name|default:request.user.username|default:'Pescador' }}">
+    <section class="community-hero mb-4">
+        <span class="community-kicker">RONDO PESCA · GENTE QUE VIVE A PESCARIA</span>
+        <h1 class="mt-2 mb-2">Comunidade de pescadores</h1>
+        <p class="mb-0">Compartilhe suas pescarias, publique uma foto, troque dicas e aprenda com quem também ama estar perto da água.</p>
+    </section>
+
+    <div class="community-layout">
+        <div class="community-main">
+            <section class="community-publish-prompt community-card">
+                <div>
+                    <h2 class="mb-1">Tem uma história para contar?</h2>
+                    <p class="text-muted mb-0">Compartilhe uma pescaria, uma foto ou uma dúvida com a comunidade.</p>
+                </div>
+                <a class="btn btn-success community-publish-button" href="{% url 'publicar' %}">
+                    <i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Publicar
+                </a>
+            </section>
+
+            <section class="community-card" aria-labelledby="feed-title">
+                <div class="community-feed-toolbar border-bottom">
+                    <h2 id="feed-title"><i class="bi bi-chat-square-text me-2 text-success" aria-hidden="true"></i>Publicações</h2>
+                    <label class="visually-hidden" for="feed-sort">Ordenar publicações</label>
+                    <select id="feed-sort" class="form-select form-select-sm">
+                        <option value="recent">Mais recentes</option>
+                        <option value="popular">Mais curtidas</option>
+                    </select>
+                </div>
+                <div id="community-feed" aria-live="polite">
+                    <div class="community-empty">
+                        <i class="bi bi-water" aria-hidden="true"></i>
+                        <h3>O primeiro post pode ser o seu!</h3>
+                        <p>Ainda não há publicações. Compartilhe uma história, uma foto ou uma dúvida de pescaria para começar a conversa.</p>
+                    </div>
+                </div>
+                <div id="community-error" class="alert alert-danger m-3 d-none" role="alert"></div>
+            </section>
+        </div>
+
+        <aside class="community-aside" aria-label="Informações da comunidade">
+            <section class="community-card community-aside-card">
+                <h2><i class="bi bi-info-circle me-2 text-success" aria-hidden="true"></i>Sobre este espaço</h2>
+                <p class="mb-0">Um ponto de encontro para pescadores de Rondônia e de todo o Brasil. Compartilhe experiências, tire dúvidas e descubra novas ideias para sua próxima pescaria.</p>
+            </section>
+            <section class="community-card community-aside-card">
+                <h2><i class="bi bi-heart me-2 text-success" aria-hidden="true"></i>Boas práticas</h2>
+                <ul>
+                    <li>Trate todos com respeito e cordialidade.</li>
+                    <li>Compartilhe dicas responsáveis e respeite as regras locais de pesca.</li>
+                    <li>Cuide dos rios, lagos e da natureza.</li>
+                </ul>
+            </section>
+            <section class="community-card community-aside-card">
+                <p class="community-aside-highlight rounded mb-0"><i class="bi bi-clock-history me-2" aria-hidden="true"></i>As publicações desta demonstração ficam disponíveis somente durante esta sessão do navegador.</p>
+            </section>
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (() => {
+        const storageKey = "rondopesca-community-posts";
+        const page = document.querySelector(".community-page");
+        const feed = document.getElementById("community-feed");
+        const sortSelect = document.getElementById("feed-sort");
+        const errorMessage = document.getElementById("community-error");
+        const author = page.dataset.author || "Pescador";
+        let posts = [];
+
+        const showError = (message) => {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove("d-none");
+        };
+
+        const savePosts = () => {
+            try {
+                sessionStorage.setItem(storageKey, JSON.stringify(posts));
+                errorMessage.classList.add("d-none");
+                return true;
+            } catch (error) {
+                showError("Não foi possível salvar as alterações nesta sessão do navegador. Remova uma foto grande ou tente novamente.");
+                return false;
+            }
+        };
+
+        const formatDate = (date) => new Intl.DateTimeFormat("pt-BR", {
+            day: "2-digit",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit"
+        }).format(date);
+
+        const makeComment = (comment) => {
+            const item = document.createElement("div");
+            item.className = "community-comment";
+            const name = document.createElement("strong");
+            name.textContent = comment.author;
+            const text = document.createElement("p");
+            text.textContent = comment.text;
+            item.append(name, text);
+            return item;
+        };
+
+        const renderPosts = () => {
+            feed.replaceChildren();
+            if (!posts.length) {
+                const empty = document.createElement("div");
+                empty.className = "community-empty";
+                const icon = document.createElement("i");
+                icon.className = "bi bi-water";
+                icon.setAttribute("aria-hidden", "true");
+                const heading = document.createElement("h3");
+                heading.textContent = "O primeiro post pode ser o seu!";
+                const description = document.createElement("p");
+                description.textContent = "Ainda não há publicações. Compartilhe uma história, uma foto ou uma dúvida de pescaria para começar a conversa.";
+                empty.append(icon, heading, description);
+                feed.append(empty);
+                return;
+            }
+
+            const sortedPosts = [...posts];
+            if (sortSelect.value === "popular") {
+                sortedPosts.sort((first, second) => second.likes - first.likes || new Date(second.createdAt) - new Date(first.createdAt));
+            } else {
+                sortedPosts.sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt));
+            }
+
+            sortedPosts.forEach((post) => {
+                const article = document.createElement("article");
+                article.className = "community-post";
+
+                const header = document.createElement("div");
+                header.className = "community-post-header";
+                const avatar = document.createElement("span");
+                avatar.className = "community-avatar";
+                avatar.innerHTML = '<i class="bi bi-person-fill" aria-hidden="true"></i>';
+                const authorInfo = document.createElement("div");
+                const authorName = document.createElement("div");
+                authorName.className = "community-post-author";
+                authorName.textContent = post.author;
+                const timestamp = document.createElement("div");
+                timestamp.className = "community-post-time";
+                timestamp.textContent = formatDate(new Date(post.createdAt));
+                authorInfo.append(authorName, timestamp);
+                header.append(avatar, authorInfo);
+                article.append(header);
+
+                if (post.title) {
+                    const title = document.createElement("h3");
+                    title.className = "community-post-title";
+                    title.textContent = post.title;
+                    article.append(title);
+                }
+
+                if (post.text) {
+                    const text = document.createElement("p");
+                    text.className = "community-post-text";
+                    text.textContent = post.text;
+                    article.append(text);
+                }
+
+                if (post.photo) {
+                    const image = document.createElement("img");
+                    image.className = "community-post-image";
+                    image.src = post.photo;
+                    image.alt = post.title ? `Foto da publicação: ${post.title}` : "Foto compartilhada na comunidade";
+                    article.append(image);
+                }
+
+                const actions = document.createElement("div");
+                actions.className = "community-post-actions";
+                const likeButton = document.createElement("button");
+                likeButton.className = `community-action${post.liked ? " is-liked" : ""}`;
+                likeButton.type = "button";
+                likeButton.setAttribute("aria-pressed", String(post.liked));
+                likeButton.innerHTML = `<i class="bi ${post.liked ? "bi-heart-fill" : "bi-heart"} me-1" aria-hidden="true"></i>${post.likes} curtida${post.likes === 1 ? "" : "s"}`;
+                likeButton.addEventListener("click", () => {
+                    post.liked = !post.liked;
+                    post.likes += post.liked ? 1 : -1;
+                    savePosts();
+                    renderPosts();
+                });
+
+                const commentCount = document.createElement("span");
+                commentCount.className = "community-action";
+                commentCount.innerHTML = `<i class="bi bi-chat me-1" aria-hidden="true"></i>${post.comments.length} comentário${post.comments.length === 1 ? "" : "s"}`;
+                actions.append(likeButton, commentCount);
+                article.append(actions);
+
+                const comments = document.createElement("div");
+                comments.className = "community-comments";
+                post.comments.forEach((comment) => comments.append(makeComment(comment)));
+                const commentForm = document.createElement("form");
+                commentForm.className = "community-comment-form";
+                const commentInput = document.createElement("input");
+                commentInput.className = "form-control";
+                commentInput.type = "text";
+                commentInput.maxLength = 500;
+                commentInput.placeholder = "Escreva um comentário...";
+                commentInput.setAttribute("aria-label", "Escreva um comentário");
+                commentInput.required = true;
+                const commentButton = document.createElement("button");
+                commentButton.className = "btn btn-outline-success";
+                commentButton.type = "submit";
+                commentButton.textContent = "Comentar";
+                commentForm.append(commentInput, commentButton);
+                commentForm.addEventListener("submit", (event) => {
+                    event.preventDefault();
+                    const commentText = commentInput.value.trim();
+                    if (!commentText) return;
+                    post.comments.push({ author, text: commentText });
+                    savePosts();
+                    renderPosts();
+                });
+                comments.append(commentForm);
+                article.append(comments);
+                feed.append(article);
+            });
+        };
+
+        try {
+            const savedPosts = JSON.parse(sessionStorage.getItem(storageKey) || "[]");
+            if (!Array.isArray(savedPosts)) throw new Error("Formato inválido");
+            posts = savedPosts;
+        } catch (error) {
+            showError("Não foi possível carregar as publicações desta sessão do navegador.");
+        }
+
+        renderPosts();
+        sortSelect.addEventListener("change", renderPosts);
+    })();
+</script>
+{% endblock %}

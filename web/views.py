@@ -13,6 +13,14 @@ def contato(request):
     return render(request, 'web/contato.html')
 
 
+def comunidade(request):
+    return render(request, 'comunidade.html')
+
+
+def publicar(request):
+    return render(request, 'publicar.html')
+
+
 def inicio(request):
     return render(request, 'base.html')
 

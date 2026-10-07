@@ -15,7 +15,7 @@
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <link rel="stylesheet" href="{% static 'css/base/base.css' %}?v=20261005">
+    <link rel="stylesheet" href="{% static 'css/base/base.css' %}?v=20261007">
 
     <!-- CSS próprio sistema -->
 
@@ -84,7 +84,7 @@
                 <ul class="nav flex-column px-3">
                     <!-- Cada item do menu é um link que pode ter a classe "active" para destacar o item atual -->
                     <li class="nav-item mb-2"><a href="{% url 'inicio' %}" class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">Início</a></li>
-                    <li class="nav-item mb-2"><a href="#" class="nav-link">Comunidade</a></li>
+                    <li class="nav-item mb-2"><a href="{% url 'comunidade' %}" class="nav-link {% if request.resolver_match.url_name == 'comunidade' %}active{% endif %}">Comunidade</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Dicas</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Eventos</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'contato' %}" class="nav-link {% if request.resolver_match.url_name == 'contato' %}active{% endif %}">Contato</a></li>
