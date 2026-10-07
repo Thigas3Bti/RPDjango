@@ -13,8 +13,9 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <link rel="stylesheet" href="{% static 'css/base/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base/base.css' %}?v=20261005">
 
     <!-- CSS próprio sistema -->
 
@@ -45,8 +46,25 @@
                 <!-- Data atual que será preenchida pelo JavaScript
                      d-none d-md-block = esconde em telas pequenas, mostra em médias e grandes -->
                 <div class="d-none d-md-block text-muted" id="currentDate"></div>
-                <!-- Botão de acesso rápido para entrar no sistema -->
-                <a class="btn btn-outline-success btn-sm" href="#">Entrar</a>
+                {% if request.user.is_authenticated %}
+                <div class="dropdown">
+                    <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu do usuário">
+                        <i class="bi bi-person-circle" aria-hidden="true"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'perfil' %}">Ver perfil</a></li>
+                        <li>
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button class="dropdown-item" type="submit">Sair</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                {% else %}
+                <a class="btn btn-outline-success btn-sm" href="{% url 'login' %}">Entrar</a>
+                {% endif %}
             </div>
         </header>
 
@@ -54,6 +72,7 @@
         <div class="admin-body d-flex">
             <!-- Menu lateral (sidebar) responsivo - aparece como painel em telas pequenas 
                  collapse d-lg-block = começa fechado (collapse) e fica visível (d-block) em telas grandes (lg) -->
+            {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'cadastro' %}
             <nav id="sidebarMenu" class="collapse d-lg-block sidebar bg-soft-green text-white">
                 <!-- Cabeçalho interno da sidebar com nome do site -->
                 <div class="sidebar-header p-4">
@@ -64,25 +83,135 @@
                 <!-- Lista de links de navegação do menu -->
                 <ul class="nav flex-column px-3">
                     <!-- Cada item do menu é um link que pode ter a classe "active" para destacar o item atual -->
-                    <li class="nav-item mb-2"><a href="#" class="nav-link active">Início</a></li>
+                    <li class="nav-item mb-2"><a href="{% url 'inicio' %}" class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">Início</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Comunidade</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Dicas</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Eventos</a></li>
-                    <li class="nav-item mb-2"><a href="#" class="nav-link">Contato</a></li>
+                    <li class="nav-item mb-2"><a href="{% url 'contato' %}" class="nav-link {% if request.resolver_match.url_name == 'contato' %}active{% endif %}">Contato</a></li>
                 </ul>
                 <!-- Rodapé da sidebar que é empurrado para o final usando margin-top: auto no CSS -->
                 <div class="sidebar-footer px-3 mt-auto pb-4">
                     <small class="text-white-50">Acesso rápido</small>
                     <!-- Texto informativo sobre o uso do menu -->
                     <p class="small mt-2 text-white-50 mb-0">Clique nos itens do menu para navegar.</p>
+                    <a href="{% url 'contato' %}" class="btn btn-outline-light btn-sm mt-3">Fale conosco</a>
                 </div>
             </nav>
+            {% endif %}
 
             <!-- Área de conteúdo principal que se expande para ocupar espaço disponível (flex-fill) -->
             <main class="content flex-fill p-4">
 
                 {% block content %}
+                <div class="dashboard-home">
+                    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm">
+                        <div class="row align-items-center g-4">
+                            <div class="col-lg-8">
+                                <span class="dashboard-kicker">RONDO PESCA · SUA COMUNIDADE</span>
+                                <h1 class="display-6 fw-bold mt-2 mb-2">
+                                    Bem-vindo, {{ request.user.first_name|default:request.user.username }}!
+                                </h1>
+                                <p class="mb-0 text-muted">
+                                    Prepare sua próxima pescaria com boas dicas, planejamento e respeito à natureza.
+                                </p>
+                            </div>
+                            <div class="col-lg-4 text-lg-end">
+                                <a class="btn btn-success px-4" href="#agenda-hoje">Planejar minha pescaria</a>
+                            </div>
+                        </div>
+                    </section>
 
+                    <section class="row g-4 mb-4" id="agenda-hoje">
+                        <div class="col-12 col-xl-7">
+                            <div class="card dashboard-card h-100 shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                        <div>
+                                            <span class="dashboard-kicker">SEU PLANEJAMENTO</span>
+                                            <h2 class="h4 fw-bold mt-2 mb-1">Para hoje</h2>
+                                            <p class="text-muted mb-0">Uma boa pescaria começa antes de chegar à água.</p>
+                                        </div>
+                                        <span class="dashboard-label">Checklist</span>
+                                    </div>
+                                    <ul class="dashboard-checklist list-unstyled mb-0">
+                                        <li><span class="dashboard-check">1</span><span><strong>Confira o local</strong><small>Veja a previsão do tempo, o nível da água e as regras de pesca da região.</small></span></li>
+                                        <li><span class="dashboard-check">2</span><span><strong>Separe o equipamento</strong><small>Revise linha, anzóis, iscas e o estado da sua vara antes de sair.</small></span></li>
+                                        <li><span class="dashboard-check">3</span><span><strong>Cuide da segurança</strong><small>Avise alguém sobre o destino e leve água, proteção solar e um kit básico.</small></span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-xl-5">
+                            <article class="card dashboard-card dashboard-tip h-100 shadow-sm" id="dicas">
+                                <div class="card-body p-4">
+                                    <span class="dashboard-kicker">DICA DE PESCADOR EXPERIENTE</span>
+                                    <h2 class="h4 fw-bold mt-2">Ajuste o freio do molinete</h2>
+                                    <p class="text-muted">
+                                        Evite deixar o freio totalmente travado. Um ajuste que permite a saída controlada da linha ajuda a evitar rompimentos durante a briga com o peixe.
+                                    </p>
+                                    <div class="dashboard-tip-note">
+                                        <strong>Para quem está começando:</strong> teste a regulagem puxando a linha com a mão antes do primeiro arremesso.
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="row g-4 mb-4">
+                        <div class="col-12 col-lg-7" id="eventos">
+                            <div class="card dashboard-card h-100 shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                        <div>
+                                            <span class="dashboard-kicker">FIQUE POR DENTRO</span>
+                                            <h2 class="h4 fw-bold mt-2 mb-1">Próximos eventos</h2>
+                                        </div>
+                                        <span class="dashboard-label">Comunidade</span>
+                                    </div>
+                                    <div class="dashboard-empty-state">
+                                        <h3 class="h6 fw-bold mb-2">Sua agenda de encontros começa aqui</h3>
+                                        <p class="text-muted mb-0">
+                                            Ainda não há eventos publicados. Enquanto isso, procure encontros e torneios promovidos por grupos de pesca da sua região e confirme as regras locais antes de participar.
+                                        </p>
+                                    </div>
+                                    <div class="row g-3 mt-1">
+                                        <div class="col-md-6">
+                                            <div class="dashboard-event-idea h-100">
+                                                <span class="dashboard-event-tag">IDEIA PARA A AGENDA</span>
+                                                <h3 class="h6 fw-bold mt-2 mb-1">Encontro de iniciantes</h3>
+                                                <p class="small text-muted mb-0">Combine uma pescaria em grupo para trocar experiências e aprender técnicas.</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="dashboard-event-idea h-100">
+                                                <span class="dashboard-event-tag">IDEIA PARA A AGENDA</span>
+                                                <h3 class="h6 fw-bold mt-2 mb-1">Ação de cuidado do local</h3>
+                                                <p class="small text-muted mb-0">Organize com a comunidade uma atividade para recolher resíduos nas margens.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-5">
+                            <div class="card dashboard-card h-100 shadow-sm">
+                                <div class="card-body p-4">
+                                    <span class="dashboard-kicker">ANTES DE SAIR</span>
+                                    <h2 class="h4 fw-bold mt-2 mb-3">O que levar</h2>
+                                    <ul class="dashboard-essentials list-unstyled mb-0">
+                                        <li>Vara, molinete e linha revisados</li>
+                                        <li>Anzóis, iscas e alicate</li>
+                                        <li>Água, lanche e proteção solar</li>
+                                        <li>Documento e itens básicos de segurança</li>
+                                        <li>Saco para trazer seu lixo de volta</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
                 {% endblock %}
                 <!-- Cabeçalho do conteúdo com título e ação principal -->
 <!--                <section class="content-top mb-4">-->

@@ -55,7 +55,27 @@
                     <li class="nav-item"><a class="nav-link" href="#recursos">Recursos</a></li>
                     <li class="nav-item"><a class="nav-link" href="#dicas">Dicas</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'contato' %}">Contato</a></li>
-                    <li class="nav-item"><a class="btn btn-rondo btn-sm px-3" href="{% url 'login' %}">Entrar</a></li>
+                    <li class="nav-item">
+                        {% if request.user.is_authenticated %}
+                        <div class="dropdown">
+                            <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu do usuário">
+                                <i class="bi bi-person-circle" aria-hidden="true"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'perfil' %}">Ver perfil</a></li>
+                                <li>
+                                    <form method="post" action="{% url 'logout' %}">
+                                        {% csrf_token %}
+                                        <button class="dropdown-item" type="submit">Sair</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                        {% else %}
+                        <a class="btn btn-rondo btn-sm px-3" href="{% url 'login' %}">Entrar</a>
+                        {% endif %}
+                    </li>
                 </ul>
             </div>
         </div>
@@ -154,7 +174,9 @@
                 <h2 class="fw-bold mb-3">Pronto para começar?</h2>
                 <p class="text-white-50 mb-4">Entre em contato com o RondoPesca e faça parte dessa comunidade.</p>
                 <a href="{% url 'contato' %}" class="btn btn-rondo me-2"><i class="bi bi-envelope me-2"></i>Falar conosco</a>
+                {% if not request.user.is_authenticated %}
                 <a href="{% url 'login' %}" class="btn btn-outline-light"><i class="bi bi-box-arrow-in-right me-2"></i>Entrar</a>
+                {% endif %}
             </div>
         </section>
     </main>

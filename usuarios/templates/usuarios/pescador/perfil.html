@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Meu perfil | RondoPesca{% endblock %}
+
+{% block content %}
+<section class="container py-3" aria-labelledby="profile-title">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <i class="bi bi-person-circle fs-1 text-success" aria-hidden="true"></i>
+                        <div>
+                            <h1 id="profile-title" class="h3 fw-bold mb-1">
+                                {{ request.user.get_full_name|default:request.user.username }}</h1>
+                            <p class="text-muted mb-0">Informações da sua conta RondoPesca</p>
+                        </div>
+                    </div>
+
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 py-2">Nome</dt>
+                        <dd class="col-sm-8 py-2">
+                            {{ request.user.get_full_name|default:request.user.username }}
+                        </dd>
+                        <dt class="col-sm-4 py-2">Nome de usuário</dt>
+                        <dd class="col-sm-8 py-2">{{ request.user.username }}</dd>
+                        <dt class="col-sm-4 py-2">E-mail</dt>
+                        <dd class="col-sm-8 py-2">{{ request.user.email|default:"Não informado" }}</dd>
+                        <dt class="col-sm-4 py-2">Membro desde</dt>
+                        <dd class="col-sm-8 py-2">{{ request.user.date_joined|date:"d/m/Y" }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
