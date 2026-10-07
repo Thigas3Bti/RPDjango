@@ -113,6 +113,29 @@ class RegistrationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Criar conta')
         self.assertContains(response, 'Confirme a senha')
+        self.assertContains(response, 'Escolha um nome de usuário para acessar sua conta.')
+        self.assertContains(response, 'Use pelo menos 8 caracteres.')
+        self.assertContains(response, 'voce@exemplo.com')
+
+    def test_registration_shows_portuguese_required_field_errors(self):
+        response = self.client.post(reverse('cadastro'), {})
+
+        self.assertContains(response, 'Este campo é obrigatório.')
+
+    def test_registration_shows_portuguese_password_mismatch_error(self):
+        response = self.client.post(
+            reverse('cadastro'),
+            {
+                'username': 'novo-pescador',
+                'first_name': 'Novo',
+                'last_name': 'Pescador',
+                'email': 'novo@example.com',
+                'password1': 'SenhaSegura123!',
+                'password2': 'SenhaDiferente123!',
+            },
+        )
+
+        self.assertContains(response, 'As senhas informadas não são iguais.')
 
     def test_registration_creates_user_and_logs_them_in(self):
         response = self.client.post(

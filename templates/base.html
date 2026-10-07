@@ -39,7 +39,7 @@
                     ☰
                 </button>
                 <!-- Logo/marca do site com dois tons de verde -->
-                <a class="brand text-decoration-none" href="#">Rondo<span>Pesca</span></a>
+                <a class="brand text-decoration-none" href="{% url 'home' %}">Rondo<span>Pesca</span></a>
             </div>
             <!-- Lado direito do cabeçalho com data e botão de login -->
             <div class="header-right d-flex align-items-center gap-3">
@@ -72,7 +72,7 @@
         <div class="admin-body d-flex">
             <!-- Menu lateral (sidebar) responsivo - aparece como painel em telas pequenas 
                  collapse d-lg-block = começa fechado (collapse) e fica visível (d-block) em telas grandes (lg) -->
-            {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'cadastro' %}
+            {% if request.user.is_authenticated %}
             <nav id="sidebarMenu" class="collapse d-lg-block sidebar bg-soft-green text-white">
                 <!-- Cabeçalho interno da sidebar com nome do site -->
                 <div class="sidebar-header p-4">
@@ -85,7 +85,7 @@
                     <!-- Cada item do menu é um link que pode ter a classe "active" para destacar o item atual -->
                     <li class="nav-item mb-2"><a href="{% url 'inicio' %}" class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">Início</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'comunidade' %}" class="nav-link {% if request.resolver_match.url_name == 'comunidade' %}active{% endif %}">Comunidade</a></li>
-                    <li class="nav-item mb-2"><a href="{% url 'dicas' %}" class="nav-link {% if request.resolver_match.url_name == 'dicas' %}active{% endif %}">Dicas</a></li>
+                    <li class="nav-item mb-2"><a href="#" class="nav-link">Dicas</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Eventos</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'contato' %}" class="nav-link {% if request.resolver_match.url_name == 'contato' %}active{% endif %}">Contato</a></li>
                 </ul>
@@ -143,7 +143,7 @@
                         </div>
 
                         <div class="col-12 col-xl-5">
-                            <article class="card dashboard-card dashboard-tip h-100 shadow-sm">
+                            <article class="card dashboard-card dashboard-tip h-100 shadow-sm" id="dicas">
                                 <div class="card-body p-4">
                                     <span class="dashboard-kicker">DICA DE PESCADOR EXPERIENTE</span>
                                     <h2 class="h4 fw-bold mt-2">Ajuste o freio do molinete</h2>
@@ -186,7 +186,7 @@
                                         <div class="col-md-6">
                                             <div class="dashboard-event-idea h-100">
                                                 <span class="dashboard-event-tag">IDEIA PARA A AGENDA</span>
-                                                  <h3 class="h6 fw-bold mt-2 mb-1">Ação de cuidado do local</h3>
+                                                <h3 class="h6 fw-bold mt-2 mb-1">Ação de cuidado do local</h3>
                                                 <p class="small text-muted mb-0">Organize com a comunidade uma atividade para recolher resíduos nas margens.</p>
                                             </div>
                                         </div>
@@ -213,7 +213,6 @@
                     </section>
                 </div>
                 {% endblock %}
-
                 <footer class="admin-footer text-center mt-4 py-3 text-muted">
                     <!-- Texto de copyright com ano e descrição do template -->
                     © 2026 - Template administrativo para aplicação Django
@@ -222,7 +221,9 @@
         </div>
     </div>
 
-
+    <!-- Script do Bootstrap 5 para funcionalidades interativas
+         bundle.min.js = versão compilada que inclui Popper.js necessário para tooltips, popovers, etc.
+         Permite funcionamento do botão collapse (hamburger menu) em telas pequenas -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>

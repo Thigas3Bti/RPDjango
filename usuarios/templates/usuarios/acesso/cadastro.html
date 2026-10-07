@@ -22,7 +22,7 @@
                     {{ field.label_tag }}
                     {{ field }}
                     {% if field.help_text %}
-                        <div class="form-text">{{ field.help_text|safe }}</div>
+                        <div class="form-text">{{ field.help_text }}</div>
                     {% endif %}
                     {% for error in field.errors %}
                         <div class="text-danger small" role="alert">{{ error }}</div>
