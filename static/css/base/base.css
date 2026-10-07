@@ -9,7 +9,7 @@
 body {
     /* Remove espaçamento padrão do navegador */
     margin: 0;
-    /* Define a fonte padrão para todo o texto da página */
+    /* Define a fonte padrão para  o texto da página */
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     /* Fundo verde muito claro e suave para tema de pesca */
     background: #e9f3e8;
@@ -17,7 +17,7 @@ body {
     color: #203a28;
 }
 
-/* Container principal que ocupa toda a altura da janela */
+/* Container principal que ocupa  a altura da janela */
 .admin-layout {
     /* Define altura mínima como 100% da altura da viewport */
     min-height: 100vh;
