@@ -13,9 +13,18 @@ def contato(request):
     return render(request, 'web/contato.html')
 
 
+def inicio(request):
+    return render(request, 'base.html')
+
+
 @login_required(login_url='login')
 def painel(request):
     return render(request, 'base.html')
+
+
+@login_required(login_url='login')
+def perfil(request):
+    return render(request, 'usuarios/pescador/perfil.html')
 
 
 def login(request):
