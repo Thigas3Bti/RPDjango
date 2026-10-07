@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -31,3 +31,20 @@ class LoginForm(AuthenticationForm):
                 else _('Usuário não encontrado.')
             )
             raise ValidationError(message, code='invalid_login')
+
+
+class RegistrationForm(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = get_user_model()
+        fields = ('username', 'first_name', 'last_name', 'email')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].label = 'Nome de usuário'
+        self.fields['first_name'].label = 'Nome'
+        self.fields['last_name'].label = 'Sobrenome'
+        self.fields['email'].label = 'E-mail'
+        self.fields['password1'].label = 'Senha'
+        self.fields['password2'].label = 'Confirme a senha'
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'

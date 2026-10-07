@@ -2,7 +2,7 @@ from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
-from .forms import LoginForm
+from .forms import LoginForm, RegistrationForm
 
 
 def home(request):
@@ -38,6 +38,18 @@ def login(request):
         return redirect('painel')
 
     return render(request, 'usuarios/acesso/login.html', {'form': form})
+
+
+def cadastro(request):
+    form = RegistrationForm(
+        request.POST if request.method == 'POST' else None,
+    )
+
+    if request.method == 'POST' and form.is_valid():
+        auth_login(request, form.save())
+        return redirect('painel')
+
+    return render(request, 'usuarios/acesso/cadastro.html', {'form': form})
 
 
 def logout(request):

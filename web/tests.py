@@ -39,6 +39,38 @@ class LoginErrorMessageTests(TestCase):
         self.assertContains(response, 'Senha incorreta.')
 
 
+class RegistrationTests(TestCase):
+    def test_login_page_links_to_registration(self):
+        response = self.client.get(reverse('login'))
+
+        self.assertContains(response, 'Não tem uma conta?')
+        self.assertContains(response, f'href="{reverse("cadastro")}"')
+
+    def test_registration_page_renders_account_fields(self):
+        response = self.client.get(reverse('cadastro'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Criar conta')
+        self.assertContains(response, 'Confirme a senha')
+
+    def test_registration_creates_user_and_logs_them_in(self):
+        response = self.client.post(
+            reverse('cadastro'),
+            {
+                'username': 'novo-pescador',
+                'first_name': 'Novo',
+                'last_name': 'Pescador',
+                'email': 'novo@example.com',
+                'password1': 'SenhaSegura123!',
+                'password2': 'SenhaSegura123!',
+            },
+        )
+
+        self.assertRedirects(response, reverse('painel'))
+        self.assertTrue(User.objects.filter(username='novo-pescador').exists())
+        self.assertIn('_auth_user_id', self.client.session)
+
+
 class UserMenuTests(TestCase):
     def test_authenticated_user_sees_profile_and_logout_menu(self):
         user = User.objects.create_user(username='pescador', password='senha-correta')

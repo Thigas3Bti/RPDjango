@@ -72,7 +72,7 @@
         <div class="admin-body d-flex">
             <!-- Menu lateral (sidebar) responsivo - aparece como painel em telas pequenas 
                  collapse d-lg-block = começa fechado (collapse) e fica visível (d-block) em telas grandes (lg) -->
-            {% if request.resolver_match.url_name != 'login' %}
+            {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'cadastro' %}
             <nav id="sidebarMenu" class="collapse d-lg-block sidebar bg-soft-green text-white">
                 <!-- Cabeçalho interno da sidebar com nome do site -->
                 <div class="sidebar-header p-4">
