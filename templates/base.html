@@ -86,7 +86,7 @@
                     <li class="nav-item mb-2"><a href="{% url 'inicio' %}" class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">Início</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'comunidade' %}" class="nav-link {% if request.resolver_match.url_name == 'comunidade' %}active{% endif %}">Comunidade</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'dicas' %}" class="nav-link {% if request.resolver_match.url_name == 'dicas' %}active{% endif %}">Dicas</a></li>
-                    <li class="nav-item mb-2"><a href="#" class="nav-link">Eventos</a></li>
+                    <li class="nav-item mb-2"><a href="{% url 'eventos' %}" class="nav-link {% if request.resolver_match.url_name == 'eventos' or request.resolver_match.url_name == 'criar_evento' or request.resolver_match.url_name == 'editar_evento' %}active{% endif %}">Eventos</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'contato' %}" class="nav-link {% if request.resolver_match.url_name == 'contato' %}active{% endif %}">Contato</a></li>
                 </ul>
                 <!-- Rodapé da sidebar que é empurrado para o final usando margin-top: auto no CSS -->
@@ -167,30 +167,38 @@
                                         <div>
                                             <span class="dashboard-kicker">FIQUE POR DENTRO</span>
                                             <h2 class="h4 fw-bold mt-2 mb-1">Próximos eventos</h2>
+                                            <p class="text-muted mb-0">Organize seus planos ou encontre um encontro da comunidade.</p>
                                         </div>
-                                        <span class="dashboard-label">Comunidade</span>
+                                        <a class="btn btn-outline-success btn-sm" href="{% url 'eventos' %}">Abrir agenda</a>
                                     </div>
+                                    {% for evento in eventos_proximos %}
+                                    <div class="border-top py-3">
+                                        <div class="d-flex flex-wrap justify-content-between gap-2">
+                                            <div>
+                                                <span class="badge {% if evento.tipo == 'oficial' %}text-bg-primary{% elif evento.tipo == 'comunidade' %}text-bg-success{% else %}text-bg-secondary{% endif %}">
+                                                    {% if evento.tipo == 'oficial' %}Oficial{% elif evento.tipo == 'comunidade' %}Comunidade{% else %}Pessoal{% endif %}
+                                                </span>
+                                                <h3 class="h6 fw-bold mt-2 mb-1">{{ evento.nome }}</h3>
+                                                <p class="small text-muted mb-0">
+                                                    {{ evento.data_evento|date:"d/m/Y" }}{% if evento.hora_evento %}, {{ evento.hora_evento|time:"H:i" }}{% endif %}
+                                                    {% if evento.local %} · {{ evento.local }}{% endif %}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% empty %}
                                     <div class="dashboard-empty-state">
-                                        <h3 class="h6 fw-bold mb-2">Sua agenda de encontros começa aqui</h3>
+                                        <h3 class="h6 fw-bold mb-2">Nenhum evento próximo por enquanto</h3>
                                         <p class="text-muted mb-0">
-                                            Ainda não há eventos publicados. Enquanto isso, procure encontros e torneios promovidos por grupos de pesca da sua região e confirme as regras locais antes de participar.
+                                            Eventos pessoais ficam visíveis só para você. Eventos da comunidade aparecem para todos e permitem confirmar participação.
                                         </p>
                                     </div>
-                                    <div class="row g-3 mt-1">
-                                        <div class="col-md-6">
-                                            <div class="dashboard-event-idea h-100">
-                                                <span class="dashboard-event-tag">IDEIA PARA A AGENDA</span>
-                                                <h3 class="h6 fw-bold mt-2 mb-1">Encontro de iniciantes</h3>
-                                                <p class="small text-muted mb-0">Combine uma pescaria em grupo para trocar experiências e aprender técnicas.</p>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="dashboard-event-idea h-100">
-                                                <span class="dashboard-event-tag">IDEIA PARA A AGENDA</span>
-                                                <h3 class="h6 fw-bold mt-2 mb-1">Ação de cuidado do local</h3>
-                                                <p class="small text-muted mb-0">Organize com a comunidade uma atividade para recolher resíduos nas margens.</p>
-                                            </div>
-                                        </div>
+                                    {% endfor %}
+                                    <div class="d-flex flex-wrap gap-2 mt-3">
+                                        <a class="btn btn-outline-success" href="{% url 'eventos' %}">Abrir agenda</a>
+                                        {% if request.user.is_authenticated %}
+                                        <a class="btn btn-success" href="{% url 'criar_evento' %}">Criar evento</a>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
