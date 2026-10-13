@@ -121,16 +121,24 @@
                     </ul>
                 </details>
             </div>
-        {% for dica in dicas_publicadas %}
-            <div class="col-12 col-xl-6 nivel-dica" data-nivel="{{ dica.nivel }}">
-                <article class="card dashboard-card h-100 shadow-sm p-4">
-                    <span class="dashboard-kicker">{{ dica.get_nivel_display|upper }} · DICA DA COMUNIDADE</span>
-                    <h3 class="h5 fw-bold mt-2">{{ dica.titulo }}</h3>
-                    <p class="mb-3">{{ dica.descricao|linebreaksbr }}</p>
-                    <small class="text-muted mt-auto">Compartilhada por {{ dica.autor.get_full_name|default:dica.autor.username }} em {{ dica.criada_em|date:"d/m/Y" }}</small>
-                </article>
+        {% if dicas_publicadas %}
+            {% for dica in dicas_publicadas %}
+                <div class="col-12 col-xl-6 nivel-dica" data-nivel="{{ dica.nivel }}">
+                    <article class="card dashboard-card h-100 shadow-sm p-4">
+                        <span class="dashboard-kicker">{{ dica.get_nivel_display|upper }} · DICA DA COMUNIDADE</span>
+                        <h3 class="h5 fw-bold mt-2">{{ dica.titulo }}</h3>
+                        <p class="mb-3">{{ dica.descricao|linebreaksbr }}</p>
+                        <small class="text-muted mt-auto">Compartilhada por {{ dica.autor.get_full_name|default:dica.autor.username }} em {{ dica.criada_em|date:"d/m/Y" }}</small>
+                    </article>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-light border text-center mb-0" role="status">
+                    Ainda não há dicas publicadas pela comunidade. Seja o primeiro(a) a compartilhar uma estratégia útil.
+                </div>
             </div>
-        {% endfor %}
+        {% endif %}
     </div>
     <p class="small text-muted mt-3 mb-0"><strong>Lembrete:</strong> consulte as normas ambientais e de navegação vigentes para o local. Se houver dúvida sobre a legalidade, segurança ou impacto sobre o peixe, não faça a captura.</p>
     </section>
