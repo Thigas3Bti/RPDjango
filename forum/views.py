@@ -53,7 +53,7 @@ def publicar(request):
             publicacao.autor = request.user
             publicacao.save()
             messages.success(request, 'Sua publicação foi compartilhada com a comunidade.')
-            return redirect('comunidade')
+            return redirect(f"{reverse('comunidade')}#publicacao-{publicacao.pk}")
     elif request.method == 'GET':
         form = PublicacaoForm()
     else:
