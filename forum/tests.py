@@ -43,13 +43,17 @@ class ComunidadeTests(TestCase):
             'texto': 'Experimente uma isca adequada à espécie.',
         })
 
-        self.assertRedirects(resposta, reverse('comunidade'))
         publicacao = Publicacao.objects.get(titulo='Dica de isca')
+        self.assertRedirects(
+            resposta,
+            f"{reverse('comunidade')}#publicacao-{publicacao.pk}",
+        )
         self.assertEqual(publicacao.autor, self.autor)
 
         self.client.logout()
         resposta_feed = self.client.get(reverse('comunidade'))
         self.assertContains(resposta_feed, 'Dica de isca')
+        self.assertContains(resposta_feed, 'Experimente uma isca adequada à espécie.')
 
     def test_foto_da_publicacao_e_salva_no_servidor(self):
         self.client.force_login(self.autor)
@@ -71,8 +75,11 @@ class ComunidadeTests(TestCase):
                     ),
                 })
 
-                self.assertRedirects(resposta, reverse('comunidade'))
                 publicacao = Publicacao.objects.get(titulo='Foto da pescaria')
+                self.assertRedirects(
+                    resposta,
+                    f"{reverse('comunidade')}#publicacao-{publicacao.pk}",
+                )
                 self.assertTrue(publicacao.foto.storage.exists(publicacao.foto.name))
 
     def test_visitante_precisa_entrar_para_publicar(self):
