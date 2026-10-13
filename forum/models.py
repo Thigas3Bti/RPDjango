@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 from usuarios.models import Usuario
@@ -103,3 +104,73 @@ class Peixes(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+class Publicacao(models.Model):
+    autor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='publicacoes_forum',
+    )
+    titulo = models.CharField(max_length=120, blank=True)
+    texto = models.TextField(max_length=2000, blank=True)
+    foto = models.FileField(upload_to='forum/publicacoes/%Y/%m/', blank=True)
+    criada_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-criada_em']
+        verbose_name = 'Publicação'
+        verbose_name_plural = 'Publicações'
+
+    def __str__(self):
+        return self.titulo or f'Publicação de {self.autor}'
+
+
+class Comentario(models.Model):
+    publicacao = models.ForeignKey(
+        Publicacao,
+        on_delete=models.CASCADE,
+        related_name='comentarios',
+    )
+    autor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='comentarios_forum',
+    )
+    texto = models.CharField(max_length=500)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['criado_em']
+        verbose_name = 'Comentário'
+        verbose_name_plural = 'Comentários'
+
+    def __str__(self):
+        return f'Comentário de {self.autor} na publicação {self.publicacao_id}'
+
+
+class Curtida(models.Model):
+    publicacao = models.ForeignKey(
+        Publicacao,
+        on_delete=models.CASCADE,
+        related_name='curtidas',
+    )
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='curtidas_forum',
+    )
+    criada_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['publicacao', 'usuario'],
+                name='forum_curtida_unica_por_usuario',
+            ),
+        ]
+        verbose_name = 'Curtida'
+        verbose_name_plural = 'Curtidas'
+
+    def __str__(self):
+        return f'Curtida de {self.usuario} na publicação {self.publicacao_id}'
