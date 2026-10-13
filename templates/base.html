@@ -85,7 +85,7 @@
                     <!-- Cada item do menu é um link que pode ter a classe "active" para destacar o item atual -->
                     <li class="nav-item mb-2"><a href="{% url 'inicio' %}" class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">Início</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'comunidade' %}" class="nav-link {% if request.resolver_match.url_name == 'comunidade' %}active{% endif %}">Comunidade</a></li>
-                    <li class="nav-item mb-2"><a href="#" class="nav-link">Dicas</a></li>
+                    <li class="nav-item mb-2"><a href="{% url 'dicas' %}" class="nav-link {% if request.resolver_match.url_name == 'dicas' %}active{% endif %}">Dicas</a></li>
                     <li class="nav-item mb-2"><a href="#" class="nav-link">Eventos</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'contato' %}" class="nav-link {% if request.resolver_match.url_name == 'contato' %}active{% endif %}">Contato</a></li>
                 </ul>
@@ -115,8 +115,9 @@
                                     Prepare sua próxima pescaria com boas dicas, planejamento e respeito à natureza.
                                 </p>
                             </div>
-                            <div class="col-lg-4 text-lg-end">
+                            <div class="col-lg-4 text-lg-end d-flex flex-column flex-sm-row justify-content-lg-end gap-2">
                                 <a class="btn btn-success px-4" href="#agenda-hoje">Planejar minha pescaria</a>
+                                <a class="btn btn-outline-success px-4" href="{% url 'dicas' %}">Ver dicas</a>
                             </div>
                         </div>
                     </section>

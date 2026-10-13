@@ -2,6 +2,8 @@ from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 
+from .models import Dica
+
 
 class ContatoViewTests(TestCase):
     def test_contact_page_uses_shared_template_and_renders(self):
@@ -17,6 +19,65 @@ class ContatoViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, f'href="{reverse("contato")}"')
         self.assertContains(response, 'Falar conosco')
+
+
+class DashboardFishingTipsTests(TestCase):
+    def test_dedicated_tips_page_displays_each_level_and_filter(self):
+        response = self.client.get(reverse('dicas'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="dicas"')
+        self.assertContains(response, 'Iniciante: segurança e fundamentos')
+        self.assertContains(response, 'Intermediário: local, isca e apresentação')
+        self.assertContains(response, 'Avançado: equipamento e leitura da pescaria')
+        self.assertContains(response, 'Veterano: análise, adaptação e responsabilidade')
+        self.assertContains(response, 'id="filtro-nivel-dicas"')
+        self.assertContains(response, 'Adicionar nova dica')
+
+    def test_dashboard_menu_links_to_dedicated_tips_page(self):
+        response = self.client.get(reverse('inicio'))
+
+        self.assertContains(response, f'href="{reverse("dicas")}"')
+        self.assertNotContains(response, 'id="lista-niveis-dicas"')
+
+    def test_authenticated_user_can_publish_tip_and_see_it_in_list(self):
+        user = User.objects.create_user(username='pescador', password='senha-correta')
+        self.client.force_login(user)
+
+        response = self.client.post(reverse('adicionar_dica'), {
+            'titulo': 'Ler a correnteza',
+            'nivel': 'intermediario',
+            'descricao': 'Observe onde a corrente muda de velocidade.',
+        })
+
+        self.assertRedirects(response, reverse('dicas'))
+        dica = Dica.objects.get(titulo='Ler a correnteza')
+        self.assertEqual(dica.autor, user)
+        tips_response = self.client.get(reverse('dicas'))
+        self.assertContains(tips_response, 'Ler a correnteza')
+        self.assertContains(tips_response, 'DICA DA COMUNIDADE')
+
+    def test_adding_tip_requires_login(self):
+        response = self.client.get(reverse('adicionar_dica'))
+
+        self.assertRedirects(
+            response,
+            f'{reverse("login")}?next={reverse("adicionar_dica")}',
+        )
+
+    def test_invalid_tip_is_not_saved(self):
+        user = User.objects.create_user(username='pescador', password='senha-correta')
+        self.client.force_login(user)
+
+        response = self.client.post(reverse('adicionar_dica'), {
+            'titulo': '',
+            'nivel': 'intermediario',
+            'descricao': 'Descrição válida.',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Dica.objects.count(), 0)
+        self.assertContains(response, 'Este campo é obrigatório.')
 
 
 class LoginErrorMessageTests(TestCase):

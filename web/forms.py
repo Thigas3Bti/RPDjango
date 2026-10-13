@@ -1,7 +1,39 @@
+from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+
+from .models import Dica
+
+
+class DicaForm(forms.ModelForm):
+    class Meta:
+        model = Dica
+        fields = ['titulo', 'nivel', 'descricao']
+        labels = {
+            'titulo': 'Título da dica',
+            'nivel': 'Nível de experiência',
+            'descricao': 'Descrição da dica',
+        }
+        widgets = {
+            'titulo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'maxlength': 120,
+                'placeholder': 'Ex.: Como escolher a isca para o local',
+            }),
+            'nivel': forms.Select(attrs={'class': 'form-select'}),
+            'descricao': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 6,
+                'placeholder': 'Explique sua dica com detalhes e contexto.',
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.error_messages['required'] = _('Este campo é obrigatório.')
 
 
 class LoginForm(AuthenticationForm):
