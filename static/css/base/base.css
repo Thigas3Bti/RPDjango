@@ -527,6 +527,15 @@ body {
 
 /* Media query para telas muito pequenas (máximo 767px - celulares) */
 @media (max-width: 767.98px) {
+    .event-invite {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .event-invite-button {
+        align-self: flex-start;
+    }
+
     /* Em celulares, o cabeçalho permite quebra de linha */
     .admin-header {
         /* Permite elementos irem para próxima linha se necessário */
@@ -566,6 +575,88 @@ body {
     max-width: 1320px;
     margin: 0 auto;
     color: var(--community-ink);
+}
+
+.event-location {
+    display: inline-block;
+}
+
+.event-location-toggle {
+    display: inline;
+    color: inherit;
+    cursor: pointer;
+    list-style: none;
+}
+
+.event-location-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.event-location-toggle:hover {
+    color: #1f5f30;
+    text-decoration: underline;
+}
+
+.event-map {
+    width: min(420px, calc(100vw - 3rem));
+    margin-top: 0.75rem;
+}
+
+.event-map iframe {
+    display: block;
+    width: 100%;
+    height: 240px;
+    border: 0;
+    border-radius: 0.75rem;
+}
+
+.event-invite {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid #d3e5d2;
+    border-radius: 1rem;
+    background: linear-gradient(115deg, #fff 0%, #edf6e9 100%);
+}
+
+.event-invite-copy {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.event-invite-icon {
+    display: inline-flex;
+    flex: 0 0 2.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #dcebd8;
+    color: #2f6d3a;
+    font-size: 1.3rem;
+}
+
+.event-invite-title {
+    margin: 0;
+    color: var(--community-deep);
+    font-size: 1.05rem;
+    font-weight: 750;
+    overflow-wrap: anywhere;
+}
+
+.event-invite-text {
+    margin-top: 0.2rem;
+    color: var(--community-muted);
+    font-size: 0.9rem;
+}
+
+.event-invite-button {
+    flex: 0 0 auto;
 }
 
 .community-hero {
@@ -632,6 +723,25 @@ body {
     border-radius: 1rem;
     background: #fff;
     box-shadow: 0 0.45rem 1.5rem rgba(20, 45, 30, 0.045);
+}
+
+.event-form-card {
+    padding: clamp(1rem, 3vw, 2rem);
+}
+
+.event-form-card .row > div {
+    min-width: 0;
+}
+
+.event-form-card .form-label,
+.event-form-card .form-text,
+.event-form-card .text-danger {
+    overflow-wrap: anywhere;
+}
+
+.event-form-card .form-control,
+.event-form-card .form-select {
+    max-width: 100%;
 }
 
 .community-publish-prompt {

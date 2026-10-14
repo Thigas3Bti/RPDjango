@@ -21,6 +21,7 @@ class EventoAgenda(models.Model):
     data_evento = models.DateField()
     hora_evento = models.TimeField(blank=True, null=True)
     local = models.CharField(max_length=150, blank=True)
+    mapa_url = models.URLField(max_length=1000, blank=True)
     descricao = models.TextField(max_length=5000, blank=True)
     tipo = models.CharField(max_length=20, choices=TIPOS, default=TIPO_PESSOAL)
     organizador = models.ForeignKey(

@@ -18,16 +18,20 @@
     </div>
     {% endif %}
 
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-        <p class="text-muted mb-0">
-            Eventos pessoais só aparecem para quem os criou. Eventos da comunidade e oficiais são públicos.
-        </p>
+    <div class="event-invite mb-4">
+        <div class="event-invite-copy">
+            <span class="event-invite-icon" aria-hidden="true"><i class="bi bi-water"></i></span>
+            <div>
+                <h2 class="event-invite-title">Venha participar de eventos de pesca conosco!</h2>
+                <p class="event-invite-text mb-0">Encontre outros pescadores e viva novas aventuras.</p>
+            </div>
+        </div>
         {% if request.user.is_authenticated %}
-        <a class="btn btn-success" href="{% url 'criar_evento' %}">
+        <a class="btn btn-success event-invite-button" href="{% url 'criar_evento' %}">
             <i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Criar evento
         </a>
         {% else %}
-        <a class="btn btn-success" href="{% url 'login' %}?next={% url 'criar_evento' %}">Entre para criar um evento</a>
+        <a class="btn btn-success event-invite-button" href="{% url 'login' %}?next={% url 'criar_evento' %}">Entre para criar um evento</a>
         {% endif %}
     </div>
 
@@ -44,8 +48,31 @@
                         <i class="bi bi-calendar-event me-1" aria-hidden="true"></i>
                         <time datetime="{{ evento.data_evento|date:'Y-m-d' }}">{{ evento.data_evento|date:"l, d/m/Y" }}</time>
                         {% if evento.hora_evento %} às {{ evento.hora_evento|time:"H:i" }}{% endif %}
-                        {% if evento.local %}<span class="mx-1">·</span><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ evento.local }}{% endif %}
                     </p>
+                    {% if evento.local or evento.mapa_url %}
+                    <div class="text-muted mb-2">
+                        {% if evento.mapa_url %}
+                        <details class="event-location">
+                            <summary class="event-location-toggle">
+                                <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>
+                                <span>{% if evento.local %}{{ evento.local }}{% else %}Ver localização{% endif %}</span>
+                                <span class="small text-success ms-1">· Ver mapa</span>
+                            </summary>
+                            <div class="event-map">
+                                <iframe
+                                    src="{{ evento.mapa_url }}"
+                                    title="Mapa de {{ evento.nome }}"
+                                    loading="lazy"
+                                    referrerpolicy="strict-origin-when-cross-origin"
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                        </details>
+                        {% else %}
+                        <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ evento.local }}
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
                 {% if request.user == evento.organizador %}
                 <div class="d-flex gap-2">

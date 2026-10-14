@@ -182,6 +182,10 @@ class AgendaEventosTests(TestCase):
 
     def test_usuario_cria_evento_pessoal_proprio(self):
         self.client.force_login(self.organizador)
+        mapa_iframe = (
+            '<iframe src="https://www.google.com/maps/embed?pb=exemplo" '
+            'width="600" height="450"></iframe>'
+        )
 
         resposta = self.client.post(reverse('criar_evento'), {
             'nome': 'Minha pescaria',
@@ -189,6 +193,7 @@ class AgendaEventosTests(TestCase):
             'data_evento': self.data_futura.isoformat(),
             'hora_evento': '07:30',
             'local': 'Rio Madeira',
+            'mapa_url': mapa_iframe,
             'descricao': 'Levar equipamento.',
         })
 
@@ -196,6 +201,34 @@ class AgendaEventosTests(TestCase):
         self.assertRedirects(resposta, reverse('eventos'))
         self.assertEqual(evento.organizador, self.organizador)
         self.assertFalse(evento.participantes.exists())
+        self.assertEqual(
+            evento.mapa_url,
+            'https://www.google.com/maps/embed?pb=exemplo',
+        )
+
+        resposta_agenda = self.client.get(reverse('eventos'))
+        self.assertContains(resposta_agenda, 'Rio Madeira')
+        self.assertContains(resposta_agenda, '<details class="event-location">')
+        self.assertContains(
+            resposta_agenda,
+            'src="https://www.google.com/maps/embed?pb=exemplo"',
+        )
+
+    def test_evento_rejeita_url_de_mapa_que_nao_seja_embed_do_google(self):
+        self.client.force_login(self.organizador)
+
+        resposta = self.client.post(reverse('criar_evento'), {
+            'nome': 'Evento com mapa inválido',
+            'tipo': EventoAgenda.TIPO_PESSOAL,
+            'data_evento': self.data_futura.isoformat(),
+            'mapa_url': 'https://www.google.com.evil.example/maps/embed?pb=nao-seguro',
+        })
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'Use uma URL de incorporação segura do Google Maps.')
+        self.assertFalse(
+            EventoAgenda.objects.filter(nome='Evento com mapa inválido').exists()
+        )
 
     def test_criar_evento_comunitario_inscreve_organizador_e_outros_podem_participar(self):
         self.client.force_login(self.organizador)

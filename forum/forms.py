@@ -1,8 +1,23 @@
+from html.parser import HTMLParser
+from pathlib import Path
+from urllib.parse import urlsplit
+
 from django import forms
 from django.utils import timezone
-from pathlib import Path
 
 from .models import Comentario, EventoAgenda, Publicacao
+
+
+class _IframeSrcParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.sources = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() == 'iframe':
+            source = dict(attrs).get('src')
+            if source:
+                self.sources.append(source)
 
 
 class EventoAgendaForm(forms.ModelForm):
@@ -16,7 +31,11 @@ class EventoAgendaForm(forms.ModelForm):
 
     class Meta:
         model = EventoAgenda
-        fields = ['nome', 'tipo', 'data_evento', 'hora_evento', 'local', 'descricao']
+        fields = [
+            'nome', 'tipo', 'data_evento', 'hora_evento', 'local', 'mapa_url',
+            'descricao',
+        ]
+        field_classes = {'mapa_url': forms.CharField}
         widgets = {
             'nome': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -37,6 +56,11 @@ class EventoAgendaForm(forms.ModelForm):
                 'placeholder': 'Cidade, rio ou ponto de encontro',
                 'maxlength': 150,
             }),
+            'mapa_url': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Cole a URL ou o código iframe de incorporação',
+                'maxlength': 1000,
+            }),
             'descricao': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
@@ -50,6 +74,32 @@ class EventoAgendaForm(forms.ModelForm):
         if data_evento < timezone.localdate():
             raise forms.ValidationError('Escolha hoje ou uma data futura.')
         return data_evento
+
+    def clean_mapa_url(self):
+        mapa_url = self.cleaned_data.get('mapa_url', '').strip()
+        if not mapa_url:
+            return ''
+
+        if '<' in mapa_url:
+            parser = _IframeSrcParser()
+            parser.feed(mapa_url)
+            if len(parser.sources) != 1:
+                raise forms.ValidationError(
+                    'Cole uma URL de incorporação do Google Maps ou um único iframe.'
+                )
+            mapa_url = parser.sources[0].strip()
+
+        partes_url = urlsplit(mapa_url)
+        if (
+            partes_url.scheme != 'https'
+            or partes_url.hostname not in {'google.com', 'www.google.com'}
+            or partes_url.path != '/maps/embed'
+        ):
+            raise forms.ValidationError(
+                'Use uma URL de incorporação segura do Google Maps.'
+            )
+
+        return mapa_url
 
 
 class PublicacaoForm(forms.ModelForm):
