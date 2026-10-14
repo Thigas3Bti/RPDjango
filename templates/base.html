@@ -87,7 +87,6 @@
                     <li class="nav-item mb-2"><a href="{% url 'comunidade' %}" class="nav-link {% if request.resolver_match.url_name == 'comunidade' %}active{% endif %}">Comunidade</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'dicas' %}" class="nav-link {% if request.resolver_match.url_name == 'dicas' %}active{% endif %}">Dicas</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'eventos' %}" class="nav-link {% if request.resolver_match.url_name == 'eventos' or request.resolver_match.url_name == 'criar_evento' or request.resolver_match.url_name == 'editar_evento' %}active{% endif %}">Eventos</a></li>
-                    <li class="nav-item mb-2"><a href="{% url 'contato' %}" class="nav-link {% if request.resolver_match.url_name == 'contato' %}active{% endif %}">Contato</a></li>
                 </ul>
                 <!-- Rodapé da sidebar que é empurrado para o final usando margin-top: auto no CSS -->
                 <div class="sidebar-footer px-3 mt-auto pb-4">
