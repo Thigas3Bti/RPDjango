@@ -1,10 +1,28 @@
 from django.contrib import messages
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.shortcuts import redirect, render
+from django.utils import timezone
 
 from .forms import DicaForm, LoginForm, RegistrationForm
+from forum.models import EventoAgenda
 from .models import Dica
+
+
+def _eventos_proximos(user):
+    hoje = timezone.localdate()
+    eventos = EventoAgenda.objects.filter(
+        data_evento__gte=hoje,
+    )
+    if user.is_authenticated:
+        eventos = eventos.filter(
+            Q(tipo__in=EventoAgenda.TIPOS_PUBLICOS)
+            | Q(tipo=EventoAgenda.TIPO_PESSOAL, organizador=user)
+        )
+    else:
+        eventos = eventos.filter(tipo__in=EventoAgenda.TIPOS_PUBLICOS)
+    return eventos.select_related('organizador')[:3]
 
 
 def home(request):
@@ -44,12 +62,16 @@ def publicar(request):
 
 
 def inicio(request):
-    return render(request, 'base.html')
+    return render(request, 'base.html', {
+        'eventos_proximos': _eventos_proximos(request.user),
+    })
 
 
 @login_required(login_url='login')
 def painel(request):
-    return render(request, 'base.html')
+    return render(request, 'base.html', {
+        'eventos_proximos': _eventos_proximos(request.user),
+    })
 
 
 @login_required(login_url='login')

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} | RondoPesca{% endblock %}
+
+{% block content %}
+<section class="community-page">
+    <header class="community-hero mb-4">
+        <span class="community-kicker">RONDO PESCA · AGENDA</span>
+        <h1 class="mt-2 mb-2">{{ titulo }}</h1>
+        <p class="mb-0">Informe quando e onde será o evento. Campeonatos e eventos oficiais são cadastrados apenas por administradores.</p>
+    </header>
+
+    <div class="community-card">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="row g-3">
+                {% for field in form %}
+                <div class="{% if field.name == 'descricao' %}col-12{% else %}col-12 col-md-6{% endif %}">
+                    <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.name == 'tipo' %}
+                    <div class="form-text">Pessoal: só você verá. Comunidade: todos poderão ver e participar. Oficial: reservado aos administradores.</div>
+                    {% endif %}
+                    {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                <button class="btn btn-success" type="submit">{{ botao }}</button>
+                <a class="btn btn-outline-secondary" href="{% url 'eventos' %}">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
