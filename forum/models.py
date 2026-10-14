@@ -6,6 +6,43 @@ from usuarios.models import Usuario
 
 # Create your models here.
 
+class EventoAgenda(models.Model):
+    TIPO_PESSOAL = 'pessoal'
+    TIPO_COMUNIDADE = 'comunidade'
+    TIPO_OFICIAL = 'oficial'
+    TIPOS_PUBLICOS = [TIPO_COMUNIDADE, TIPO_OFICIAL]
+    TIPOS = [
+        (TIPO_PESSOAL, 'Pessoal'),
+        (TIPO_COMUNIDADE, 'Comunidade'),
+        (TIPO_OFICIAL, 'Oficial'),
+    ]
+
+    nome = models.CharField(max_length=100)
+    data_evento = models.DateField()
+    hora_evento = models.TimeField(blank=True, null=True)
+    local = models.CharField(max_length=150, blank=True)
+    descricao = models.TextField(max_length=5000, blank=True)
+    tipo = models.CharField(max_length=20, choices=TIPOS, default=TIPO_PESSOAL)
+    organizador = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='eventos_agenda_criados',
+    )
+    participantes = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name='eventos_agenda_participando',
+    )
+
+    class Meta:
+        verbose_name = 'Evento da agenda'
+        verbose_name_plural = 'Eventos da agenda'
+        ordering = ['data_evento', 'hora_evento', 'nome']
+
+    def __str__(self):
+        return self.nome
+
+
 class Equipamentos(models.Model):
     nome = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
