@@ -9,35 +9,10 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'css/base/home.css' %}?v=20261014">
 
-    <style>
-        :root {
-            --rondo-verde: #76ad3d;
-            --rondo-azul: #0a3445;
-            --rondo-fundo: #f4f7f2;
-        }
+    <link rel="icon" type="image/png" href="{% static 'images/Icone_Rondopesca.png' %}">
 
-        body { background: var(--rondo-fundo); color: #203a28; }
-        .navbar-rondo, .rodape-rondo { background: var(--rondo-azul); }
-        .navbar-brand, .navbar-rondo .nav-link { color: #fff; }
-        .navbar-rondo .nav-link:hover { color: var(--rondo-verde); }
-        .navbar-brand img { width: 42px; height: 42px; object-fit: contain; }
-        .btn-rondo { background: var(--rondo-verde); border-color: var(--rondo-verde); color: #102b22; }
-        .btn-rondo:hover { background: #94c95a; border-color: #94c95a; color: #102b22; }
-        .hero img {
-            width: 100%;
-            height: clamp(280px, 38vw, 520px);
-            object-fit: cover;
-            object-position: center;
-            display: block;
-        }
-        .titulo-secao { color: var(--rondo-azul); }
-        .card-rondo { border: 0; transition: transform .2s ease; }
-        .card-rondo:hover { transform: translateY(-4px); }
-        .icone-rondo { color: var(--rondo-verde); font-size: 2.3rem; }
-        .bg-secao-alternada { background: #e7f0e4; }
-        .logo-sobre { max-height: 280px; object-fit: contain; }
-    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-rondo">

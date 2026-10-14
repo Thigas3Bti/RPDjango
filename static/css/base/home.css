@@ -1,0 +1,31 @@
+:root {
+    --rondo-verde: #76ad3d;
+    --rondo-azul: #0a3445;
+    --rondo-fundo: #f4f7f2;
+}
+
+body { background: var(--rondo-fundo); color: #203a28; }
+.navbar-rondo, .rodape-rondo { background: var(--rondo-azul); }
+.navbar-rondo { position: sticky; top: 0; z-index: 1030; }
+.navbar-brand, .navbar-rondo .nav-link { color: #fff; }
+.navbar-rondo .nav-link:hover { color: var(--rondo-verde); }
+.navbar-brand img { width: 42px; height: 42px; object-fit: contain; }
+.btn-rondo { background: var(--rondo-verde); border-color: var(--rondo-verde); color: #102b22; }
+.btn-rondo:hover { background: #94c95a; border-color: #94c95a; color: #102b22; }
+.hero {
+    height: calc(100vh - 58px);
+    height: calc(100svh - 58px);
+}
+.hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+.titulo-secao { color: var(--rondo-azul); }
+.card-rondo { border: 0; transition: transform .2s ease; }
+.card-rondo:hover { transform: translateY(-4px); }
+.icone-rondo { color: var(--rondo-verde); font-size: 2.3rem; }
+.bg-secao-alternada { background: #e7f0e4; }
+.logo-sobre { max-height: 280px; object-fit: contain; }
