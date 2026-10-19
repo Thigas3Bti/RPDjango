@@ -100,7 +100,15 @@
 
             <!-- Área de conteúdo principal que se expande para ocupar espaço disponível (flex-fill) -->
             <main class="content flex-fill p-4">
-
+                {% if messages %}
+                <div class="container-fluid px-0">
+                    {% for message in messages %}
+                    <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags|default:'info' }}{% endif %}" role="alert">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 {% block content %}
                 <div class="dashboard-home">
                     <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm">
