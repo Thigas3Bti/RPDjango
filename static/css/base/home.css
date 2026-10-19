@@ -12,9 +12,19 @@ body { background: var(--rondo-fundo); color: #203a28; }
 .navbar-brand img { width: 42px; height: 42px; object-fit: contain; }
 .btn-rondo { background: var(--rondo-verde); border-color: var(--rondo-verde); color: #102b22; }
 .btn-rondo:hover { background: #94c95a; border-color: #94c95a; color: #102b22; }
+.navbar-rondo .navbar-collapse { flex-basis: 100%; }
+.navbar-rondo .navbar-nav { flex-direction: row; flex-wrap: wrap; justify-content: center; }
 .hero {
+    position: relative;
     height: calc(100vh - 58px);
     height: calc(100svh - 58px);
+    min-height: 480px;
+}
+.hero::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(5, 30, 36, .78), rgba(5, 30, 36, .18));
+    content: "";
 }
 .hero img {
     width: 100%;
@@ -23,9 +33,31 @@ body { background: var(--rondo-fundo); color: #203a28; }
     object-position: center;
     display: block;
 }
+.hero-conteudo {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    bottom: clamp(20px, 5vw, 64px);
+    transform: translateX(-50%);
+}
+.hero-conteudo .btn { text-shadow: none; }
 .titulo-secao { color: var(--rondo-azul); }
 .card-rondo { border: 0; transition: transform .2s ease; }
 .card-rondo:hover { transform: translateY(-4px); }
+.card-convite { border: 2px dashed var(--rondo-verde); }
+.card-convite:hover { background: #f1f8ec; }
 .icone-rondo { color: var(--rondo-verde); font-size: 2.3rem; }
 .bg-secao-alternada { background: #e7f0e4; }
 .logo-sobre { max-height: 280px; object-fit: contain; }
+
+@media (min-width: 992px) {
+    .navbar-rondo .navbar-collapse { flex-basis: auto; }
+    .navbar-rondo .navbar-nav { justify-content: flex-end; }
+}
+
+@media (max-width: 575.98px) {
+    .navbar-rondo .container { justify-content: center; }
+    .navbar-rondo .navbar-nav { gap: 0 .5rem; }
+    .navbar-rondo .nav-link { padding: .35rem; }
+    .hero-conteudo { bottom: 20px; }
+}

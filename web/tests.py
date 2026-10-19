@@ -13,12 +13,16 @@ class ContatoViewTests(TestCase):
         self.assertContains(response, 'Fale com o RondoPesca')
         self.assertContains(response, 'href="/contato/"')
 
-    def test_home_contact_call_to_action_points_to_contact_page(self):
+    def test_home_ctas_point_visitors_to_registration(self):
         response = self.client.get(reverse('home'))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'href="{reverse("cadastro")}"')
+        self.assertContains(response, 'Faça seu Cadastro')
+        self.assertContains(response, 'Cadastre-se e explore mais.')
+        self.assertContains(response, 'Cadastre-se grátis')
         self.assertContains(response, f'href="{reverse("contato")}"')
-        self.assertContains(response, 'Falar conosco')
+        self.assertContains(response, 'Fale conosco')
 
 
 class DashboardFishingTipsTests(TestCase):
