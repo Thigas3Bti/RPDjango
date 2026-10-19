@@ -1,8 +1,16 @@
-from django.test import TestCase
-from django.urls import reverse
+from io import BytesIO
+from pathlib import Path
+import tempfile
+
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase
+from django.test import override_settings
+from django.urls import reverse
+from PIL import Image
 
 from .models import Dica
+from usuarios.models import PerfilUsuario
 
 
 class ContatoViewTests(TestCase):
@@ -162,11 +170,39 @@ class UserMenuTests(TestCase):
 
         response = self.client.get(reverse('home'))
 
-        self.assertContains(response, 'Menu do usuário')
+        self.assertContains(response, 'aria-label="Menu de pescador"')
+        self.assertContains(response, 'header-profile-toggle')
+        self.assertContains(response, '>pescador</span>')
         self.assertContains(response, 'Ver perfil')
         self.assertContains(response, f'href="{reverse("perfil")}"')
         self.assertContains(response, reverse('logout'))
         self.assertNotContains(response, '>Entrar</a>')
+
+    def test_user_menu_displays_profile_photo_when_available(self):
+        user = User.objects.create_user(
+            username='pescador',
+            password='senha-correta',
+            first_name='João',
+            last_name='Silva',
+        )
+        self.client.force_login(user)
+        image_file = BytesIO()
+        Image.new('RGB', (1, 1), color='green').save(image_file, format='PNG')
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                PerfilUsuario.objects.create(
+                    usuario=user,
+                    foto=SimpleUploadedFile(
+                        'foto.png',
+                        image_file.getvalue(),
+                        content_type='image/png',
+                    ),
+                )
+                response = self.client.get(reverse('home'))
+
+        self.assertContains(response, 'src="/media/perfis/foto.png"')
+        self.assertContains(response, '>João Silva</span>')
 
     def test_profile_requires_login(self):
         response = self.client.get(reverse('perfil'))
@@ -189,6 +225,62 @@ class UserMenuTests(TestCase):
         self.assertContains(response, 'Meu perfil')
         self.assertContains(response, 'João Silva')
         self.assertContains(response, 'joao@example.com')
+        self.assertContains(response, 'aria-label="Escolha uma foto de perfil"')
+        self.assertContains(response, 'profile-avatar-trigger')
+        self.assertContains(response, 'data-bs-target="#profilePhotoModal"')
+        self.assertContains(response, 'Adicionar foto de perfil')
+        self.assertContains(response, 'Adicionar imagem')
+        self.assertContains(response, 'profile-avatar-overlay')
+        self.assertContains(response, 'bi-pencil-fill')
+
+    def test_authenticated_user_can_upload_profile_photo(self):
+        user = User.objects.create_user(username='pescador', password='senha-correta')
+        self.client.force_login(user)
+        image_file = BytesIO()
+        Image.new('RGB', (1, 1), color='green').save(image_file, format='PNG')
+        image = SimpleUploadedFile(
+            'foto.png',
+            image_file.getvalue(),
+            content_type='image/png',
+        )
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                response = self.client.post(reverse('perfil'), {'foto': image})
+
+        self.assertRedirects(response, reverse('perfil'))
+        perfil = PerfilUsuario.objects.get(usuario=user)
+        self.assertTrue(perfil.foto.name.startswith('perfis/'))
+        profile_response = self.client.get(reverse('perfil'))
+        self.assertContains(profile_response, '/media/perfis/foto.png')
+        self.assertContains(profile_response, 'Editar foto de perfil')
+
+    def test_authenticated_user_can_remove_profile_photo(self):
+        user = User.objects.create_user(username='pescador', password='senha-correta')
+        self.client.force_login(user)
+        image_file = BytesIO()
+        Image.new('RGB', (1, 1), color='green').save(image_file, format='PNG')
+        image = SimpleUploadedFile(
+            'foto.png',
+            image_file.getvalue(),
+            content_type='image/png',
+        )
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                self.client.post(reverse('perfil'), {'foto': image})
+                profile_response = self.client.get(reverse('perfil'))
+                self.assertContains(profile_response, 'Editar foto de perfil')
+                self.assertContains(profile_response, 'Remover imagem')
+                response = self.client.post(reverse('perfil'), {'remover_foto': '1'})
+
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response['Location'], reverse('perfil'))
+                perfil = PerfilUsuario.objects.get(usuario=user)
+                self.assertFalse(perfil.foto)
+                self.assertFalse(list(Path(media_root).rglob('foto.png')))
+
+        self.assertContains(self.client.get(reverse('perfil')), 'Sua foto de perfil foi removida.')
 
     def test_logout_clears_session_and_redirects_home(self):
         user = User.objects.create_user(username='pescador', password='senha-correta')

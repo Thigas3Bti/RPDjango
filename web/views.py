@@ -5,9 +5,10 @@ from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from .forms import DicaForm, LoginForm, RegistrationForm
+from .forms import DicaForm, FotoPerfilForm, LoginForm, RegistrationForm
 from forum.models import EventoAgenda
 from .models import Dica
+from usuarios.models import PerfilUsuario
 
 
 def _eventos_proximos(user):
@@ -76,7 +77,28 @@ def painel(request):
 
 @login_required(login_url='login')
 def perfil(request):
-    return render(request, 'usuarios/pescador/perfil.html')
+    perfil_usuario, _ = PerfilUsuario.objects.get_or_create(usuario=request.user)
+    if request.method == 'POST' and request.POST.get('remover_foto') == '1':
+        if perfil_usuario.foto:
+            perfil_usuario.foto.delete(save=True)
+            messages.success(request, 'Sua foto de perfil foi removida.')
+        return redirect('perfil')
+
+    form = FotoPerfilForm(
+        request.POST or None,
+        request.FILES or None,
+        instance=perfil_usuario,
+    )
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Sua foto de perfil foi atualizada.')
+            return redirect('perfil')
+
+    return render(request, 'usuarios/pescador/perfil.html', {
+        'perfil_usuario': perfil_usuario,
+        'foto_form': form,
+    })
 
 
 def login(request):
