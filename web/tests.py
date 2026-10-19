@@ -1,6 +1,12 @@
-from django.test import TestCase
-from django.urls import reverse
+from io import BytesIO
+from tempfile import TemporaryDirectory
+
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
+from django.urls import reverse
+
+from PIL import Image
 
 from .models import Dica
 
@@ -40,19 +46,24 @@ class DashboardFishingTipsTests(TestCase):
         self.assertContains(response, f'href="{reverse("dicas")}"')
         self.assertNotContains(response, 'id="lista-niveis-dicas"')
 
-    def test_authenticated_user_can_publish_tip_and_see_it_in_list(self):
-        user = User.objects.create_user(username='pescador', password='senha-correta')
+    def test_admin_can_publish_tip_and_see_it_in_list(self):
+        user = User.objects.create_user(
+            username='administrador',
+            password='senha-correta',
+            is_staff=True,
+        )
         self.client.force_login(user)
 
         response = self.client.post(reverse('adicionar_dica'), {
             'titulo': 'Ler a correnteza',
-            'nivel': 'intermediario',
+            'categoria': 'avancado',
             'descricao': 'Observe onde a corrente muda de velocidade.',
         })
 
         self.assertRedirects(response, reverse('dicas'))
         dica = Dica.objects.get(titulo='Ler a correnteza')
         self.assertEqual(dica.autor, user)
+        self.assertEqual(dica.categoria, 'avancado')
         tips_response = self.client.get(reverse('dicas'))
         self.assertContains(tips_response, 'Ler a correnteza')
         self.assertContains(tips_response, 'DICA DA COMUNIDADE')
@@ -65,19 +76,135 @@ class DashboardFishingTipsTests(TestCase):
             f'{reverse("login")}?next={reverse("adicionar_dica")}',
         )
 
-    def test_invalid_tip_is_not_saved(self):
+    def test_admin_form_shows_only_the_requested_categories(self):
+        user = User.objects.create_user(
+            username='administrador',
+            password='senha-correta',
+            is_staff=True,
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse('adicionar_dica'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            list(response.context['form'].fields['categoria'].choices),
+            [
+                ('iniciante', 'Iniciante'),
+                ('intermediario', 'Intermediário'),
+                ('avancado', 'Avançado'),
+                ('veterano', 'Veterano'),
+            ],
+        )
+
+    def test_regular_user_cannot_open_or_submit_tip_form(self):
         user = User.objects.create_user(username='pescador', password='senha-correta')
+        self.client.force_login(user)
+
+        get_response = self.client.get(reverse('adicionar_dica'))
+        post_response = self.client.post(reverse('adicionar_dica'), {
+            'titulo': 'Dica não autorizada',
+            'categoria': 'iscas',
+            'descricao': 'Este conteúdo não deve ser salvo.',
+        })
+
+        self.assertEqual(get_response.status_code, 403)
+        self.assertEqual(post_response.status_code, 403)
+        self.assertEqual(Dica.objects.count(), 0)
+
+    def test_invalid_tip_is_not_saved(self):
+        user = User.objects.create_user(
+            username='administrador',
+            password='senha-correta',
+            is_staff=True,
+        )
         self.client.force_login(user)
 
         response = self.client.post(reverse('adicionar_dica'), {
             'titulo': '',
-            'nivel': 'intermediario',
+            'categoria': 'tecnicas',
             'descricao': 'Descrição válida.',
         })
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Dica.objects.count(), 0)
         self.assertContains(response, 'Este campo é obrigatório.')
+
+    def test_admin_can_upload_a_valid_image(self):
+        user = User.objects.create_user(
+            username='administrador',
+            password='senha-correta',
+            is_staff=True,
+        )
+        self.client.force_login(user)
+
+        image_buffer = BytesIO()
+        Image.new('RGB', (1, 1), color='green').save(image_buffer, format='PNG')
+        image = SimpleUploadedFile(
+            'dica.png',
+            image_buffer.getvalue(),
+            content_type='image/png',
+        )
+
+        with TemporaryDirectory() as media_directory:
+            with override_settings(MEDIA_ROOT=media_directory):
+                response = self.client.post(reverse('adicionar_dica'), {
+                    'titulo': 'Dica com imagem',
+                    'categoria': 'iniciante',
+                    'descricao': '',
+                    'imagem': image,
+                })
+
+                self.assertRedirects(response, reverse('dicas'))
+                dica = Dica.objects.get(titulo='Dica com imagem')
+                self.assertTrue(dica.imagem.name.startswith('dicas/'))
+                self.assertTrue(dica.imagem.storage.exists(dica.imagem.name))
+
+    def test_invalid_image_is_not_saved(self):
+        user = User.objects.create_user(
+            username='administrador',
+            password='senha-correta',
+            is_staff=True,
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(reverse('adicionar_dica'), {
+            'titulo': 'Dica sem imagem válida',
+            'categoria': 'iniciante',
+            'imagem': SimpleUploadedFile(
+                'nao-e-imagem.png',
+                b'conteudo invalido',
+                content_type='image/png',
+            ),
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Dica.objects.count(), 0)
+        self.assertContains(response, 'Envie uma imagem válida.')
+
+    def test_upload_with_non_image_extension_is_rejected(self):
+        user = User.objects.create_user(
+            username='administrador',
+            password='senha-correta',
+            is_staff=True,
+        )
+        self.client.force_login(user)
+
+        image_buffer = BytesIO()
+        Image.new('RGB', (1, 1), color='green').save(image_buffer, format='PNG')
+        response = self.client.post(reverse('adicionar_dica'), {
+            'titulo': 'Dica com extensão insegura',
+            'categoria': 'iniciante',
+            'imagem': SimpleUploadedFile(
+                'arquivo.php',
+                image_buffer.getvalue(),
+                content_type='image/png',
+            ),
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Dica.objects.count(), 0)
+        self.assertContains(response, 'A extensão de arquivo')
 
 
 class LoginErrorMessageTests(TestCase):

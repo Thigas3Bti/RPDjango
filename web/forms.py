@@ -8,13 +8,16 @@ from .models import Dica
 
 
 class DicaForm(forms.ModelForm):
+    MAX_IMAGE_SIZE = 5 * 1024 * 1024
+
     class Meta:
         model = Dica
-        fields = ['titulo', 'nivel', 'descricao']
+        fields = ['titulo', 'descricao', 'categoria', 'imagem']
         labels = {
             'titulo': 'Título da dica',
-            'nivel': 'Nível de experiência',
             'descricao': 'Descrição da dica',
+            'categoria': 'Categoria',
+            'imagem': 'Imagem ilustrativa (opcional)',
         }
         widgets = {
             'titulo': forms.TextInput(attrs={
@@ -22,11 +25,15 @@ class DicaForm(forms.ModelForm):
                 'maxlength': 120,
                 'placeholder': 'Ex.: Como escolher a isca para o local',
             }),
-            'nivel': forms.Select(attrs={'class': 'form-select'}),
             'descricao': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 6,
-                'placeholder': 'Explique sua dica com detalhes e contexto.',
+                'placeholder': 'Explique sua dica com detalhes e contexto (opcional).',
+            }),
+            'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'imagem': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*',
             }),
         }
 
@@ -34,6 +41,12 @@ class DicaForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.error_messages['required'] = _('Este campo é obrigatório.')
+
+    def clean_imagem(self):
+        imagem = self.cleaned_data.get('imagem')
+        if imagem and imagem.size > self.MAX_IMAGE_SIZE:
+            raise ValidationError(_('A imagem deve ter no máximo 5 MB.'))
+        return imagem
 
 
 class LoginForm(AuthenticationForm):
