@@ -1,13 +1,20 @@
 from django.contrib import messages
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
+from django.core.mail import EmailMessage
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.utils import timezone
+import logging
+import smtplib
 
-from .forms import DicaForm, LoginForm, RegistrationForm
+from .forms import ContatoForm, DicaForm, LoginForm, RegistrationForm
 from forum.models import EventoAgenda
 from .models import Dica
+
+
+logger = logging.getLogger(__name__)
 
 
 def _eventos_proximos(user):
@@ -30,7 +37,34 @@ def home(request):
 
 
 def contato(request):
-    return render(request, 'web/contato.html')
+    form = ContatoForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        dados = form.cleaned_data
+        assunto = f"[RondoPesca] {dados['assunto']}"
+        corpo = (
+            f"Nome: {dados['nome']}\n"
+            f"E-mail: {dados['email']}\n\n"
+            f"Mensagem:\n{dados['mensagem']}"
+        )
+        try:
+            EmailMessage(
+                subject=assunto,
+                body=corpo,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[settings.CONTACT_EMAIL],
+                reply_to=[dados['email']],
+            ).send(fail_silently=False)
+        except (OSError, smtplib.SMTPException):
+            logger.exception('Falha ao enviar mensagem do formulário de contato.')
+            messages.error(
+                request,
+                'Não foi possível enviar sua mensagem agora. Tente novamente mais tarde.',
+            )
+        else:
+            messages.success(request, 'Sua mensagem foi enviada com sucesso!')
+            return redirect('contato')
+
+    return render(request, 'web/contato.html', {'form': form})
 
 
 def dicas(request):

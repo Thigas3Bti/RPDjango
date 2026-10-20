@@ -15,3 +15,6 @@ Ficarei responsável pelos Apps e Models, organizando as funcionalidades do proj
 
 Projeto
 O objetivo do RondoPesca é criar um sistema de pesca com informações sobre peixes, tipos de peixe, locais e eventos, utilizando Django para organizar e conectar todas essas partes.
+
+Envio de mensagens de contato
+O formulário envia as mensagens para rondopescacontato@gmail.com usando SMTP do Gmail. Configure EMAIL_HOST_USER e EMAIL_HOST_PASSWORD no ambiente do servidor; EMAIL_HOST_PASSWORD deve ser uma senha de app do Google, não a senha normal da conta. Por padrão, o servidor SMTP é smtp.gmail.com na porta 587 com TLS. EMAIL_HOST, EMAIL_PORT e EMAIL_USE_TLS podem ser definidos para outro provedor. Nunca salve credenciais de e-mail no repositório.

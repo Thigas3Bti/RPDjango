@@ -7,6 +7,45 @@ from django.utils.translation import gettext_lazy as _
 from .models import Dica
 
 
+class ContatoForm(forms.Form):
+    ASSUNTOS = [
+        ('duvida', 'Dúvida'),
+        ('sugestao', 'Sugestão'),
+        ('experiencia', 'Dica ou experiência de pesca'),
+        ('outro', 'Outro assunto'),
+    ]
+
+    nome = forms.CharField(
+        label='Nome Completo',
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Seu nome',
+            'autocomplete': 'name',
+        }),
+    )
+    email = forms.EmailField(
+        label='E-mail',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'seu@email.com',
+            'autocomplete': 'email',
+        }),
+    )
+    assunto = forms.ChoiceField(
+        label='Assunto',
+        choices=[('', 'Selecione uma opção...'), *ASSUNTOS],
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    mensagem = forms.CharField(
+        label='Mensagem',
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Escreva sua mensagem aqui...',
+        }),
+    )
+
+
 class DicaForm(forms.ModelForm):
     class Meta:
         model = Dica

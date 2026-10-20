@@ -179,6 +179,10 @@ body {
     color: #203a28;
 }
 
+.contact-back-button {
+    margin-bottom: 1rem;
+}
+
 .contact-heading {
     margin: 0.5rem 0 2.5rem;
 }

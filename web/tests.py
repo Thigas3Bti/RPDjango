@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.core import mail
 
 from .models import Dica
 
@@ -11,7 +12,38 @@ class ContatoViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Fale com o RondoPesca')
-        self.assertContains(response, 'href="/contato/"')
+        self.assertContains(response, 'method="post"')
+        self.assertContains(response, 'csrfmiddlewaretoken')
+        self.assertContains(response, f'href="{reverse("home")}"')
+        self.assertContains(response, 'Voltar')
+        self.assertNotContains(response, 'href="/contato/"')
+
+    def test_contact_form_sends_message_to_site_email(self):
+        response = self.client.post(reverse('contato'), {
+            'nome': 'Maria Pescadora',
+            'email': 'maria@example.com',
+            'assunto': 'duvida',
+            'mensagem': 'Como escolho uma isca?',
+        })
+
+        self.assertRedirects(response, reverse('contato'))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ['rondopescacontato@gmail.com'])
+        self.assertIn('Maria Pescadora', mail.outbox[0].body)
+        self.assertIn('Como escolho uma isca?', mail.outbox[0].body)
+        self.assertEqual(mail.outbox[0].reply_to, ['maria@example.com'])
+
+    def test_contact_form_shows_errors_for_invalid_data(self):
+        response = self.client.post(reverse('contato'), {
+            'nome': '',
+            'email': 'email-invalido',
+            'assunto': 'sem-opcao',
+            'mensagem': '',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertContains(response, 'Este campo é obrigatório.')
 
     def test_home_ctas_point_visitors_to_registration(self):
         response = self.client.get(reverse('home'))
@@ -22,6 +54,10 @@ class ContatoViewTests(TestCase):
         self.assertContains(response, 'Cadastre-se e explore mais.')
         self.assertContains(response, 'Cadastre-se grátis')
         self.assertContains(response, f'href="{reverse("contato")}"')
+        self.assertContains(
+            response,
+            f'<a class="nav-link" href="{reverse("contato")}">Fale conosco</a>',
+        )
         self.assertContains(response, 'Fale conosco')
 
 
