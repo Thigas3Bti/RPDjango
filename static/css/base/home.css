@@ -1,0 +1,75 @@
+:root {
+    --rondo-verde: #76ad3d;
+    --rondo-azul: #0a3445;
+    --rondo-fundo: #f4f7f2;
+}
+
+body { background: var(--rondo-fundo); color: #203a28; }
+.navbar-rondo, .rodape-rondo { background: var(--rondo-azul); }
+.navbar-rondo { position: sticky; top: 0; z-index: 1030; }
+.navbar-brand, .navbar-rondo .nav-link { color: #fff; }
+.navbar-rondo .nav-link:hover { color: var(--rondo-verde); }
+.navbar-brand img { width: 42px; height: 42px; object-fit: contain; }
+.header-profile-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    max-width: min(18rem, 55vw);
+    padding: .25rem .65rem .25rem .35rem;
+}
+.header-profile-toggle span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.header-profile-avatar,
+.header-profile-avatar-placeholder {
+    flex: 0 0 1.8rem;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+}
+.header-profile-avatar { object-fit: cover; }
+.header-profile-avatar-placeholder {
+    display: grid;
+    place-items: center;
+    color: var(--rondo-verde);
+    background: #eaf3e8;
+    font-size: 1.5rem;
+}
+.btn-rondo { background: var(--rondo-verde); border-color: var(--rondo-verde); color: #102b22; }
+.btn-rondo:hover { background: #94c95a; border-color: #94c95a; color: #102b22; }
+.hero {
+    height: calc(100vh - 58px);
+    height: calc(100svh - 58px);
+}
+.hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+.titulo-secao { color: var(--rondo-azul); }
+.card-rondo { border: 0; transition: transform .2s ease; }
+.card-rondo:hover { transform: translateY(-4px); }
+.icone-rondo { color: var(--rondo-verde); font-size: 2.3rem; }
+.bg-secao-alternada { background: #e7f0e4; }
+.logo-sobre { max-height: 280px; object-fit: contain; }
+.secret-surprise-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-left: 0.35rem;
+    border-radius: 50%;
+    color: inherit;
+    opacity: 0.22;
+    text-decoration: none;
+    vertical-align: middle;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.secret-surprise-button:hover,
+.secret-surprise-button:focus-visible {
+    background-color: rgba(255, 255, 255, 0.14);
+    color: inherit;
+    opacity: 1;
+}

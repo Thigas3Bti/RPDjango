@@ -3,6 +3,13 @@ from django.db import models
 
 
 class Dica(models.Model):
+    CATEGORIAS = [
+        ('iniciante', 'Iniciante'),
+        ('intermediario', 'Intermediário'),
+        ('avancado', 'Avançado'),
+        ('veterano', 'Veterano'),
+    ]
+
     NIVEIS = [
         ('iniciante', 'Iniciante'),
         ('intermediario', 'Intermediário'),
@@ -11,8 +18,14 @@ class Dica(models.Model):
     ]
 
     titulo = models.CharField(max_length=120)
-    nivel = models.CharField(max_length=20, choices=NIVEIS)
-    descricao = models.TextField()
+    nivel = models.CharField(max_length=20, choices=NIVEIS, default='iniciante')
+    categoria = models.CharField(
+        max_length=20,
+        choices=CATEGORIAS,
+        default='iniciante',
+    )
+    descricao = models.TextField(blank=True)
+    imagem = models.ImageField(upload_to='dicas/', blank=True)
     autor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

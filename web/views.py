@@ -4,13 +4,15 @@ from django.contrib.auth import (
     logout as auth_logout,
 )
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from .forms import DicaForm, LoginForm, RegistrationForm
+from .forms import DicaForm, FotoPerfilForm, LoginForm, RegistrationForm
 from forum.models import EventoAgenda
 from .models import Dica
+from usuarios.models import PerfilUsuario
 
 
 def _eventos_proximos(user):
@@ -36,6 +38,10 @@ def contato(request):
     return render(request, 'web/contato.html')
 
 
+def surpresa(request):
+    return render(request, 'web/surpresa.html')
+
+
 def dicas(request):
     return render(request, 'web/dicas.html', {
         'dicas_publicadas': Dica.objects.select_related('autor').all(),
@@ -44,13 +50,19 @@ def dicas(request):
 
 @login_required(login_url='login')
 def adicionar_dica(request):
-    form = DicaForm(request.POST or None)
+    if not request.user.is_staff:
+        raise PermissionDenied
+
+    form = DicaForm(
+        data=request.POST if request.method == 'POST' else None,
+        files=request.FILES if request.method == 'POST' else None,
+    )
 
     if request.method == 'POST' and form.is_valid():
         dica = form.save(commit=False)
         dica.autor = request.user
         dica.save()
-        messages.success(request, 'Sua dica foi adicionada com sucesso.')
+        messages.success(request, 'A dica foi cadastrada com sucesso.')
         return redirect('dicas')
 
     return render(request, 'web/adicionar_dica.html', {'form': form})
@@ -79,7 +91,28 @@ def painel(request):
 
 @login_required(login_url='login')
 def perfil(request):
-    return render(request, 'usuarios/pescador/perfil.html')
+    perfil_usuario, _ = PerfilUsuario.objects.get_or_create(usuario=request.user)
+    if request.method == 'POST' and request.POST.get('remover_foto') == '1':
+        if perfil_usuario.foto:
+            perfil_usuario.foto.delete(save=True)
+            messages.success(request, 'Sua foto de perfil foi removida.')
+        return redirect('perfil')
+
+    form = FotoPerfilForm(
+        request.POST or None,
+        request.FILES or None,
+        instance=perfil_usuario,
+    )
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Sua foto de perfil foi atualizada.')
+            return redirect('perfil')
+
+    return render(request, 'usuarios/pescador/perfil.html', {
+        'perfil_usuario': perfil_usuario,
+        'foto_form': form,
+    })
 
 
 def login(request):

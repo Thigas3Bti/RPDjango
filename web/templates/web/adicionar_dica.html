@@ -1,18 +1,27 @@
 {% extends 'base.html' %}
 
-{% block title %}Adicionar Dica | RondoPesca{% endblock %}
+{% block title %}Cadastrar Dica | RondoPesca{% endblock %}
 
 {% block content %}
 <div class="dashboard-home">
     <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm">
-        <span class="dashboard-kicker">COMPARTILHE SUA EXPERIÊNCIA</span>
-        <h1 class="display-6 fw-bold mt-2 mb-2">Adicionar uma nova dica</h1>
-        <p class="mb-0 text-muted">Conte o que aprendeu para ajudar pescadores de todos os níveis. Escolha o nível adequado e explique em quais situações sua dica pode ser útil.</p>
+        <span class="dashboard-kicker">CONTEÚDO ADMINISTRATIVO</span>
+        <h1 class="display-6 fw-bold mt-2 mb-2">Cadastrar uma dica de pesca</h1>
+        <p class="mb-0 text-muted">Publique uma orientação para a comunidade de pescadores.</p>
     </section>
 
     <section class="card dashboard-card shadow-sm p-4 p-lg-5" aria-labelledby="form-dica-title">
         <h2 class="h4 fw-bold mb-3" id="form-dica-title">Detalhes da dica</h2>
-        <form method="post">
+        {% if messages %}
+        <div class="mb-3" aria-live="polite">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %}" role="status">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {% for field in form %}
             <div class="mb-3">
@@ -22,6 +31,9 @@
                 {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
             </div>
             {% endfor %}
+            {% if form.errors %}
+            <div class="alert alert-danger" role="alert">Revise os campos destacados e tente novamente.</div>
+            {% endif %}
             {% if form.non_field_errors %}
             <div class="alert alert-danger" role="alert">
                 {% for error in form.non_field_errors %}<p class="mb-0">{{ error }}</p>{% endfor %}
@@ -29,7 +41,7 @@
             {% endif %}
             <div class="d-flex flex-wrap gap-2">
                 <button type="submit" class="btn btn-success">
-                    <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Publicar dica
+                    <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Cadastrar dica
                 </button>
                 <a href="{% url 'dicas' %}" class="btn btn-outline-secondary">Cancelar</a>
             </div>
