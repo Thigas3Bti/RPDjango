@@ -5,6 +5,17 @@
     box-sizing: border-box;
 }
 
+:root {
+    --rondo-floresta: #123b2b;
+    --rondo-floresta-profunda: #0b2d21;
+    --rondo-verde-escuro: #24583b;
+    --rondo-verde: #4d8b4b;
+    --rondo-verde-claro: #dcebd5;
+    --rondo-fundo: #edf3eb;
+    --rondo-texto: #203a2c;
+    --bs-success-rgb: 36, 88, 59;
+}
+
 /* Estilo global do corpo com paleta verde suave */
 body {
     /* Remove espaçamento padrão do navegador */
@@ -12,9 +23,9 @@ body {
     /* Define a fonte padrão para  o texto da página */
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     /* Fundo verde muito claro e suave para tema de pesca */
-    background: #e9f3e8;
+    background: var(--rondo-fundo);
     /* Cor do texto escura com tom esverdeado */
-    color: #203a28;
+    color: var(--rondo-texto);
 }
 
 /* Container principal que ocupa  a altura da janela */
@@ -36,9 +47,9 @@ body {
     /* z-index controla qual elemento aparece por cima dos outros; 1000 é muito alto */
     z-index: 1000;
     /* Fundo branco com leve tom verde */
-    background: #f8fcf6;
+    background: var(--rondo-floresta);
     /* Linha divisória sutil abaixo do cabeçalho */
-    border-bottom: 1px solid #d3e5d2;
+    border-bottom: 1px solid var(--rondo-floresta-profunda);
     /* Espaçamento interno do cabeçalho */
     padding: 0.75rem 1.25rem;
     /* Flexbox para alinhar logo e botões horizontalmente */
@@ -58,12 +69,22 @@ body {
     /* Tamanho grande para destaque */
     font-size: 1.2rem;
     /* Cor verde escura para o nome principal */
-    color: #1f5f30;
+    color: #fff;
 }
 
 /* Cor do sobrenome "Pesca" em tom verde médio */
 .admin-header .brand span {
-    color: #386a3d;
+    color: #b9df77;
+}
+
+.admin-header #currentDate { color: rgba(255, 255, 255, .72) !important; }
+.admin-header .btn-outline-success {
+    color: #d8edc0;
+    border-color: rgba(216, 237, 192, .65);
+}
+.admin-header .btn-outline-success:hover {
+    background: #d8edc0;
+    color: var(--rondo-floresta-profunda);
 }
 
 /* Menu lateral (sidebar) com navegação */
@@ -79,13 +100,13 @@ body {
     /* Esconde o conteúdo que sai do limite da sidebar */
     overflow: hidden;
     /* Verde médio para a sidebar - cor padrão */
-    background: #2f6d3a;
+    background: var(--rondo-floresta-profunda);
 }
 
 /* Classe auxiliar para aplicar verde suave (usado com Bootstrap) */
 .bg-soft-green {
     /* !important força essa cor a ser usada mesmo com outras classes */
-    background: #5d9262 !important;
+    background: var(--rondo-floresta) !important;
 }
 
 /* Cabeçalho interno da sidebar com nome do site */
@@ -125,6 +146,30 @@ body {
 .admin-body {
     /* Flex com valor 1 faz esse elemento crescer e ocupar espaço disponível */
     flex: 1;
+}
+
+.content { background: var(--rondo-fundo); }
+.btn-success {
+    --bs-btn-bg: var(--rondo-verde-escuro);
+    --bs-btn-border-color: var(--rondo-verde-escuro);
+    --bs-btn-hover-bg: var(--rondo-floresta);
+    --bs-btn-hover-border-color: var(--rondo-floresta);
+    --bs-btn-active-bg: var(--rondo-floresta-profunda);
+    --bs-btn-active-border-color: var(--rondo-floresta-profunda);
+}
+.btn-outline-success {
+    color: var(--rondo-verde-escuro);
+    border-color: var(--rondo-verde-escuro);
+}
+.btn-outline-success:hover {
+    background: var(--rondo-verde-escuro);
+    border-color: var(--rondo-verde-escuro);
+    color: #fff;
+}
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--rondo-verde);
+    box-shadow: 0 0 0 .22rem rgb(77 139 75 / 18%);
 }
 
 /* Área de conteúdo principal da página */
@@ -171,8 +216,8 @@ body {
 
 /* Página de contato */
 .contact-page {
-    --contact-green: #76ad3d;
-    --contact-blue: #0a3445;
+    --contact-green: #347344;
+    --contact-blue: #123b2b;
     --contact-muted: #687a70;
     max-width: 1320px;
     margin: 0 auto;
@@ -337,7 +382,7 @@ body {
 }
 
 .login-card h1 {
-    color: #1f5f30;
+    color: var(--rondo-floresta);
 }
 
 .login-form p {
@@ -379,28 +424,167 @@ body {
     margin: 0 auto;
 }
 
-.dashboard-welcome {
-    border: 1px solid #d3e5d2;
-    border-left: 5px solid #5d9262;
+.dashboard-banner {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 2.6 / 1;
+    min-height: 280px;
+    max-height: 430px;
     border-radius: 1rem;
-    background: linear-gradient(120deg, #ffffff, #edf6e9);
+    background: #dce9d6;
+    box-shadow: 0 .8rem 2rem rgb(19 49 34 / 16%);
 }
 
-.dashboard-welcome h1,
+.dashboard-banner::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgb(7 34 24 / 78%), rgb(7 34 24 / 34%) 58%, transparent 100%),
+        linear-gradient(0deg, rgb(7 34 24 / 35%), transparent 55%);
+    content: "";
+    pointer-events: none;
+}
+
+.dashboard-banner img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 48%;
+}
+
+.dashboard-banner .dashboard-welcome {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    padding: clamp(1.25rem, 4vw, 3rem);
+}
+
+.dashboard-banner .dashboard-welcome > .row {
+    width: 100%;
+}
+
+.dashboard-gallery-hint {
+    color: #64776a;
+    font-size: .88rem;
+}
+
+.dashboard-gallery-slot {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    border: 1px solid #cbdacb;
+    border-radius: 1rem;
+    background:
+        radial-gradient(ellipse at 70% 100%, rgb(142 173 103 / 50%), transparent 45%),
+        linear-gradient(145deg, #c7ddc5, #7b9c78 55%, #315b43);
+    box-shadow: 0 .65rem 1.5rem rgb(19 49 34 / 10%);
+}
+
+.dashboard-gallery-slot > img {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .35s ease;
+}
+
+.dashboard-gallery-slot:hover > img { transform: scale(1.04); }
+
+.dashboard-gallery-placeholder {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: .45rem;
+    color: rgba(255, 255, 255, .9);
+    text-shadow: 0 1px 8px rgb(0 0 0 / 30%);
+}
+
+.dashboard-gallery-placeholder i { font-size: 2rem; }
+.dashboard-gallery-placeholder span { font-weight: 650; }
+
+.dashboard-gallery-slot figcaption {
+    position: absolute;
+    z-index: 2;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    gap: .2rem;
+    padding: .8rem 1rem;
+    background: linear-gradient(transparent, rgb(7 34 24 / 88%));
+    color: #fff;
+}
+
+.dashboard-gallery-slot figcaption code {
+    color: #d7e8cf;
+    font-size: .72rem;
+}
+
+.dashboard-welcome { color: #fff; }
+
+.dashboard-welcome h1 { color: #fff; }
 .dashboard-card h2 {
-    color: #1f5f30;
+    color: var(--rondo-floresta);
 }
 
 .dashboard-kicker {
-    color: #5d9262;
+    color: #4d7d50;
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.09em;
 }
 
+.dashboard-welcome .dashboard-kicker { color: #c3e48d; }
+.dashboard-welcome .text-muted { color: rgba(255, 255, 255, .78) !important; }
+.dashboard-welcome .btn-success {
+    --bs-btn-bg: #c4e58f;
+    --bs-btn-border-color: #c4e58f;
+    --bs-btn-hover-bg: #d3eba9;
+    --bs-btn-hover-border-color: #d3eba9;
+    color: var(--rondo-floresta-profunda);
+}
+.dashboard-welcome .btn-outline-success {
+    border-color: rgba(255, 255, 255, .8);
+    color: #fff;
+}
+.dashboard-welcome .btn-outline-success:hover {
+    background: #fff;
+    color: var(--rondo-floresta);
+}
+
+@media (max-width: 767.98px) {
+    .dashboard-banner {
+        aspect-ratio: auto;
+        min-height: 390px;
+    }
+
+    .dashboard-banner::after {
+        background: linear-gradient(0deg, rgb(7 34 24 / 88%), rgb(7 34 24 / 14%) 100%);
+    }
+
+    .dashboard-banner img { object-position: 55% center; }
+    .dashboard-banner .dashboard-welcome { align-items: flex-end; }
+}
+
 .dashboard-card {
     border: 1px solid #e0eadf;
     background-color: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 .5rem 1.5rem rgb(19 49 34 / 5%) !important;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 .8rem 1.8rem rgb(19 49 34 / 10%) !important;
 }
 
 .dashboard-label,
@@ -572,8 +756,8 @@ body {
 }
 
 .community-page {
-    --community-green: #5d9262;
-    --community-deep: #0a3445;
+    --community-green: #347344;
+    --community-deep: #123b2b;
     --community-ink: #203a28;
     --community-muted: #6c7b70;
     max-width: 1320px;

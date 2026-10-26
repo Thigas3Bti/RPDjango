@@ -12,5 +12,7 @@ urlpatterns = [
     path('', views.comunidade, name='comunidade'),
     path('publicar/', views.publicar, name='publicar'),
     path('publicacao/<int:publicacao_id>/comentar/', views.comentar, name='comentar'),
+    path('publicacao/<int:publicacao_id>/excluir/', views.excluir_publicacao, name='excluir_publicacao'),
+    path('comentario/<int:comentario_id>/excluir/', views.excluir_comentario, name='excluir_comentario'),
     path('publicacao/<int:publicacao_id>/curtir/', views.curtir, name='curtir'),
 ]

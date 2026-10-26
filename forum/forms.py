@@ -6,6 +6,7 @@ from django import forms
 from django.utils import timezone
 
 from .models import Comentario, EventoAgenda, Publicacao
+from .moderacao import contem_conteudo_ofensivo
 
 
 class _IframeSrcParser(HTMLParser):
@@ -153,6 +154,13 @@ class PublicacaoForm(forms.ModelForm):
             raise forms.ValidationError(
                 'Escreva uma publicação ou selecione uma foto antes de publicar.'
             )
+        if contem_conteudo_ofensivo(
+            cleaned_data.get('titulo', ''),
+            cleaned_data.get('texto', ''),
+        ):
+            raise forms.ValidationError(
+                'A publicação contém xingamentos graves ou ameaças. Revise o texto para manter a comunidade respeitosa.'
+            )
         return cleaned_data
 
 
@@ -168,3 +176,11 @@ class ComentarioForm(forms.ModelForm):
                 'aria-label': 'Escreva um comentário',
             }),
         }
+
+    def clean_texto(self):
+        texto = self.cleaned_data['texto']
+        if contem_conteudo_ofensivo(texto):
+            raise forms.ValidationError(
+                'O comentário contém xingamentos graves ou ameaças. Revise o texto para manter a comunidade respeitosa.'
+            )
+        return texto

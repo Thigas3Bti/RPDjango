@@ -131,6 +131,102 @@ class ComunidadeTests(TestCase):
             ).exists()
         )
 
+    def test_autor_pode_excluir_sua_publicacao(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            titulo='Publicação própria',
+            texto='Texto para excluir.',
+        )
+        self.client.force_login(self.autor)
+
+        resposta = self.client.post(
+            reverse('excluir_publicacao', args=[publicacao.pk]),
+        )
+
+        self.assertRedirects(resposta, reverse('comunidade'))
+        self.assertFalse(Publicacao.objects.filter(pk=publicacao.pk).exists())
+
+    def test_usuario_nao_pode_excluir_publicacao_de_outra_pessoa(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            texto='Publicação de outra pessoa.',
+        )
+        self.client.force_login(self.outro_usuario)
+
+        resposta = self.client.post(
+            reverse('excluir_publicacao', args=[publicacao.pk]),
+        )
+
+        self.assertEqual(resposta.status_code, 403)
+        self.assertTrue(Publicacao.objects.filter(pk=publicacao.pk).exists())
+
+    def test_moderador_pode_excluir_publicacao_de_outra_pessoa(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            texto='Publicação para moderação.',
+        )
+        moderador = get_user_model().objects.create_user(
+            username='moderador',
+            password='senha-segura-789',
+            is_staff=True,
+        )
+        self.client.force_login(moderador)
+
+        resposta = self.client.post(
+            reverse('excluir_publicacao', args=[publicacao.pk]),
+        )
+
+        self.assertRedirects(resposta, reverse('comunidade'))
+        self.assertFalse(Publicacao.objects.filter(pk=publicacao.pk).exists())
+
+    def test_autor_e_moderador_podem_excluir_comentarios(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            texto='Publicação com comentários.',
+        )
+        comentario_autor = Comentario.objects.create(
+            publicacao=publicacao,
+            autor=self.autor,
+            texto='Comentário meu.',
+        )
+        self.client.force_login(self.autor)
+
+        resposta_autor = self.client.post(
+            reverse('excluir_comentario', args=[comentario_autor.pk]),
+        )
+
+        self.assertRedirects(
+            resposta_autor,
+            f"{reverse('comunidade')}#publicacao-{publicacao.pk}",
+        )
+        self.assertFalse(Comentario.objects.filter(pk=comentario_autor.pk).exists())
+
+        comentario_alheio = Comentario.objects.create(
+            publicacao=publicacao,
+            autor=self.outro_usuario,
+            texto='Comentário de outra pessoa.',
+        )
+        resposta_negada = self.client.post(
+            reverse('excluir_comentario', args=[comentario_alheio.pk]),
+        )
+        self.assertEqual(resposta_negada.status_code, 403)
+        self.assertTrue(Comentario.objects.filter(pk=comentario_alheio.pk).exists())
+
+        moderador = get_user_model().objects.create_user(
+            username='moderador_comentario',
+            password='senha-segura-987',
+            is_staff=True,
+        )
+        self.client.force_login(moderador)
+        resposta_moderador = self.client.post(
+            reverse('excluir_comentario', args=[comentario_alheio.pk]),
+        )
+        self.assertRedirects(
+            resposta_moderador,
+            f"{reverse('comunidade')}#publicacao-{publicacao.pk}",
+        )
+        self.assertFalse(Comentario.objects.filter(pk=comentario_alheio.pk).exists())
+
 
 class AgendaEventosTests(TestCase):
     def setUp(self):

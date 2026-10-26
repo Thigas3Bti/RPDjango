@@ -50,7 +50,7 @@ class ContatoViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, f'href="{reverse("cadastro")}"')
-        self.assertContains(response, 'Faça seu Cadastro')
+        self.assertContains(response, 'aria-label="Explorar Agora"')
         self.assertContains(response, 'Cadastre-se e explore mais.')
         self.assertContains(response, 'Cadastre-se grátis')
         self.assertContains(response, f'href="{reverse("contato")}"')
@@ -77,6 +77,13 @@ class DashboardFishingTipsTests(TestCase):
     def test_dashboard_menu_links_to_dedicated_tips_page(self):
         response = self.client.get(reverse('inicio'))
 
+        self.assertContains(
+            response,
+            'images/banner_tela_inicio.jpg',
+        )
+        self.assertContains(response, 'images/galeria/local-1.jpg')
+        self.assertContains(response, 'images/galeria/local-2.jpg')
+        self.assertContains(response, 'images/galeria/local-3.jpg')
         self.assertContains(response, f'href="{reverse("dicas")}"')
         self.assertNotContains(response, 'id="lista-niveis-dicas"')
 

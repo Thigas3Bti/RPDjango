@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db.models import BooleanField, Count, Exists, OuterRef, Prefetch, Q, Value
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
@@ -179,6 +180,33 @@ def comentar(request, publicacao_id):
         messages.error(request, 'Escreva um comentário de até 500 caracteres.')
 
     return redirect(f"{reverse('comunidade')}#publicacao-{publicacao.pk}")
+
+
+@login_required(login_url='login')
+@require_POST
+def excluir_publicacao(request, publicacao_id):
+    publicacao = get_object_or_404(Publicacao, pk=publicacao_id)
+    if publicacao.autor_id != request.user.pk and not request.user.is_staff:
+        raise PermissionDenied
+
+    if publicacao.foto:
+        publicacao.foto.delete(save=False)
+    publicacao.delete()
+    messages.success(request, 'A publicação foi excluída.')
+    return redirect('comunidade')
+
+
+@login_required(login_url='login')
+@require_POST
+def excluir_comentario(request, comentario_id):
+    comentario = get_object_or_404(Comentario, pk=comentario_id)
+    if comentario.autor_id != request.user.pk and not request.user.is_staff:
+        raise PermissionDenied
+
+    publicacao_id = comentario.publicacao_id
+    comentario.delete()
+    messages.success(request, 'O comentário foi excluído.')
+    return redirect(f"{reverse('comunidade')}#publicacao-{publicacao_id}")
 
 
 @login_required(login_url='login')

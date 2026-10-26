@@ -145,6 +145,15 @@ class Peixes(models.Model):
 
 
 class Publicacao(models.Model):
+    STATUS_APROVADA = 'aprovada'
+    STATUS_PENDENTE = 'pendente'
+    STATUS_REJEITADA = 'rejeitada'
+    STATUS_MODERACAO = [
+        (STATUS_APROVADA, 'Aprovada'),
+        (STATUS_PENDENTE, 'Aguardando revisão'),
+        (STATUS_REJEITADA, 'Rejeitada'),
+    ]
+
     autor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -154,6 +163,11 @@ class Publicacao(models.Model):
     texto = models.TextField(max_length=2000, blank=True)
     foto = models.FileField(upload_to='forum/publicacoes/%Y/%m/', blank=True)
     criada_em = models.DateTimeField(auto_now_add=True)
+    status_moderacao = models.CharField(
+        max_length=12,
+        choices=STATUS_MODERACAO,
+        default=STATUS_APROVADA,
+    )
 
     class Meta:
         ordering = ['-criada_em']
