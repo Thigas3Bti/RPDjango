@@ -35,9 +35,11 @@
                         <option value="veterano">Veterano</option>
                     </select>
                 </div>
-                <a class="btn btn-success text-nowrap" href="{% url 'adicionar_dica' %}">
-                    <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Adicionar nova dica
-                </a>
+                {% if request.user.is_staff %}
+                    <a class="btn btn-success text-nowrap" href="{% url 'adicionar_dica' %}">
+                        <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Adicionar nova dica
+                    </a>
+                {% endif %}
             </div>
         </div>
         <p class="small text-muted mb-3" id="estado-filtro-dicas" aria-live="polite">Exibindo todos os níveis.</p>

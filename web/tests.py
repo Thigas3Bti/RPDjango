@@ -41,7 +41,7 @@ class DashboardFishingTipsTests(TestCase):
         self.assertContains(response, 'Avançado: equipamento e leitura da pescaria')
         self.assertContains(response, 'Veterano: análise, adaptação e responsabilidade')
         self.assertContains(response, 'id="filtro-nivel-dicas"')
-        self.assertContains(response, 'Adicionar nova dica')
+        self.assertNotContains(response, 'Adicionar nova dica')
 
     def test_dashboard_menu_links_to_dedicated_tips_page(self):
         response = self.client.get(reverse('inicio'))
@@ -70,6 +70,7 @@ class DashboardFishingTipsTests(TestCase):
         tips_response = self.client.get(reverse('dicas'))
         self.assertContains(tips_response, 'Ler a correnteza')
         self.assertContains(tips_response, 'DICA DA COMUNIDADE')
+        self.assertContains(tips_response, 'Adicionar nova dica')
 
     def test_adding_tip_requires_login(self):
         response = self.client.get(reverse('adicionar_dica'))
@@ -110,9 +111,11 @@ class DashboardFishingTipsTests(TestCase):
             'categoria': 'iscas',
             'descricao': 'Este conteúdo não deve ser salvo.',
         })
+        tips_response = self.client.get(reverse('dicas'))
 
         self.assertEqual(get_response.status_code, 403)
         self.assertEqual(post_response.status_code, 403)
+        self.assertNotContains(tips_response, 'Adicionar nova dica')
         self.assertEqual(Dica.objects.count(), 0)
 
     def test_invalid_tip_is_not_saved(self):
