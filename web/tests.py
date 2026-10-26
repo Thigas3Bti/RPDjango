@@ -30,6 +30,23 @@ class ContatoViewTests(TestCase):
         self.assertContains(response, 'Falar conosco')
 
 
+class SurpresaViewTests(TestCase):
+    def test_footer_secret_button_opens_surprise_page(self):
+        for page in ('home', 'inicio'):
+            with self.subTest(page=page):
+                response = self.client.get(reverse(page))
+
+                self.assertContains(response, f'href="{reverse("surpresa")}"')
+                self.assertContains(response, 'aria-label="Abrir surpresa"')
+
+    def test_surprise_page_displays_the_attached_image(self):
+        response = self.client.get(reverse('surpresa'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Uma surpresa!')
+        self.assertContains(response, 'images/surpresa.png')
+
+
 class DashboardFishingTipsTests(TestCase):
     def test_dedicated_tips_page_displays_each_level_and_filter(self):
         response = self.client.get(reverse('dicas'))

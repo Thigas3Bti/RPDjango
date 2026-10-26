@@ -35,6 +35,10 @@ def contato(request):
     return render(request, 'web/contato.html')
 
 
+def surpresa(request):
+    return render(request, 'web/surpresa.html')
+
+
 def dicas(request):
     return render(request, 'web/dicas.html', {
         'dicas_publicadas': Dica.objects.select_related('autor').all(),
