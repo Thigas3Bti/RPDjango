@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Surpresa | RondoPesca{% endblock %}
+
+{% block content %}
+<section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm text-center">
+    <span class="dashboard-kicker">VOCÊ ENCONTROU</span>
+    <h1 class="display-6 fw-bold mt-2 mb-2">Uma surpresa!</h1>
+    <p class="mb-0 text-muted">Um segredo escondido no rodapé do RondoPesca.</p>
+</section>
+
+<div class="text-center">
+    <img class="img-fluid rounded shadow-sm" src="{% static 'images/surpresa.png' %}"
+        alt="Imagem surpresa enviada para o RondoPesca">
+</div>
+{% endblock %}
