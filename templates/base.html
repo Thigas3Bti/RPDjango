@@ -15,7 +15,7 @@
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <link rel="stylesheet" href="{% static 'css/base/base.css' %}?v=20261007">
+    <link rel="stylesheet" href="{% static 'css/base/base.css' %}?v=20261019-profile-menu">
 
     <link rel="icon" type="image/png" href="{% static 'images/Icone_Rondopesca.png' %}">
 
@@ -50,9 +50,14 @@
                 <div class="d-none d-md-block text-muted" id="currentDate"></div>
                 {% if request.user.is_authenticated %}
                 <div class="dropdown">
-                    <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button"
-                        data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu do usuário">
-                        <i class="bi bi-person-circle" aria-hidden="true"></i>
+                    <button class="header-profile-toggle btn btn-outline-success btn-sm dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu de {{ request.user.get_full_name|default:request.user.username }}">
+                        {% if request.user.perfil_usuario.foto %}
+                            <img class="header-profile-avatar" src="{{ request.user.perfil_usuario.foto.url }}" alt="">
+                        {% else %}
+                            <i class="bi bi-person-circle header-profile-avatar-placeholder" aria-hidden="true"></i>
+                        {% endif %}
+                        <span>{{ request.user.get_full_name|default:request.user.username }}</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="{% url 'perfil' %}">Ver perfil</a></li>

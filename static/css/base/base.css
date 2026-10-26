@@ -66,6 +66,40 @@ body {
     color: #386a3d;
 }
 
+.header-profile-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: min(18rem, 55vw);
+    padding: 0.25rem 0.65rem 0.25rem 0.35rem;
+}
+
+.header-profile-toggle span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.header-profile-avatar,
+.header-profile-avatar-placeholder {
+    flex: 0 0 1.8rem;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+}
+
+.header-profile-avatar {
+    object-fit: cover;
+}
+
+.header-profile-avatar-placeholder {
+    display: grid;
+    place-items: center;
+    color: #198754;
+    background: #eaf3e8;
+    font-size: 1.5rem;
+}
+
 /* Menu lateral (sidebar) com navegação */
 .sidebar {
     /* Largura fixa da sidebar */

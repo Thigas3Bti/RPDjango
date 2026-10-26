@@ -5,6 +5,28 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from .models import Dica
+from usuarios.models import PerfilUsuario
+
+
+class FotoPerfilForm(forms.ModelForm):
+    class Meta:
+        model = PerfilUsuario
+        fields = ['foto']
+        labels = {'foto': 'Escolha uma foto de perfil'}
+        widgets = {
+            'foto': forms.FileInput(attrs={
+                'class': 'visually-hidden',
+                'accept': 'image/*',
+                'aria-label': 'Escolha uma foto de perfil',
+                'onchange': 'this.form.requestSubmit()',
+            }),
+        }
+
+    def clean_foto(self):
+        foto = self.cleaned_data.get('foto')
+        if foto is not None and foto.size > 5 * 1024 * 1024:
+            raise ValidationError(_('A imagem deve ter no máximo 5 MB.'))
+        return foto
 
 
 class DicaForm(forms.ModelForm):

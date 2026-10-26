@@ -2,36 +2,289 @@
 
 {% block title %}Meu perfil | RondoPesca{% endblock %}
 
-{% block content %}
-<section class="container py-3" aria-labelledby="profile-title">
-    <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-body p-4 p-md-5">
-                    <div class="d-flex align-items-center gap-3 mb-4">
-                        <i class="bi bi-person-circle fs-1 text-success" aria-hidden="true"></i>
-                        <div>
-                            <h1 id="profile-title" class="h3 fw-bold mb-1">
-                                {{ request.user.get_full_name|default:request.user.username }}</h1>
-                            <p class="text-muted mb-0">Informações da sua conta RondoPesca</p>
-                        </div>
-                    </div>
+{% block extra_css %}
+<style>
+    .profile-page {
+        max-width: 960px;
+        margin: 0 auto;
+    }
 
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4 py-2">Nome</dt>
-                        <dd class="col-sm-8 py-2">
-                            {{ request.user.get_full_name|default:request.user.username }}
-                        </dd>
-                        <dt class="col-sm-4 py-2">Nome de usuário</dt>
-                        <dd class="col-sm-8 py-2">{{ request.user.username }}</dd>
-                        <dt class="col-sm-4 py-2">E-mail</dt>
-                        <dd class="col-sm-8 py-2">{{ request.user.email|default:"Não informado" }}</dd>
-                        <dt class="col-sm-4 py-2">Membro desde</dt>
-                        <dd class="col-sm-8 py-2">{{ request.user.date_joined|date:"d/m/Y" }}</dd>
-                    </dl>
-                </div>
+    .profile-heading {
+        color: #263b2c;
+    }
+
+    .profile-card {
+        overflow: hidden;
+        border: 1px solid #e2eae1;
+        border-radius: 1rem;
+    }
+
+    .profile-hero {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        padding: clamp(1.25rem, 4vw, 2rem);
+        background: linear-gradient(120deg, #f7fbf5, #fff);
+    }
+
+    .profile-avatar-trigger {
+        position: relative;
+        flex: 0 0 6rem;
+        width: 6rem;
+        height: 6rem;
+        padding: 0;
+        overflow: hidden;
+        border: 3px solid #fff;
+        border-radius: 50%;
+        background: #eaf3e8;
+        box-shadow: 0 0 0 1px #dce8d9, 0 3px 10px rgba(32, 58, 40, .12);
+        cursor: pointer;
+    }
+
+    .profile-avatar-overlay {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: #fff;
+        background: rgba(16, 35, 21, .58);
+        opacity: 0;
+        transition: opacity .18s ease;
+    }
+
+    .profile-avatar-trigger:hover .profile-avatar-overlay,
+    .profile-avatar-trigger:focus-visible .profile-avatar-overlay {
+        opacity: 1;
+    }
+
+    .profile-avatar-overlay i {
+        font-size: 1.5rem;
+    }
+
+    .profile-avatar-trigger:focus-visible {
+        outline: 3px solid rgba(25, 135, 84, .45);
+        outline-offset: 3px;
+    }
+
+    .profile-avatar-image,
+    .profile-avatar-placeholder {
+        display: grid;
+        width: 100%;
+        height: 100%;
+        place-items: center;
+        border-radius: 50%;
+    }
+
+    .profile-avatar-image {
+        object-fit: cover;
+    }
+
+    .profile-avatar-placeholder {
+        color: #39804a;
+        font-size: 3.7rem;
+        line-height: 1;
+    }
+
+    .profile-name {
+        color: #203a28;
+        overflow-wrap: anywhere;
+    }
+
+    .profile-subtitle {
+        color: #68766b;
+    }
+
+    .profile-status {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .35rem .65rem;
+        border-radius: 999px;
+        color: #32673b;
+        background: #eaf4e8;
+        font-size: .8rem;
+        font-weight: 600;
+    }
+
+    .profile-details {
+        padding: clamp(1.25rem, 4vw, 2rem);
+        border-top: 1px solid #e8eee7;
+    }
+
+    .profile-detail {
+        height: 100%;
+        padding: 1rem;
+        border: 1px solid #e7ede6;
+        border-radius: .75rem;
+        background: #fff;
+    }
+
+    .profile-detail-label {
+        display: block;
+        margin-bottom: .35rem;
+        color: #718073;
+        font-size: .8rem;
+        font-weight: 600;
+    }
+
+    .profile-detail-value {
+        margin: 0;
+        color: #263b2c;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .profile-modal .modal-content {
+        border: 0;
+        border-radius: 1rem;
+    }
+
+    .profile-modal-option {
+        min-height: 3rem;
+        text-align: left;
+    }
+
+    @media (max-width: 575.98px) {
+        .profile-hero {
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .profile-avatar-trigger {
+            flex-basis: 5rem;
+            width: 5rem;
+            height: 5rem;
+        }
+
+        .profile-avatar-placeholder {
+            font-size: 3rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="profile-page py-2" aria-labelledby="profile-title">
+    <header class="mb-4">
+        <span class="small text-success fw-semibold text-uppercase">Conta</span>
+        <h1 class="profile-heading h3 fw-bold mt-1 mb-0">Meu perfil</h1>
+    </header>
+
+    <div class="profile-card card shadow-sm mb-4">
+        <div class="profile-hero">
+            <button class="profile-avatar-trigger" type="button" data-bs-toggle="modal"
+                data-bs-target="#profilePhotoModal" aria-label="Editar foto de perfil">
+                {% if perfil_usuario.foto %}
+                    <img class="profile-avatar-image" src="{{ perfil_usuario.foto.url }}" alt="">
+                {% else %}
+                    <span class="profile-avatar-placeholder" aria-hidden="true">
+                        <i class="bi bi-person-fill"></i>
+                    </span>
+                {% endif %}
+                <span class="profile-avatar-overlay" aria-hidden="true">
+                    <i class="bi bi-pencil-fill"></i>
+                </span>
+            </button>
+            <div class="min-w-0">
+                <h2 id="profile-title" class="profile-name h4 fw-bold mb-2">
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </h2>
+                <p class="profile-subtitle mb-2">{{ request.user.email|default:"E-mail não informado" }}</p>
+                <span class="profile-status">
+                    <i class="bi bi-patch-check-fill" aria-hidden="true"></i>
+                    Perfil RondoPesca
+                </span>
             </div>
+        </div>
+
+        {% if messages %}
+            <div class="px-4 pt-3">
+                {% for message in messages %}
+                    <div class="alert alert-success py-2 mb-0" role="status">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="profile-details">
+            <h3 class="h5 fw-bold mb-3">Informações da conta</h3>
+            <dl class="row g-3 mb-0">
+                <div class="col-12 col-md-6">
+                    <div class="profile-detail">
+                        <dt class="profile-detail-label">Nome</dt>
+                        <dd class="profile-detail-value">{{ request.user.get_full_name|default:request.user.username }}</dd>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="profile-detail">
+                        <dt class="profile-detail-label">Nome de usuário</dt>
+                        <dd class="profile-detail-value">{{ request.user.username }}</dd>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="profile-detail">
+                        <dt class="profile-detail-label">E-mail</dt>
+                        <dd class="profile-detail-value">{{ request.user.email|default:"Não informado" }}</dd>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="profile-detail">
+                        <dt class="profile-detail-label">Membro desde</dt>
+                        <dd class="profile-detail-value">{{ request.user.date_joined|date:"d/m/Y" }}</dd>
+                    </div>
+                </div>
+            </dl>
         </div>
     </div>
 </section>
+
+<div class="modal fade profile-modal" id="profilePhotoModal" tabindex="-1"
+    aria-labelledby="profilePhotoModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content shadow">
+            <div class="modal-header border-0 pb-0">
+                <h2 class="modal-title h5 fw-bold" id="profilePhotoModalTitle">
+                    {% if perfil_usuario.foto %}Editar foto de perfil{% else %}Adicionar foto de perfil{% endif %}
+                </h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">
+                    {% if perfil_usuario.foto %}
+                        Escolha uma nova imagem ou remova a foto atual.
+                    {% else %}
+                        Escolha uma imagem para personalizar seu perfil.
+                    {% endif %}
+                </p>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <label class="btn btn-success w-100 profile-modal-option d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-camera" aria-hidden="true"></i>
+                        {% if perfil_usuario.foto %}Trocar imagem{% else %}Adicionar imagem{% endif %}
+                        {{ foto_form.foto }}
+                    </label>
+                    {% for error in foto_form.foto.errors %}
+                        <div class="text-danger small mt-2" role="alert">{{ error }}</div>
+                    {% endfor %}
+                </form>
+                {% if perfil_usuario.foto %}
+                    <form method="post" class="mt-2">
+                        {% csrf_token %}
+                        <button type="submit" name="remover_foto" value="1"
+                            class="btn btn-outline-danger w-100 profile-modal-option">
+                            <i class="bi bi-trash me-1" aria-hidden="true"></i> Remover imagem
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% if foto_form.errors %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('profilePhotoModal')).show();
+    });
+</script>
+{% endif %}
 {% endblock %}
