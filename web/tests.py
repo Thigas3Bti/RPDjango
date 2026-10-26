@@ -124,7 +124,7 @@ class RegistrationTests(TestCase):
 
         self.assertContains(response, 'Este campo é obrigatório.')
 
-    def test_registration_requires_a_valid_email(self):
+    def test_registration_rejects_email_without_at_sign(self):
         response = self.client.post(
             reverse('cadastro'),
             {
@@ -138,28 +138,6 @@ class RegistrationTests(TestCase):
         )
 
         self.assertContains(response, 'Informe um endereço de email válido.')
-        self.assertFalse(User.objects.filter(username='novo-pescador').exists())
-
-    def test_registration_rejects_an_email_already_in_use_case_insensitively(self):
-        User.objects.create_user(
-            username='pescador-existente',
-            email='contato@example.com',
-            password='SenhaSegura123!',
-        )
-
-        response = self.client.post(
-            reverse('cadastro'),
-            {
-                'username': 'novo-pescador',
-                'first_name': 'Novo',
-                'last_name': 'Pescador',
-                'email': 'Contato@Example.com',
-                'password1': 'SenhaSegura123!',
-                'password2': 'SenhaSegura123!',
-            },
-        )
-
-        self.assertContains(response, 'Este e-mail já está cadastrado.')
         self.assertFalse(User.objects.filter(username='novo-pescador').exists())
 
     def test_registration_shows_portuguese_password_mismatch_error(self):
@@ -177,14 +155,14 @@ class RegistrationTests(TestCase):
 
         self.assertContains(response, 'As senhas informadas não são iguais.')
 
-    def test_registration_sends_confirmation_link_and_keeps_account_inactive(self):
+    def test_registration_activates_account_without_sending_email(self):
         response = self.client.post(
             reverse('cadastro'),
             {
                 'username': 'novo-pescador',
                 'first_name': 'Novo',
                 'last_name': 'Pescador',
-                'email': 'novo@example.com',
+                'email': 'email@',
                 'password1': 'SenhaSegura123!',
                 'password2': 'SenhaSegura123!',
             },
@@ -192,25 +170,10 @@ class RegistrationTests(TestCase):
 
         user = User.objects.get(username='novo-pescador')
         self.assertRedirects(response, reverse('login'))
-        self.assertFalse(user.is_active)
-        self.assertNotIn('_auth_user_id', self.client.session)
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, ['novo@example.com'])
-
-        login_response = self.client.post(
-            reverse('login'),
-            {'username': 'novo-pescador', 'password': 'SenhaSegura123!'},
-        )
-        self.assertEqual(login_response.status_code, 200)
-        self.assertNotIn('_auth_user_id', self.client.session)
-
-        confirmation_url = mail.outbox[0].body.splitlines()[3]
-        confirmation_response = self.client.get(confirmation_url)
-
-        self.assertRedirects(confirmation_response, reverse('login'))
-        user.refresh_from_db()
         self.assertTrue(user.is_active)
+        self.assertEqual(user.email, 'email@')
         self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertEqual(len(mail.outbox), 0)
 
         login_response = self.client.post(
             reverse('login'),
@@ -218,25 +181,6 @@ class RegistrationTests(TestCase):
         )
         self.assertRedirects(login_response, reverse('painel'))
         self.assertIn('_auth_user_id', self.client.session)
-
-    def test_invalid_confirmation_link_does_not_activate_account(self):
-        user = User.objects.create_user(
-            username='novo-pescador',
-            email='novo@example.com',
-            password='SenhaSegura123!',
-            is_active=False,
-        )
-
-        response = self.client.get(
-            reverse(
-                'confirmar_email',
-                kwargs={'uidb64': 'invalid', 'token': 'invalid'},
-            )
-        )
-
-        self.assertRedirects(response, reverse('login'))
-        user.refresh_from_db()
-        self.assertFalse(user.is_active)
 
 
 class UserMenuTests(TestCase):

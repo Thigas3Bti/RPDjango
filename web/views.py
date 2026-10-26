@@ -1,21 +1,12 @@
-from smtplib import SMTPException
-
 from django.contrib import messages
 from django.contrib.auth import (
-    get_user_model,
     login as auth_login,
     logout as auth_logout,
 )
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import redirect, render
-from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from .forms import DicaForm, LoginForm, RegistrationForm
 from forum.models import EventoAgenda
@@ -110,76 +101,11 @@ def cadastro(request):
     )
 
     if request.method == 'POST' and form.is_valid():
-        try:
-            with transaction.atomic():
-                user = form.save(commit=False)
-                user.is_active = False
-                user.save()
-
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-                token = default_token_generator.make_token(user)
-                confirmation_url = request.build_absolute_uri(
-                    reverse(
-                        'confirmar_email',
-                        kwargs={'uidb64': uid, 'token': token},
-                    )
-                )
-                send_mail(
-                    'Confirme seu e-mail - RondoPesca',
-                    (
-                        f'Olá, {user.first_name or user.username}!\n\n'
-                        'Para confirmar seu endereço de e-mail e ativar sua conta, '
-                        f'accesse o link:\n{confirmation_url}\n\n'
-                        'Se você não solicitou este cadastro, ignore esta mensagem.'
-                    ),
-                    None,
-                    [user.email],
-                    fail_silently=False,
-                )
-        except (OSError, SMTPException):
-            form.add_error(
-                None,
-                'Não foi possível enviar o e-mail de confirmação. '
-                'Verifique a configuração de e-mail e tente novamente.',
-            )
-        else:
-            messages.success(
-                request,
-                'Cadastro realizado. Confira seu e-mail para confirmar a conta.',
-            )
-            return redirect('login')
+        form.save()
+        messages.success(request, 'Cadastro realizado. Agora você pode entrar na sua conta.')
+        return redirect('login')
 
     return render(request, 'usuarios/acesso/cadastro.html', {'form': form})
-
-
-def confirmar_email(request, uidb64, token):
-    user_model = get_user_model()
-    try:
-        uid = urlsafe_base64_decode(uidb64).decode()
-        user = user_model._default_manager.get(pk=uid)
-    except (
-        TypeError,
-        ValueError,
-        OverflowError,
-        UnicodeDecodeError,
-        user_model.DoesNotExist,
-    ):
-        user = None
-
-    if (
-        user is not None
-        and not user.is_active
-        and default_token_generator.check_token(user, token)
-    ):
-        user.is_active = True
-        user.save(update_fields=['is_active'])
-        messages.success(request, 'E-mail confirmado. Agora você pode entrar na sua conta.')
-    else:
-        messages.error(
-            request,
-            'O link de confirmação é inválido ou expirou. Faça o cadastro novamente.',
-        )
-    return redirect('login')
 
 
 def logout(request):

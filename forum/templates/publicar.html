@@ -40,7 +40,7 @@
                     maxlength="2000"
                     placeholder="Conte uma experiência, faça uma pergunta ou compartilhe uma dica..."
                     aria-describedby="publish-help">{{ form.texto.value|default_if_none:'' }}</textarea>
-                <div id="publish-help" class="form-text">Você pode publicar um texto, uma foto ou os dois. Máximo de 2.000 caracteres; fotos de até 5 MB (JPG, PNG, GIF, WEBP ou BMP).</div>
+                <div id="publish-help" class="form-text">Você pode publicar um texto, uma foto ou os dois. Máximo de 2.000 caracteres; fotos de até 5 MB (JPG, PNG, GIF, WEBP ou BMP). Publicações com palavrões não são aceitas.</div>
                 {% for error in form.texto.errors %}<div class="text-danger small mt-1" role="alert">{{ error }}</div>{% endfor %}
             </div>
 

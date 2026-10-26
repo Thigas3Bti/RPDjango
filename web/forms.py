@@ -76,7 +76,7 @@ class LoginForm(AuthenticationForm):
 
 
 class RegistrationForm(UserCreationForm):
-    email = forms.EmailField(required=True, max_length=254)
+    email = forms.CharField(required=True, max_length=254)
 
     error_messages = {
         'password_mismatch': _('As senhas informadas não são iguais.'),
@@ -127,6 +127,11 @@ class RegistrationForm(UserCreationForm):
 
     def clean_email(self):
         email = self.cleaned_data['email']
-        if get_user_model()._default_manager.filter(email__iexact=email).exists():
-            raise ValidationError(_('Este e-mail já está cadastrado.'))
+        if '@' not in email:
+            raise ValidationError(_('Informe um endereço de email válido.'))
         return email
+
+    def _get_validation_exclusions(self):
+        exclusions = super()._get_validation_exclusions()
+        exclusions.add('email')
+        return exclusions

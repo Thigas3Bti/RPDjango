@@ -176,7 +176,10 @@ def comentar(request, publicacao_id):
         comentario.autor = request.user
         comentario.save()
     else:
-        messages.error(request, 'Escreva um comentário de até 500 caracteres.')
+        messages.error(
+            request,
+            'Não foi possível publicar o comentário. Evite palavrões e use até 500 caracteres.',
+        )
 
     return redirect(f"{reverse('comunidade')}#publicacao-{publicacao.pk}")
 

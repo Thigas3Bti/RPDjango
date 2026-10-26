@@ -11,11 +11,6 @@ urlpatterns = [
     path('dicas/adicionar/', views.adicionar_dica, name='adicionar_dica'),
     path('login/', views.login, name='login'),
     path('cadastro/', views.cadastro, name='cadastro'),
-    path(
-        'confirmar-email/<uidb64>/<token>/',
-        views.confirmar_email,
-        name='confirmar_email',
-    ),
     path('logout/', views.logout, name='logout'),
     path('painel/', views.painel, name='painel'),
     path('perfil/', views.perfil, name='perfil'),
