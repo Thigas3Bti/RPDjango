@@ -1,5 +1,8 @@
 from django.contrib import messages
-from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.contrib.auth import (
+    login as auth_login,
+    logout as auth_logout,
+)
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
@@ -131,8 +134,9 @@ def cadastro(request):
     )
 
     if request.method == 'POST' and form.is_valid():
-        auth_login(request, form.save())
-        return redirect('painel')
+        form.save()
+        messages.success(request, 'Cadastro realizado. Agora você pode entrar na sua conta.')
+        return redirect('login')
 
     return render(request, 'usuarios/acesso/cadastro.html', {'form': form})
 

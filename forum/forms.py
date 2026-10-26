@@ -2,6 +2,7 @@ from django import forms
 from django.utils import timezone
 from pathlib import Path
 
+from .moderation import contem_palavrao
 from .models import Comentario, EventoAgenda, Publicacao
 
 
@@ -76,6 +77,22 @@ class PublicacaoForm(forms.ModelForm):
             }),
         }
 
+    def clean_titulo(self):
+        titulo = self.cleaned_data.get('titulo', '')
+        if contem_palavrao(titulo):
+            raise forms.ValidationError(
+                'Evite palavrões no título da publicação.'
+            )
+        return titulo
+
+    def clean_texto(self):
+        texto = self.cleaned_data.get('texto', '')
+        if contem_palavrao(texto):
+            raise forms.ValidationError(
+                'Evite palavrões no texto da publicação.'
+            )
+        return texto
+
     def clean_foto(self):
         foto = self.cleaned_data.get('foto')
         if not foto:
@@ -118,3 +135,11 @@ class ComentarioForm(forms.ModelForm):
                 'aria-label': 'Escreva um comentário',
             }),
         }
+
+    def clean_texto(self):
+        texto = self.cleaned_data.get('texto', '')
+        if contem_palavrao(texto):
+            raise forms.ValidationError(
+                'Evite palavrões no comentário.'
+            )
+        return texto

@@ -111,6 +111,8 @@ class LoginForm(AuthenticationForm):
 
 
 class RegistrationForm(UserCreationForm):
+    email = forms.CharField(required=True, max_length=254)
+
     error_messages = {
         'password_mismatch': _('As senhas informadas não são iguais.'),
     }
@@ -157,3 +159,14 @@ class RegistrationForm(UserCreationForm):
         self.fields['email'].widget.attrs['autocomplete'] = 'email'
         self.fields['password1'].widget.attrs['autocomplete'] = 'new-password'
         self.fields['password2'].widget.attrs['autocomplete'] = 'new-password'
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if '@' not in email:
+            raise ValidationError(_('Informe um endereço de email válido.'))
+        return email
+
+    def _get_validation_exclusions(self):
+        exclusions = super()._get_validation_exclusions()
+        exclusions.add('email')
+        return exclusions

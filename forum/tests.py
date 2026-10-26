@@ -57,6 +57,24 @@ class ComunidadeTests(TestCase):
         self.assertContains(resposta_feed, 'Dica de isca')
         self.assertContains(resposta_feed, 'Experimente uma isca adequada à espécie.')
 
+    def test_publicacao_com_palavrao_no_titulo_ou_texto_e_rejeitada(self):
+        self.client.force_login(self.autor)
+
+        for campo, valor in (
+            ('titulo', 'Que porra de pescaria'),
+            ('texto', 'Foi uma merda de pescaria'),
+            ('texto', 'Que pórra!'),
+        ):
+            with self.subTest(campo=campo, valor=valor):
+                resposta = self.client.post(reverse('publicar'), {
+                    'titulo': valor if campo == 'titulo' else '',
+                    'texto': valor if campo == 'texto' else 'Uma pescaria tranquila.',
+                })
+
+                self.assertEqual(resposta.status_code, 200)
+                self.assertContains(resposta, 'Evite palavrões')
+                self.assertFalse(Publicacao.objects.exists())
+
     def test_foto_da_publicacao_e_salva_no_servidor(self):
         self.client.force_login(self.autor)
         conteudo_gif = (
@@ -130,6 +148,22 @@ class ComunidadeTests(TestCase):
                 usuario=self.outro_usuario,
             ).exists()
         )
+
+    def test_comentario_com_palavrao_e_rejeitado(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            texto='Post da comunidade.',
+        )
+        self.client.force_login(self.outro_usuario)
+
+        resposta = self.client.post(
+            reverse('comentar', args=[publicacao.pk]),
+            {'texto': 'Que merda!'},
+            follow=True,
+        )
+
+        self.assertContains(resposta, 'Evite palavrões')
+        self.assertFalse(Comentario.objects.filter(publicacao=publicacao).exists())
 
 
 class AgendaEventosTests(TestCase):
