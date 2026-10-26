@@ -7,7 +7,11 @@
 body { background: var(--rondo-fundo); color: #203a28; }
 .navbar-rondo, .rodape-rondo { background: var(--rondo-azul); }
 .navbar-rondo { position: sticky; top: 0; z-index: 1030; }
-.navbar-brand, .navbar-rondo .nav-link { color: #fff; }
+.navbar-rondo .container { max-width: none; padding-inline: 1.5rem; }
+.navbar-rondo .navbar-brand,
+.navbar-rondo .navbar-brand:hover,
+.navbar-rondo .navbar-brand:focus { color: #fff; }
+.navbar-rondo .nav-link { color: #fff; }
 .navbar-rondo .nav-link:hover { color: var(--rondo-verde); }
 .navbar-brand img { width: 42px; height: 42px; object-fit: contain; }
 .btn-rondo { background: var(--rondo-verde); border-color: var(--rondo-verde); color: #102b22; }
@@ -56,7 +60,7 @@ body { background: var(--rondo-fundo); color: #203a28; }
 }
 
 @media (max-width: 575.98px) {
-    .navbar-rondo .container { justify-content: center; }
+    .navbar-rondo .container { justify-content: flex-start; padding-inline: 1rem; }
     .navbar-rondo .navbar-nav { gap: 0 .5rem; }
     .navbar-rondo .nav-link { padding: .35rem; }
     .hero-conteudo { bottom: 20px; }
