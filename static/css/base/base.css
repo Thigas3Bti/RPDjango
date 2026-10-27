@@ -304,6 +304,86 @@ body {
     line-height: 1.55;
 }
 
+.contact-faq-link {
+    padding: 2rem 1rem;
+    border: 1px solid #dce8da;
+    border-radius: 1rem;
+    background: #f7fbf5;
+}
+
+.contact-faq-link h2 {
+    color: #0a3445;
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.contact-faq-link p {
+    color: #687a70;
+}
+
+.faq-page {
+    --contact-blue: #0a3445;
+    --contact-green: #76ad3d;
+    max-width: 960px;
+    margin: 0 auto;
+    color: #203a28;
+}
+
+.faq-heading {
+    margin: 0.5rem 0 2rem;
+}
+
+.faq-kicker {
+    color: #578b2e;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.faq-heading h1 {
+    margin: 0.4rem 0 0.6rem;
+    color: var(--contact-blue);
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+}
+
+.faq-heading p {
+    color: #687a70;
+    font-size: 1.05rem;
+}
+
+.faq-accordion {
+    overflow: hidden;
+    border: 1px solid #e4ebe5;
+    border-radius: 1rem;
+    box-shadow: 0 0.75rem 2rem rgba(20, 45, 30, 0.07);
+}
+
+.faq-accordion .accordion-item {
+    border-color: #e4ebe5;
+}
+
+.faq-accordion .accordion-collapse.collapse:not(.show) {
+    display: none;
+}
+
+.faq-accordion .accordion-button {
+    color: #203a28;
+    font-weight: 600;
+}
+
+.faq-accordion .accordion-button:not(.collapsed) {
+    color: #1f5f30;
+    background-color: #eff6e9;
+    box-shadow: none;
+}
+
+.faq-accordion .accordion-button:focus {
+    border-color: var(--contact-green);
+    box-shadow: 0 0 0 0.22rem rgba(118, 173, 61, 0.16);
+}
+
 .contact-form .form-label {
     margin-bottom: 0.5rem;
     color: #294437;

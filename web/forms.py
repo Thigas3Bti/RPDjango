@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from .models import Dica
+from .models import Dica, MensagemContato
 from usuarios.models import PerfilUsuario
 
 
@@ -69,6 +69,53 @@ class DicaForm(forms.ModelForm):
         if imagem and imagem.size > self.MAX_IMAGE_SIZE:
             raise ValidationError(_('A imagem deve ter no máximo 5 MB.'))
         return imagem
+
+
+class MensagemContatoForm(forms.ModelForm):
+    mensagem = forms.CharField(
+        max_length=5000,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'id': 'contact-message',
+            'placeholder': 'Escreva sua mensagem aqui...',
+            'rows': 5,
+        }),
+    )
+
+    class Meta:
+        model = MensagemContato
+        fields = ['nome', 'email', 'assunto', 'mensagem']
+        labels = {
+            'nome': 'Nome Completo',
+            'email': 'E-mail',
+            'assunto': 'Assunto',
+            'mensagem': 'Mensagem',
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={
+                'class': 'form-control',
+                'id': 'contact-name',
+                'placeholder': 'Seu nome',
+                'autocomplete': 'name',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'id': 'contact-email',
+                'placeholder': 'seu@email.com',
+                'autocomplete': 'email',
+            }),
+            'assunto': forms.Select(attrs={
+                'class': 'form-select',
+                'id': 'contact-topic',
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['assunto'].choices = [
+            ('', 'Selecione uma opção...'),
+            *MensagemContato.ASSUNTOS,
+        ]
 
 
 class LoginForm(AuthenticationForm):

@@ -6,12 +6,19 @@ from django.contrib.auth import (
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
-from .forms import DicaForm, FotoPerfilForm, LoginForm, RegistrationForm
+from .forms import (
+    DicaForm,
+    FotoPerfilForm,
+    LoginForm,
+    MensagemContatoForm,
+    RegistrationForm,
+)
 from forum.models import EventoAgenda
-from .models import Dica
+from .models import Dica, MensagemContato
 from usuarios.models import PerfilUsuario
 
 
@@ -35,7 +42,76 @@ def home(request):
 
 
 def contato(request):
-    return render(request, 'web/contato.html')
+    form = MensagemContatoForm(
+        request.POST if request.method == 'POST' else None,
+    )
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Sua mensagem foi enviada com sucesso.')
+        return redirect('contato')
+
+    return render(request, 'web/contato.html', {'form': form})
+
+
+@login_required(login_url='login')
+def mensagens_contato(request):
+    if not request.user.is_staff:
+        raise PermissionDenied
+
+    status = request.GET.get('status', '')
+    assunto = request.GET.get('assunto', '')
+    busca = request.GET.get('q', '').strip()
+    mensagens = MensagemContato.objects.all()
+
+    if status == 'nao_lidas':
+        mensagens = mensagens.filter(lida=False)
+    elif status == 'lidas':
+        mensagens = mensagens.filter(lida=True)
+
+    assuntos_validos = {valor for valor, _ in MensagemContato.ASSUNTOS}
+    if assunto in assuntos_validos:
+        mensagens = mensagens.filter(assunto=assunto)
+    else:
+        assunto = ''
+
+    if busca:
+        mensagens = mensagens.filter(
+            Q(nome__icontains=busca)
+            | Q(email__icontains=busca)
+            | Q(assunto__icontains=busca)
+            | Q(mensagem__icontains=busca)
+        )
+
+    return render(request, 'web/mensagens_contato.html', {
+        'mensagens_contato': mensagens,
+        'assuntos': MensagemContato.ASSUNTOS,
+        'status_selecionado': status if status in ('nao_lidas', 'lidas') else '',
+        'assunto_selecionado': assunto,
+        'busca': busca,
+        'total_nao_lidas': MensagemContato.objects.filter(lida=False).count(),
+    })
+
+
+@login_required(login_url='login')
+@require_POST
+def atualizar_status_mensagem(request, mensagem_id):
+    if not request.user.is_staff:
+        raise PermissionDenied
+
+    mensagem = get_object_or_404(MensagemContato, pk=mensagem_id)
+    status = request.POST.get('status')
+    if status not in ('lida', 'nao_lida'):
+        messages.error(request, 'Não foi possível atualizar o status da mensagem.')
+        return redirect('mensagens_contato')
+
+    mensagem.lida = status == 'lida'
+    mensagem.save(update_fields=['lida'])
+    messages.success(
+        request,
+        'Mensagem marcada como lida.'
+        if mensagem.lida else 'Mensagem marcada como não lida.',
+    )
+    return redirect('mensagens_contato')
 
 
 def surpresa(request):

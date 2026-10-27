@@ -10,17 +10,137 @@ from django.urls import reverse
 
 from PIL import Image
 
-from .models import Dica
+from .models import Dica, MensagemContato
 from usuarios.models import PerfilUsuario
 
 
 class ContatoViewTests(TestCase):
+    def setUp(self):
+        self.dados_mensagem = {
+            'nome': 'Pessoa Teste',
+            'email': 'pessoa@example.com',
+            'assunto': 'problema',
+            'mensagem': 'Estou com um problema no cadastro.',
+        }
+
     def test_contact_page_uses_shared_template_and_renders(self):
         response = self.client.get(reverse('contato'))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Fale com o RondoPesca')
         self.assertContains(response, 'href="/contato/"')
+        self.assertContains(response, 'Dúvidas frequentes')
+        self.assertContains(response, 'Como faço para criar uma conta?')
+        self.assertContains(response, 'href="#duvidas-frequentes"')
+        self.assertContains(response, 'class="accordion-button collapsed"')
+        self.assertContains(response, 'aria-expanded="false"')
+        self.assertNotContains(response, 'accordion-collapse collapse show')
+
+    def test_contact_form_saves_message_and_redirects(self):
+        response = self.client.post(reverse('contato'), self.dados_mensagem)
+
+        self.assertRedirects(response, reverse('contato'))
+        self.assertEqual(MensagemContato.objects.count(), 1)
+        mensagem = MensagemContato.objects.get()
+        self.assertEqual(mensagem.nome, self.dados_mensagem['nome'])
+        self.assertEqual(mensagem.get_assunto_display(), 'Problema')
+        self.assertEqual(mensagem.mensagem, self.dados_mensagem['mensagem'])
+
+    def test_contact_form_rejects_invalid_email(self):
+        dados = {**self.dados_mensagem, 'email': 'email-invalido'}
+
+        response = self.client.post(reverse('contato'), dados)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(MensagemContato.objects.count(), 0)
+        self.assertContains(response, 'Informe um endereço de email válido.')
+
+    def test_messages_page_requires_staff_user(self):
+        response = self.client.get(reverse('mensagens_contato'))
+        self.assertRedirects(
+            response,
+            f'{reverse("login")}?next={reverse("mensagens_contato")}',
+        )
+
+        self.client.force_login(User.objects.create_user(username='pescador'))
+        response = self.client.get(reverse('mensagens_contato'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_staff_user_can_view_submitted_messages(self):
+        mensagem = MensagemContato.objects.create(**self.dados_mensagem)
+        admin = User.objects.create_user(username='admin', is_staff=True)
+        self.client.force_login(admin)
+
+        response = self.client.get(reverse('mensagens_contato'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, mensagem.mensagem)
+        self.assertContains(response, mensagem.email)
+        self.assertContains(response, 'Problema')
+        self.assertContains(response, 'Mensagens recebidas')
+        self.assertContains(
+            response,
+            f'href="{reverse("mensagens_contato")}"',
+        )
+
+    def test_staff_user_can_filter_messages_by_status_subject_and_search(self):
+        MensagemContato.objects.create(**self.dados_mensagem)
+        lida = MensagemContato.objects.create(
+            **{
+                **self.dados_mensagem,
+                'nome': 'Outra pessoa',
+                'assunto': 'duvida',
+                'mensagem': 'Mensagem de dúvida para filtrar.',
+            },
+            lida=True,
+        )
+        self.client.force_login(User.objects.create_user(
+            username='admin',
+            is_staff=True,
+        ))
+
+        response = self.client.get(reverse('mensagens_contato'), {
+            'status': 'lidas',
+            'assunto': 'duvida',
+            'q': 'Outra pessoa',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, lida.nome)
+        self.assertNotContains(response, 'Estou com um problema no cadastro.')
+
+    def test_staff_user_can_mark_message_read_and_unread(self):
+        mensagem = MensagemContato.objects.create(**self.dados_mensagem)
+        self.client.force_login(User.objects.create_user(
+            username='admin',
+            is_staff=True,
+        ))
+        url = reverse('atualizar_status_mensagem', args=[mensagem.id])
+
+        response = self.client.post(url, {'status': 'lida'})
+
+        self.assertRedirects(response, reverse('mensagens_contato'))
+        mensagem.refresh_from_db()
+        self.assertTrue(mensagem.lida)
+
+        response = self.client.post(url, {'status': 'nao_lida'})
+
+        self.assertRedirects(response, reverse('mensagens_contato'))
+        mensagem.refresh_from_db()
+        self.assertFalse(mensagem.lida)
+
+    def test_non_staff_cannot_change_message_status(self):
+        mensagem = MensagemContato.objects.create(**self.dados_mensagem)
+        self.client.force_login(User.objects.create_user(username='pescador'))
+
+        response = self.client.post(
+            reverse('atualizar_status_mensagem', args=[mensagem.id]),
+            {'status': 'lida'},
+        )
+
+        self.assertEqual(response.status_code, 403)
+        mensagem.refresh_from_db()
+        self.assertFalse(mensagem.lida)
 
     def test_home_contact_call_to_action_points_to_contact_page(self):
         response = self.client.get(reverse('home'))
