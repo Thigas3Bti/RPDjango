@@ -7,6 +7,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
+from .forms import PublicacaoForm
 from .models import Comentario, Curtida, EventoAgenda, Publicacao
 
 
@@ -83,6 +84,48 @@ class ComunidadeTests(TestCase):
                     f"{reverse('comunidade')}#publicacao-{publicacao.pk}",
                 )
                 self.assertTrue(publicacao.foto.storage.exists(publicacao.foto.name))
+
+    def test_formulario_rejeita_arquivo_que_nao_e_imagem(self):
+        form = PublicacaoForm(data={'texto': 'Publicação de teste.'}, files={
+            'foto': SimpleUploadedFile(
+                'foto.jpg',
+                b'isto nao e uma imagem',
+                content_type='image/jpeg',
+            ),
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('foto', form.errors)
+
+    def test_formulario_rejeita_extensao_incompativel_com_a_imagem(self):
+        conteudo_gif = (
+            b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,'
+            b'\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02'
+            b'D\x01\x00;'
+        )
+        form = PublicacaoForm(data={'texto': 'Publicação de teste.'}, files={
+            'foto': SimpleUploadedFile(
+                'foto.png',
+                conteudo_gif,
+                content_type='image/png',
+            ),
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('foto', form.errors)
+
+    def test_formulario_rejeita_foto_acima_de_5_mb(self):
+        form = PublicacaoForm(data={'texto': 'Publicação de teste.'}, files={
+            'foto': SimpleUploadedFile(
+                'foto.jpg',
+                b'x' * (5 * 1024 * 1024 + 1),
+                content_type='image/jpeg',
+            ),
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('no máximo 5 MB', form.errors['foto'][0])
 
     def test_visitante_precisa_entrar_para_publicar(self):
         resposta = self.client.get(reverse('publicar'))

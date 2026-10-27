@@ -5,6 +5,24 @@ from pathlib import Path
 from .models import Comentario, EventoAgenda, Publicacao
 
 
+MAX_PUBLICACAO_FOTO_SIZE = 5 * 1024 * 1024
+PUBLICACAO_IMAGE_FORMATS = {
+    '.bmp': 'BMP',
+    '.gif': 'GIF',
+    '.jpeg': 'JPEG',
+    '.jpg': 'JPEG',
+    '.png': 'PNG',
+    '.webp': 'WEBP',
+}
+
+
+class PublicacaoImageField(forms.ImageField):
+    def to_python(self, data):
+        if data and data.size > MAX_PUBLICACAO_FOTO_SIZE:
+            raise forms.ValidationError('A foto deve ter no máximo 5 MB.')
+        return super().to_python(data)
+
+
 class EventoAgendaForm(forms.ModelForm):
     def __init__(self, *args, usuario=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -53,6 +71,15 @@ class EventoAgendaForm(forms.ModelForm):
 
 
 class PublicacaoForm(forms.ModelForm):
+    foto = PublicacaoImageField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'community-photo-input',
+            'accept': 'image/*',
+            'aria-label': 'Selecionar foto para a publicação',
+        }),
+    )
+
     class Meta:
         model = Publicacao
         fields = ['titulo', 'texto', 'foto']
@@ -69,11 +96,6 @@ class PublicacaoForm(forms.ModelForm):
                 'placeholder': 'Conte uma experiência, faça uma pergunta ou compartilhe uma dica...',
                 'aria-describedby': 'publish-help',
             }),
-            'foto': forms.FileInput(attrs={
-                'class': 'community-photo-input',
-                'accept': 'image/*',
-                'aria-label': 'Selecionar foto para a publicação',
-            }),
         }
 
     def clean_foto(self):
@@ -81,18 +103,8 @@ class PublicacaoForm(forms.ModelForm):
         if not foto:
             return foto
 
-        if foto.size > 5 * 1024 * 1024:
-            raise forms.ValidationError('A foto deve ter no máximo 5 MB.')
-        image_types = {
-            '.bmp': 'image/bmp',
-            '.gif': 'image/gif',
-            '.jpeg': 'image/jpeg',
-            '.jpg': 'image/jpeg',
-            '.png': 'image/png',
-            '.webp': 'image/webp',
-        }
         extension = Path(foto.name).suffix.lower()
-        if foto.content_type != image_types.get(extension):
+        if PUBLICACAO_IMAGE_FORMATS.get(extension) != foto.image.format:
             raise forms.ValidationError('Selecione um arquivo de imagem.')
 
         return foto

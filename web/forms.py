@@ -29,6 +29,25 @@ class FotoPerfilForm(forms.ModelForm):
         return foto
 
 
+class BioPerfilForm(forms.ModelForm):
+    bio = forms.CharField(
+        label='Sobre você',
+        required=False,
+        max_length=500,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'maxlength': 500,
+            'placeholder': 'Conte um pouco sobre você e sua paixão pela pesca.',
+        }),
+    )
+
+    class Meta:
+        model = PerfilUsuario
+        fields = ['bio']
+        labels = {'bio': 'Sobre você'}
+
+
 class DicaForm(forms.ModelForm):
     class Meta:
         model = Dica

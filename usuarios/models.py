@@ -10,6 +10,7 @@ class PerfilUsuario(models.Model):
         related_name='perfil_usuario',
     )
     foto = models.ImageField(upload_to='perfis/', blank=True, null=True)
+    bio = models.TextField('bio', blank=True, default='', max_length=500)
 
     def __str__(self):
         return f'Perfil de {self.usuario}'
