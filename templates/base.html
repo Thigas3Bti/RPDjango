@@ -15,7 +15,7 @@
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <link rel="stylesheet" href="{% static 'css/base/base.css' %}?v=20261026-4">
+    <link rel="stylesheet" href="{% static 'css/base/base.css' %}?v=20261027-3">
 
     <link rel="icon" type="image/png" href="{% static 'images/Icone_Rondopesca.png' %}">
 
@@ -87,6 +87,7 @@
                     <!-- Cada item do menu é um link que pode ter a classe "active" para destacar o item atual -->
                     <li class="nav-item mb-2"><a href="{% url 'inicio' %}" class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">Início</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'comunidade' %}" class="nav-link {% if request.resolver_match.url_name == 'comunidade' %}active{% endif %}">Comunidade</a></li>
+                    <li class="nav-item mb-2"><a href="{% url 'locais' %}" class="nav-link {% if request.resolver_match.url_name == 'locais' %}active{% endif %}">Locais de pesca</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'dicas' %}" class="nav-link {% if request.resolver_match.url_name == 'dicas' %}active{% endif %}">Dicas</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'eventos' %}" class="nav-link {% if request.resolver_match.url_name == 'eventos' or request.resolver_match.url_name == 'criar_evento' or request.resolver_match.url_name == 'editar_evento' %}active{% endif %}">Eventos</a></li>
                 </ul>
@@ -132,24 +133,39 @@
                                 <span class="dashboard-kicker">CENÁRIOS DE PESCA</span>
                                 <h2 id="dashboard-gallery-title" class="h4 fw-bold mt-1 mb-0">Lugares para conhecer</h2>
                             </div>
-                            <span class="dashboard-gallery-hint">Adicione as fotos na pasta indicada em cada espaço.</span>
+                            <span class="dashboard-gallery-hint">Conheça alguns rios de Rondônia.</span>
                         </div>
                         <div class="row g-3">
-                            {% for imagem in "123" %}
                             <div class="col-12 col-md-4">
                                 <figure class="dashboard-gallery-slot mb-0">
-                                    <img src="{% static 'images/galeria/local-' %}{{ imagem }}.jpg" alt="Paisagem de pesca, foto {{ imagem }}" loading="lazy" onerror="this.hidden=true">
-                                    <div class="dashboard-gallery-placeholder" aria-hidden="true">
-                                        <i class="bi bi-image"></i>
-                                        <span>Adicione uma foto</span>
-                                    </div>
+                                    <a class="dashboard-gallery-image" href="https://maps.app.goo.gl/UcLHvGFdjpHQRwX78" target="_blank" rel="noopener noreferrer" aria-label="Ver a localização do Rio Guaporé no Google Maps">
+                                        <img src="{% static 'images/local1.jpg' %}" alt="Paisagem do Rio Guaporé" loading="lazy">
+                                    </a>
                                     <figcaption>
-                                        <strong>Ponto de pesca {{ imagem }}</strong>
-                                        <code>static/images/galeria/local-{{ imagem }}.jpg</code>
+                                        <strong>Rio Guaporé</strong>
                                     </figcaption>
                                 </figure>
                             </div>
-                            {% endfor %}
+                            <div class="col-12 col-md-4">
+                                <figure class="dashboard-gallery-slot mb-0">
+                                    <a class="dashboard-gallery-image" href="https://maps.app.goo.gl/o4tKMEFgiUFLEYgM9" target="_blank" rel="noopener noreferrer" aria-label="Ver a localização do Rio Madeira no Google Maps">
+                                        <img src="{% static 'images/local2.jpg' %}" alt="Paisagem do Rio Madeira" loading="lazy">
+                                    </a>
+                                    <figcaption>
+                                        <strong>Rio Madeira</strong>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <figure class="dashboard-gallery-slot mb-0">
+                                    <a class="dashboard-gallery-image" href="https://maps.app.goo.gl/7GfCiWPHknjcaJTc7" target="_blank" rel="noopener noreferrer" aria-label="Ver a localização do Rio Jamari no Google Maps">
+                                        <img src="{% static 'images/local3.jpg' %}" alt="Paisagem do Rio Jamari" loading="lazy">
+                                    </a>
+                                    <figcaption>
+                                        <strong>Rio Jamari</strong>
+                                    </figcaption>
+                                </figure>
+                            </div>
                         </div>
                     </section>
 

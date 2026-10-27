@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'web',
     'usuarios',
     'forum',
+    'locais'
 ]
 
 MIDDLEWARE = [
