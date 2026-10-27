@@ -374,6 +374,39 @@ class UserMenuTests(TestCase):
         self.assertContains(response, 'Adicionar imagem')
         self.assertContains(response, 'profile-avatar-overlay')
         self.assertContains(response, 'bi-pencil-fill')
+        self.assertContains(response, 'Sobre você')
+        self.assertContains(response, 'Salvar bio')
+
+    def test_authenticated_user_can_save_profile_bio(self):
+        user = User.objects.create_user(username='pescador', password='senha-correta')
+        self.client.force_login(user)
+
+        response = self.client.post(reverse('perfil'), {
+            'atualizar_bio': '1',
+            'bio': 'Sou pescador e gosto de conhecer novos rios.',
+        })
+
+        self.assertRedirects(response, reverse('perfil'))
+        perfil = PerfilUsuario.objects.get(usuario=user)
+        self.assertEqual(perfil.bio, 'Sou pescador e gosto de conhecer novos rios.')
+        profile_response = self.client.get(reverse('perfil'))
+        self.assertContains(profile_response, 'Sou pescador e gosto de conhecer novos rios.')
+
+    def test_profile_bio_is_limited_to_500_characters(self):
+        user = User.objects.create_user(username='pescador', password='senha-correta')
+        self.client.force_login(user)
+
+        response = self.client.post(reverse('perfil'), {
+            'atualizar_bio': '1',
+            'bio': 'x' * 501,
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'Certifique-se de que o valor tenha no máximo 500 caracteres',
+        )
+        self.assertFalse(PerfilUsuario.objects.filter(usuario=user, bio='x' * 501).exists())
 
     def test_authenticated_user_can_upload_profile_photo(self):
         user = User.objects.create_user(username='pescador', password='senha-correta')
