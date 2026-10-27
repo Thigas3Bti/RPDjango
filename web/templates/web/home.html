@@ -164,12 +164,10 @@
 
     <footer class="rodape-rondo border-top border-secondary py-3 text-center text-white-50">
         <small>© 2026 RondoPesca. Pesque com respeito e viva a aventura.</small>
-        <a class="secret-surprise-button" href="{% url 'surpresa' %}"
-            aria-label="Abrir surpresa" title="Surpresa">
-            <i class="bi bi-stars" aria-hidden="true"></i>
-        </a>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/base.js' %}?v=20261026-secret-command"
+        data-surprise-url="{% url 'surpresa' %}"></script>
 </body>
 </html>

@@ -2,12 +2,122 @@
 
 {% block title %}Dicas de Pesca | RondoPesca{% endblock %}
 
+{% block extra_css %}
+<style>
+    .flashcard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+        gap: 0.75rem;
+    }
+
+    .flashcard {
+        min-width: 0;
+        perspective: 1000px;
+    }
+
+    .flashcard-button {
+        display: block;
+        position: relative;
+        width: 100%;
+        height: 14rem;
+        padding: 0;
+        border: 0;
+        border-radius: 0.75rem;
+        background: transparent;
+        color: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .flashcard-button:focus-visible {
+        outline: 3px solid #76ad3d;
+        outline-offset: 3px;
+    }
+
+    .flashcard-inner {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        transition: transform 0.55s ease;
+    }
+
+    .flashcard.is-flipped .flashcard-inner {
+        transform: rotateY(180deg);
+    }
+
+    .flashcard-face {
+        display: flex;
+        position: absolute;
+        inset: 0;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 1.25rem;
+        border: 1px solid #dce8d7;
+        border-radius: 0.75rem;
+        box-shadow: 0 2px 8px rgba(37, 76, 43, 0.06);
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    .flashcard-front {
+        background: linear-gradient(145deg, #fff, #f4f8ef);
+        color: #244b2c;
+    }
+
+    .flashcard-back {
+        transform: rotateY(180deg);
+        background: #edf6e9;
+        color: #344b36;
+    }
+
+    .flashcard-title {
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
+    .flashcard-label,
+    .flashcard-action {
+        color: #66805f;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .flashcard-answer {
+        min-height: 0;
+        overflow-y: auto;
+        font-size: 1rem;
+        line-height: 1.55;
+    }
+
+    .dashboard-welcome {
+        padding: 1.25rem !important;
+    }
+
+    .dashboard-tip {
+        padding: 1rem !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .flashcard-inner {
+            transition: none;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="dashboard-home">
-    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm">
+    <section class="dashboard-welcome mb-3 p-3 p-lg-4 shadow-sm">
         <span class="dashboard-kicker">APRENDA NO SEU RITMO</span>
         <h1 class="display-6 fw-bold mt-2 mb-2">Dicas de pesca: do básico ao avançado</h1>
-        <p class="mb-0 text-muted">Abra cada nível para ver explicações e sugestões práticas. As técnicas variam conforme a espécie, o ambiente e as regras locais.</p>
+        <p class="mb-0 text-muted">Abra cada nível e toque nos flash cards para revelar explicações e sugestões práticas. As técnicas variam conforme a espécie, o ambiente e as regras locais.</p>
     </section>
 
     {% if messages %}
@@ -18,7 +128,7 @@
     </div>
     {% endif %}
 
-    <section class="mb-4" id="dicas" aria-labelledby="dicas-title">
+    <section class="mb-3" id="dicas" aria-labelledby="dicas-title">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-3">
             <div>
                 <span class="dashboard-kicker">GUIA DE NÍVEIS</span>
@@ -44,9 +154,9 @@
         </div>
         <p class="small text-muted mb-3" id="estado-filtro-dicas" aria-live="polite">Exibindo todos os níveis.</p>
 
-    <div class="row g-3" id="lista-niveis-dicas">
+    <div class="row g-2" id="lista-niveis-dicas">
             <div class="col-12 col-xl-6 nivel-dica" data-nivel="iniciante">
-                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
+                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-3" open>
                     <summary class="fw-bold">
                         <span class="dashboard-kicker d-block mb-1">NÍVEL 1 · PRIMEIROS PASSOS</span>
                         <span class="h5">Iniciante: segurança e fundamentos</span>
@@ -63,7 +173,7 @@
             </div>
 
             <div class="col-12 col-xl-6 nivel-dica" data-nivel="intermediario">
-                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
+                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-3" open>
                     <summary class="fw-bold">
                         <span class="dashboard-kicker d-block mb-1">NÍVEL 2 · OBSERVAÇÃO E CONTROLE</span>
                         <span class="h5">Intermediário: local, isca e apresentação</span>
@@ -83,7 +193,7 @@
             </div>
 
             <div class="col-12 col-xl-6 nivel-dica" data-nivel="avancado">
-                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
+                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-3" open>
                     <summary class="fw-bold">
                         <span class="dashboard-kicker d-block mb-1">NÍVEL 3 · AJUSTE TÉCNICO</span>
                         <span class="h5">Avançado: equipamento e leitura da pescaria</span>
@@ -104,7 +214,7 @@
             </div>
 
             <div class="col-12 col-xl-6 nivel-dica" data-nivel="veterano">
-                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
+                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-3" open>
                     <summary class="fw-bold">
                         <span class="dashboard-kicker d-block mb-1">NÍVEL 4 · ESTRATÉGIA E EXPERIÊNCIA</span>
                         <span class="h5">Veterano: análise, adaptação e responsabilidade</span>
@@ -153,6 +263,83 @@
         const filtro = document.getElementById('filtro-nivel-dicas');
         const cards = document.querySelectorAll('.nivel-dica[data-nivel]');
         const estado = document.getElementById('estado-filtro-dicas');
+
+        document.querySelectorAll('.dashboard-tip ul').forEach(function (lista) {
+            const grade = document.createElement('div');
+            grade.className = 'flashcard-grid';
+
+            Array.from(lista.children).forEach(function (dica) {
+                const titulo = dica.querySelector('strong');
+
+                if (!titulo) {
+                    return;
+                }
+
+                const flashcard = document.createElement('article');
+                flashcard.className = 'flashcard';
+
+                const botao = document.createElement('button');
+                botao.className = 'flashcard-button';
+                botao.type = 'button';
+                botao.setAttribute('aria-pressed', 'false');
+                botao.setAttribute('aria-label', 'Mostrar resposta');
+
+                const interior = document.createElement('span');
+                interior.className = 'flashcard-inner';
+
+                const pergunta = document.createElement('span');
+                pergunta.className = 'flashcard-face flashcard-front';
+                pergunta.setAttribute('aria-hidden', 'false');
+
+                const rotuloPergunta = document.createElement('span');
+                rotuloPergunta.className = 'flashcard-label';
+                rotuloPergunta.textContent = 'Pergunta';
+
+                const textoPergunta = document.createElement('span');
+                textoPergunta.className = 'flashcard-title';
+                textoPergunta.textContent = titulo.textContent.trim().replace(/:\s*$/, '');
+
+                const acao = document.createElement('span');
+                acao.className = 'flashcard-action';
+                acao.textContent = 'Toque para revelar';
+                pergunta.append(rotuloPergunta, textoPergunta, acao);
+
+                const resposta = document.createElement('span');
+                resposta.className = 'flashcard-face flashcard-back';
+                resposta.setAttribute('aria-hidden', 'true');
+
+                const rotuloResposta = document.createElement('span');
+                rotuloResposta.className = 'flashcard-label';
+                rotuloResposta.textContent = 'Resposta';
+                resposta.appendChild(rotuloResposta);
+
+                const textoResposta = document.createElement('span');
+                textoResposta.className = 'flashcard-answer';
+                Array.from(dica.childNodes).forEach(function (conteudo) {
+                    if (conteudo !== titulo) {
+                        textoResposta.appendChild(conteudo);
+                    }
+                });
+
+                resposta.appendChild(textoResposta);
+                interior.append(pergunta, resposta);
+                botao.appendChild(interior);
+                botao.addEventListener('click', function () {
+                    const virado = flashcard.classList.toggle('is-flipped');
+                    botao.setAttribute('aria-pressed', String(virado));
+                    botao.setAttribute('aria-label', virado ? 'Mostrar pergunta' : 'Mostrar resposta');
+                    pergunta.setAttribute('aria-hidden', String(virado));
+                    resposta.setAttribute('aria-hidden', String(!virado));
+                    acao.textContent = virado ? 'Toque para voltar' : 'Toque para revelar';
+                });
+                flashcard.appendChild(botao);
+                grade.appendChild(flashcard);
+            });
+
+            if (grade.children.length > 0) {
+                lista.replaceWith(grade);
+            }
+        });
 
         if (!filtro || !estado || cards.length === 0) {
             return;

@@ -31,13 +31,14 @@ class ContatoViewTests(TestCase):
 
 
 class SurpresaViewTests(TestCase):
-    def test_footer_secret_button_opens_surprise_page(self):
+    def test_secret_command_is_loaded_without_a_visible_button(self):
         for page in ('home', 'inicio'):
             with self.subTest(page=page):
                 response = self.client.get(reverse(page))
 
-                self.assertContains(response, f'href="{reverse("surpresa")}"')
-                self.assertContains(response, 'aria-label="Abrir surpresa"')
+                self.assertContains(response, 'js/base.js?v=20261026-secret-command')
+                self.assertContains(response, f'data-surprise-url="{reverse("surpresa")}"')
+                self.assertNotContains(response, 'secret-surprise-button')
 
     def test_surprise_page_displays_the_attached_image(self):
         response = self.client.get(reverse('surpresa'))
