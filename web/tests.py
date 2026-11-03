@@ -45,7 +45,8 @@ class SurpresaViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Uma surpresa!')
-        self.assertContains(response, 'images/surpresa.png')
+        self.assertContains(response, 'images/surpresa-1.png')
+        self.assertContains(response, 'images/surpresa-2.png')
 
 
 class DashboardFishingTipsTests(TestCase):

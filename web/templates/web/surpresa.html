@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Uma surpresa! | RondoPesca{% endblock %}
+
+{% block extra_css %}
+<style>
+    .surprise-card {
+        max-width: 760px;
+        margin: 2rem auto;
+        overflow: hidden;
+        border: 1px solid #dce9d9;
+        border-radius: 1.25rem;
+        background: #fff;
+    }
+
+    .surprise-photos {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .surprise-photo {
+        display: block;
+        width: 100%;
+        max-height: 620px;
+        border-radius: 0.75rem;
+        object-fit: contain;
+        background: #f3f6f2;
+    }
+
+    @media (max-width: 575.98px) {
+        .surprise-photos {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="surprise-card card shadow-sm text-center">
+    <div class="card-body p-4 p-md-5">
+        <span class="badge rounded-pill text-bg-success mb-3">SEGREDO DESCOBERTO</span>
+        <h1 class="display-5 fw-bold mb-3">Uma surpresa!</h1>
+        <p class="lead text-muted mb-4">Aqui estão as duas fotos da surpresa!</p>
+        <div class="surprise-photos">
+            <img class="surprise-photo" src="{% static 'images/surpresa-1.png' %}"
+                alt="Foto com balões de fala em uma montagem de Lula e outras pessoas">
+            <img class="surprise-photo" src="{% static 'images/surpresa-2.png' %}"
+                alt="Três pessoas posando para uma foto">
+        </div>
+        <a class="btn btn-success px-4 mt-4" href="{% url 'inicio' %}">Voltar para o início</a>
+    </div>
+</section>
+{% endblock %}
