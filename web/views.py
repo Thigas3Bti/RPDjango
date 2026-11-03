@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from .forms import DicaForm, FotoPerfilForm, LoginForm, RegistrationForm
+from .forms import BioPerfilForm, DicaForm, FotoPerfilForm, LoginForm, RegistrationForm
 from forum.models import EventoAgenda
 from .models import Dica
 from usuarios.models import PerfilUsuario
@@ -98,12 +98,21 @@ def perfil(request):
             messages.success(request, 'Sua foto de perfil foi removida.')
         return redirect('perfil')
 
+    bio_submission = request.method == 'POST' and request.POST.get('atualizar_bio') == '1'
+    bio_form = BioPerfilForm(instance=perfil_usuario)
+    if bio_submission:
+        bio_form = BioPerfilForm(request.POST, instance=perfil_usuario)
+        if bio_form.is_valid():
+            bio_form.save()
+            messages.success(request, 'Sua bio foi atualizada.')
+            return redirect('perfil')
+
     form = FotoPerfilForm(
-        request.POST or None,
-        request.FILES or None,
+        request.POST if request.method == 'POST' and not bio_submission else None,
+        request.FILES if request.method == 'POST' and not bio_submission else None,
         instance=perfil_usuario,
     )
-    if request.method == 'POST':
+    if request.method == 'POST' and not bio_submission:
         if form.is_valid():
             form.save()
             messages.success(request, 'Sua foto de perfil foi atualizada.')
@@ -112,6 +121,7 @@ def perfil(request):
     return render(request, 'usuarios/pescador/perfil.html', {
         'perfil_usuario': perfil_usuario,
         'foto_form': form,
+        'bio_form': bio_form,
     })
 
 
