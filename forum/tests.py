@@ -276,6 +276,20 @@ class AgendaEventosTests(TestCase):
         self.assertContains(resposta, evento_pessoal.nome)
         self.assertNotContains(resposta, evento_pessoal_alheio.nome)
 
+    def test_agenda_mostra_paineis_de_competicoes_sem_incorporar_site_inteiro(self):
+        resposta = self.client.get(reverse('eventos'))
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'id="circuito-events-grid"')
+        self.assertContains(resposta, 'Etapas disponíveis')
+        self.assertNotContains(resposta, '<iframe')
+        self.assertContains(
+            resposta,
+            'href="https://circuitorondonia.com.br/competicoes"',
+        )
+        self.assertContains(resposta, 'Abrir competições e inscrições')
+        self.assertContains(resposta, "js/circuito_eventos.js")
+
     def test_usuario_cria_evento_pessoal_proprio(self):
         self.client.force_login(self.organizador)
         mapa_iframe = (

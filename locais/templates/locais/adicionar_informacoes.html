@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Adicionar informações | {{ local.nome }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-home fishing-locations">
+    <div class="mb-3">
+        <a class="btn btn-outline-success" href="{% url 'detalhe_local' local.pk %}">
+            <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Voltar ao local
+        </a>
+    </div>
+
+    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm" aria-labelledby="add-location-info-title">
+        <span class="dashboard-kicker">CONTRIBUA COM A COMUNIDADE</span>
+        <h1 class="display-6 fw-bold mt-2 mb-2" id="add-location-info-title">Mais sobre {{ local.nome }}</h1>
+        <p class="mb-0 text-muted">Adicione informações úteis e fotos recentes para ajudar outros pescadores.</p>
+    </section>
+
+    <section class="card dashboard-card location-form-card shadow-sm" aria-labelledby="location-info-form-title">
+        <div class="card-body p-4 p-lg-5">
+            <h2 class="h3 fw-bold mb-2" id="location-info-form-title">Novas informações do local</h2>
+            <p class="text-muted mb-4">As informações enviadas ficam visíveis para todas as pessoas que acessarem o local.</p>
+
+            <form method="post" enctype="multipart/form-data" class="row g-3">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="col-12">
+                    <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.name == 'descricao' %}
+                    <div class="form-text">Ex.: condições de acesso, estrutura, espécies observadas ou cuidados para a visita.</div>
+                    {% elif field.name == 'fotos' %}
+                    <div class="form-text">Selecione uma ou mais imagens. Limite de 5 MB por foto.</div>
+                    {% endif %}
+                    {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+                {% endfor %}
+                {% if form.non_field_errors %}
+                <div class="col-12">
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}<p class="mb-0">{{ error }}</p>{% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="col-12 d-flex flex-wrap gap-2 mt-4">
+                    <button class="btn btn-success px-4" type="submit">
+                        <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Salvar informações
+                    </button>
+                    <a class="btn btn-outline-secondary" href="{% url 'detalhe_local' local.pk %}">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+{% endblock %}
