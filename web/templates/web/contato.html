@@ -7,11 +7,16 @@
 {% endblock %}
 
 {% block content %}
+<div class="contact-back-button">
+    <a href="{% url 'home' %}" class="btn btn-outline-success">
+        <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Voltar
+    </a>
+</div>
+
 <section class="contact-page py-2">
     <header class="contact-heading text-center">
         <h1>Fale com o RondoPesca</h1>
         <p class="mb-0">Tire suas dúvidas, envie sugestões ou compartilhe sua experiência de pesca.</p>
-        <a href="{% url 'contato' %}" class="btn btn-outline-success mt-3">Fale conosco</a>
     </header>
 
     <div class="row justify-content-center g-4">
@@ -58,32 +63,35 @@
                 <h2 id="contact-form-title">Envie uma Mensagem</h2>
                 <form class="contact-form" method="post" aria-label="Formulário de contato">
                     {% csrf_token %}
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" role="status">{{ message }}</div>
+                    {% endfor %}
+                    {% endif %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+                    {% endif %}
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label for="{{ form.nome.id_for_label }}" class="form-label">{{ form.nome.label }}</label>
                             {{ form.nome }}
-                            {% for error in form.nome.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            {{ form.nome.errors }}
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
                             {{ form.email }}
-                            {% for error in form.email.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            {{ form.email.errors }}
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="{{ form.assunto.id_for_label }}" class="form-label">{{ form.assunto.label }}</label>
                             {{ form.assunto }}
-                            {% for error in form.assunto.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            {{ form.assunto.errors }}
                         </div>
                         <div class="col-12">
                             <label for="{{ form.mensagem.id_for_label }}" class="form-label">{{ form.mensagem.label }}</label>
                             {{ form.mensagem }}
-                            {% for error in form.mensagem.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            {{ form.mensagem.errors }}
                         </div>
-                        {% if form.non_field_errors %}
-                        <div class="col-12">
-                            {% for error in form.non_field_errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-                        </div>
-                        {% endif %}
                         <div class="col-12">
                             <button type="submit" class="btn btn-contact w-100">
                                 <i class="bi bi-send me-2" aria-hidden="true"></i>Enviar Mensagem
@@ -94,103 +102,5 @@
             </section>
         </div>
     </div>
-
-    <div class="contact-faq-link text-center mt-5">
-        <h2>Ficou com alguma dúvida?</h2>
-        <p>Confira as respostas para as perguntas mais frequentes antes de enviar sua mensagem.</p>
-        <a href="#duvidas-frequentes" class="btn btn-outline-success">
-            <i class="bi bi-question-circle me-2" aria-hidden="true"></i>Dúvidas frequentes
-        </a>
-    </div>
-
-    <section class="faq-page py-2 mt-4" id="duvidas-frequentes" aria-labelledby="faq-title">
-        <header class="faq-heading text-center">
-            <span class="faq-kicker">RONDO PESCA</span>
-            <h2 id="faq-title">Dúvidas frequentes</h2>
-            <p>Encontre respostas rápidas sobre como aproveitar a comunidade.</p>
-        </header>
-
-        <div class="accordion faq-accordion" id="faqAccordion">
-            <div class="accordion-item">
-                <h3 class="accordion-header" id="faq-heading-account">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#faq-account" aria-expanded="false" aria-controls="faq-account">
-                        Como faço para criar uma conta?
-                    </button>
-                </h3>
-                <div id="faq-account" class="accordion-collapse collapse"
-                     aria-labelledby="faq-heading-account" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        Acesse a página de <a href="{% url 'cadastro' %}">cadastro</a> e preencha seus dados.
-                        Depois, entre usando seu nome de usuário e senha.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h3 class="accordion-header" id="faq-heading-community">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#faq-community" aria-expanded="false" aria-controls="faq-community">
-                        Onde posso compartilhar uma dúvida ou experiência de pesca?
-                    </button>
-                </h3>
-                <div id="faq-community" class="accordion-collapse collapse"
-                     aria-labelledby="faq-heading-community" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        Você pode publicar na <a href="{% url 'comunidade' %}">Comunidade</a>, onde pescadores
-                        compartilham histórias, fotos e dúvidas.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h3 class="accordion-header" id="faq-heading-tips">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#faq-tips" aria-expanded="false" aria-controls="faq-tips">
-                        Onde encontro dicas para minha próxima pescaria?
-                    </button>
-                </h3>
-                <div id="faq-tips" class="accordion-collapse collapse"
-                     aria-labelledby="faq-heading-tips" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        Acesse a página de <a href="{% url 'dicas' %}">Dicas</a> para consultar conteúdos
-                        organizados por nível de experiência.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h3 class="accordion-header" id="faq-heading-events">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#faq-events" aria-expanded="false" aria-controls="faq-events">
-                        Como acompanho os eventos de pesca?
-                    </button>
-                </h3>
-                <div id="faq-events" class="accordion-collapse collapse"
-                     aria-labelledby="faq-heading-events" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        Entre na página de <a href="{% url 'eventos' %}">Eventos</a> para ver os encontros
-                        disponíveis.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h3 class="accordion-header" id="faq-heading-contact">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#faq-contact" aria-expanded="false" aria-controls="faq-contact">
-                        Ainda preciso de ajuda. Como entro em contato?
-                    </button>
-                </h3>
-                <div id="faq-contact" class="accordion-collapse collapse"
-                     aria-labelledby="faq-heading-contact" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        Envie sua mensagem pelo formulário de contato acima. Informe o assunto e descreva sua
-                        dúvida para que possamos ajudar.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 </section>
 {% endblock %}

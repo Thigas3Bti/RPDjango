@@ -50,6 +50,12 @@
                             <div class="community-post-author">{{ publicacao.autor.get_full_name|default:publicacao.autor.username }}</div>
                             <time class="community-post-time" datetime="{{ publicacao.criada_em|date:'c' }}">{{ publicacao.criada_em|date:"d/m/Y H:i" }}</time>
                         </div>
+                        {% if request.user.is_authenticated and publicacao.autor_id == request.user.id or request.user.is_staff %}
+                        <form class="ms-auto" method="post" action="{% url 'excluir_publicacao' publicacao.pk %}" onsubmit="return confirm('Tem certeza de que deseja excluir esta publicação?');">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Excluir publicação">Excluir publicação</button>
+                        </form>
+                        {% endif %}
                     </header>
 
                     {% if publicacao.titulo %}
@@ -85,6 +91,12 @@
                         <div class="community-comment">
                             <strong>{{ comentario.autor.get_full_name|default:comentario.autor.username }}</strong>
                             <p>{{ comentario.texto }}</p>
+                            {% if request.user.is_authenticated and comentario.autor_id == request.user.id or request.user.is_staff %}
+                            <form method="post" action="{% url 'excluir_comentario' comentario.pk %}" onsubmit="return confirm('Tem certeza de que deseja excluir este comentário?');">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-link text-danger p-0" type="submit">Excluir comentário</button>
+                            </form>
+                            {% endif %}
                         </div>
                         {% endfor %}
 

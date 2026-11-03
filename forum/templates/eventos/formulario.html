@@ -10,7 +10,7 @@
         <p class="mb-0">Informe quando e onde será o evento. Campeonatos e eventos oficiais são cadastrados apenas por administradores.</p>
     </header>
 
-    <div class="community-card">
+    <div class="community-card event-form-card">
         <form method="post" novalidate>
             {% csrf_token %}
             {% if form.non_field_errors %}
@@ -24,6 +24,9 @@
                     {{ field }}
                     {% if field.name == 'tipo' %}
                     <div class="form-text">Pessoal: só você verá. Comunidade: todos poderão ver e participar. Oficial: reservado aos administradores.</div>
+                    {% endif %}
+                    {% if field.name == 'mapa_url' %}
+                    <div class="form-text">Opcional. No Google Maps, use Compartilhar → Incorporar um mapa e cole aqui a URL do iframe ou o código iframe completo.</div>
                     {% endif %}
                     {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                 </div>

@@ -1,9 +1,24 @@
+from html.parser import HTMLParser
+from pathlib import Path
+from urllib.parse import urlsplit
+
 from django import forms
 from django.utils import timezone
-from pathlib import Path
 
-from .moderation import contem_palavrao
 from .models import Comentario, EventoAgenda, Publicacao
+from .moderacao import contem_conteudo_ofensivo
+
+
+class _IframeSrcParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.sources = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() == 'iframe':
+            source = dict(attrs).get('src')
+            if source:
+                self.sources.append(source)
 
 
 class EventoAgendaForm(forms.ModelForm):
@@ -17,7 +32,11 @@ class EventoAgendaForm(forms.ModelForm):
 
     class Meta:
         model = EventoAgenda
-        fields = ['nome', 'tipo', 'data_evento', 'hora_evento', 'local', 'descricao']
+        fields = [
+            'nome', 'tipo', 'data_evento', 'hora_evento', 'local', 'mapa_url',
+            'descricao',
+        ]
+        field_classes = {'mapa_url': forms.CharField}
         widgets = {
             'nome': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -38,6 +57,11 @@ class EventoAgendaForm(forms.ModelForm):
                 'placeholder': 'Cidade, rio ou ponto de encontro',
                 'maxlength': 150,
             }),
+            'mapa_url': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Cole a URL ou o código iframe de incorporação',
+                'maxlength': 1000,
+            }),
             'descricao': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
@@ -51,6 +75,32 @@ class EventoAgendaForm(forms.ModelForm):
         if data_evento < timezone.localdate():
             raise forms.ValidationError('Escolha hoje ou uma data futura.')
         return data_evento
+
+    def clean_mapa_url(self):
+        mapa_url = self.cleaned_data.get('mapa_url', '').strip()
+        if not mapa_url:
+            return ''
+
+        if '<' in mapa_url:
+            parser = _IframeSrcParser()
+            parser.feed(mapa_url)
+            if len(parser.sources) != 1:
+                raise forms.ValidationError(
+                    'Cole uma URL de incorporação do Google Maps ou um único iframe.'
+                )
+            mapa_url = parser.sources[0].strip()
+
+        partes_url = urlsplit(mapa_url)
+        if (
+            partes_url.scheme != 'https'
+            or partes_url.hostname not in {'google.com', 'www.google.com'}
+            or partes_url.path != '/maps/embed'
+        ):
+            raise forms.ValidationError(
+                'Use uma URL de incorporação segura do Google Maps.'
+            )
+
+        return mapa_url
 
 
 class PublicacaoForm(forms.ModelForm):
@@ -76,22 +126,6 @@ class PublicacaoForm(forms.ModelForm):
                 'aria-label': 'Selecionar foto para a publicação',
             }),
         }
-
-    def clean_titulo(self):
-        titulo = self.cleaned_data.get('titulo', '')
-        if contem_palavrao(titulo):
-            raise forms.ValidationError(
-                'Evite palavrões no título da publicação.'
-            )
-        return titulo
-
-    def clean_texto(self):
-        texto = self.cleaned_data.get('texto', '')
-        if contem_palavrao(texto):
-            raise forms.ValidationError(
-                'Evite palavrões no texto da publicação.'
-            )
-        return texto
 
     def clean_foto(self):
         foto = self.cleaned_data.get('foto')
@@ -120,6 +154,13 @@ class PublicacaoForm(forms.ModelForm):
             raise forms.ValidationError(
                 'Escreva uma publicação ou selecione uma foto antes de publicar.'
             )
+        if contem_conteudo_ofensivo(
+            cleaned_data.get('titulo', ''),
+            cleaned_data.get('texto', ''),
+        ):
+            raise forms.ValidationError(
+                'A publicação contém xingamentos graves ou ameaças. Revise o texto para manter a comunidade respeitosa.'
+            )
         return cleaned_data
 
 
@@ -137,9 +178,9 @@ class ComentarioForm(forms.ModelForm):
         }
 
     def clean_texto(self):
-        texto = self.cleaned_data.get('texto', '')
-        if contem_palavrao(texto):
+        texto = self.cleaned_data['texto']
+        if contem_conteudo_ofensivo(texto):
             raise forms.ValidationError(
-                'Evite palavrões no comentário.'
+                'O comentário contém xingamentos graves ou ameaças. Revise o texto para manter a comunidade respeitosa.'
             )
         return texto
