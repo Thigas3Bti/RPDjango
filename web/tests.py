@@ -46,6 +46,25 @@ class ContatoViewTests(TestCase):
         self.assertEqual(mensagem.get_assunto_display(), 'Problema')
         self.assertEqual(mensagem.mensagem, self.dados_mensagem['mensagem'])
 
+    def test_contact_form_saves_professional_role_request(self):
+        response = self.client.get(reverse('contato'))
+        self.assertContains(response, 'Solicitar cargo de pescador profissional')
+
+        dados = {
+            **self.dados_mensagem,
+            'assunto': 'profissional',
+            'mensagem': 'Solicito a alteração do meu cargo para profissional.',
+        }
+        response = self.client.post(reverse('contato'), dados)
+
+        self.assertRedirects(response, reverse('contato'))
+        mensagem = MensagemContato.objects.get()
+        self.assertEqual(mensagem.assunto, 'profissional')
+        self.assertEqual(
+            mensagem.get_assunto_display(),
+            'Solicitar cargo de pescador profissional',
+        )
+
     def test_contact_form_rejects_invalid_email(self):
         dados = {**self.dados_mensagem, 'email': 'email-invalido'}
 

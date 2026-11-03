@@ -48,6 +48,7 @@ class MensagemContato(models.Model):
         ('problema', 'Problema'),
         ('sugestao', 'Sugestão'),
         ('dica_experiencia', 'Dica ou experiência de pesca'),
+        ('profissional', 'Solicitar cargo de pescador profissional'),
         ('outro', 'Outro assunto'),
     ]
 
