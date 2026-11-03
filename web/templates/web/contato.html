@@ -7,11 +7,16 @@
 {% endblock %}
 
 {% block content %}
+<div class="contact-back-button">
+    <a href="{% url 'home' %}" class="btn btn-outline-success">
+        <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Voltar
+    </a>
+</div>
+
 <section class="contact-page py-2">
     <header class="contact-heading text-center">
         <h1>Fale com o RondoPesca</h1>
         <p class="mb-0">Tire suas dúvidas, envie sugestões ou compartilhe sua experiência de pesca.</p>
-        <a href="{% url 'contato' %}" class="btn btn-outline-success mt-3">Fale conosco</a>
     </header>
 
     <div class="row justify-content-center g-4">
@@ -56,32 +61,36 @@
         <div class="col-12 col-lg-8">
             <section class="contact-card p-4 p-lg-4" aria-labelledby="contact-form-title">
                 <h2 id="contact-form-title">Envie uma Mensagem</h2>
-                <form class="contact-form" aria-label="Formulário de contato">
+                <form class="contact-form" method="post" aria-label="Formulário de contato">
+                    {% csrf_token %}
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" role="status">{{ message }}</div>
+                    {% endfor %}
+                    {% endif %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+                    {% endif %}
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label for="contact-name" class="form-label">Nome Completo</label>
-                            <input type="text" class="form-control" id="contact-name" name="nome"
-                                   placeholder="Seu nome" autocomplete="name" required>
+                            <label for="{{ form.nome.id_for_label }}" class="form-label">{{ form.nome.label }}</label>
+                            {{ form.nome }}
+                            {{ form.nome.errors }}
                         </div>
                         <div class="col-12 col-md-6">
-                            <label for="contact-email" class="form-label">E-mail</label>
-                            <input type="email" class="form-control" id="contact-email" name="email"
-                                   placeholder="seu@email.com" autocomplete="email" required>
+                            <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                            {{ form.email }}
+                            {{ form.email.errors }}
                         </div>
                         <div class="col-12 col-md-6">
-                            <label for="contact-topic" class="form-label">Assunto</label>
-                            <select class="form-select" id="contact-topic" name="assunto" required>
-                                <option value="" selected disabled>Selecione uma opção...</option>
-                                <option>Dúvida</option>
-                                <option>Sugestão</option>
-                                <option>Dica ou experiência de pesca</option>
-                                <option>Outro assunto</option>
-                            </select>
+                            <label for="{{ form.assunto.id_for_label }}" class="form-label">{{ form.assunto.label }}</label>
+                            {{ form.assunto }}
+                            {{ form.assunto.errors }}
                         </div>
                         <div class="col-12">
-                            <label for="contact-message" class="form-label">Mensagem</label>
-                            <textarea class="form-control" id="contact-message" name="mensagem"
-                                      placeholder="Escreva sua mensagem aqui..." required></textarea>
+                            <label for="{{ form.mensagem.id_for_label }}" class="form-label">{{ form.mensagem.label }}</label>
+                            {{ form.mensagem }}
+                            {{ form.mensagem.errors }}
                         </div>
                         <div class="col-12">
                             <button type="submit" class="btn btn-contact w-100">

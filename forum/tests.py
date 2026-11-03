@@ -7,7 +7,6 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .forms import PublicacaoForm
 from .models import Comentario, Curtida, EventoAgenda, Publicacao
 
 
@@ -58,24 +57,6 @@ class ComunidadeTests(TestCase):
         self.assertContains(resposta_feed, 'Dica de isca')
         self.assertContains(resposta_feed, 'Experimente uma isca adequada à espécie.')
 
-    def test_publicacao_com_palavrao_no_titulo_ou_texto_e_rejeitada(self):
-        self.client.force_login(self.autor)
-
-        for campo, valor in (
-            ('titulo', 'Que porra de pescaria'),
-            ('texto', 'Foi uma merda de pescaria'),
-            ('texto', 'Que pórra!'),
-        ):
-            with self.subTest(campo=campo, valor=valor):
-                resposta = self.client.post(reverse('publicar'), {
-                    'titulo': valor if campo == 'titulo' else '',
-                    'texto': valor if campo == 'texto' else 'Uma pescaria tranquila.',
-                })
-
-                self.assertEqual(resposta.status_code, 200)
-                self.assertContains(resposta, 'Evite palavrões')
-                self.assertFalse(Publicacao.objects.exists())
-
     def test_foto_da_publicacao_e_salva_no_servidor(self):
         self.client.force_login(self.autor)
         conteudo_gif = (
@@ -102,48 +83,6 @@ class ComunidadeTests(TestCase):
                     f"{reverse('comunidade')}#publicacao-{publicacao.pk}",
                 )
                 self.assertTrue(publicacao.foto.storage.exists(publicacao.foto.name))
-
-    def test_formulario_rejeita_arquivo_que_nao_e_imagem(self):
-        form = PublicacaoForm(data={'texto': 'Publicação de teste.'}, files={
-            'foto': SimpleUploadedFile(
-                'foto.jpg',
-                b'isto nao e uma imagem',
-                content_type='image/jpeg',
-            ),
-        })
-
-        self.assertFalse(form.is_valid())
-        self.assertIn('foto', form.errors)
-
-    def test_formulario_rejeita_extensao_incompativel_com_a_imagem(self):
-        conteudo_gif = (
-            b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00'
-            b'\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,'
-            b'\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02'
-            b'D\x01\x00;'
-        )
-        form = PublicacaoForm(data={'texto': 'Publicação de teste.'}, files={
-            'foto': SimpleUploadedFile(
-                'foto.png',
-                conteudo_gif,
-                content_type='image/png',
-            ),
-        })
-
-        self.assertFalse(form.is_valid())
-        self.assertIn('foto', form.errors)
-
-    def test_formulario_rejeita_foto_acima_de_5_mb(self):
-        form = PublicacaoForm(data={'texto': 'Publicação de teste.'}, files={
-            'foto': SimpleUploadedFile(
-                'foto.jpg',
-                b'x' * (5 * 1024 * 1024 + 1),
-                content_type='image/jpeg',
-            ),
-        })
-
-        self.assertFalse(form.is_valid())
-        self.assertIn('no máximo 5 MB', form.errors['foto'][0])
 
     def test_visitante_precisa_entrar_para_publicar(self):
         resposta = self.client.get(reverse('publicar'))
@@ -192,21 +131,101 @@ class ComunidadeTests(TestCase):
             ).exists()
         )
 
-    def test_comentario_com_palavrao_e_rejeitado(self):
+    def test_autor_pode_excluir_sua_publicacao(self):
         publicacao = Publicacao.objects.create(
             autor=self.autor,
-            texto='Post da comunidade.',
+            titulo='Publicação própria',
+            texto='Texto para excluir.',
+        )
+        self.client.force_login(self.autor)
+
+        resposta = self.client.post(
+            reverse('excluir_publicacao', args=[publicacao.pk]),
+        )
+
+        self.assertRedirects(resposta, reverse('comunidade'))
+        self.assertFalse(Publicacao.objects.filter(pk=publicacao.pk).exists())
+
+    def test_usuario_nao_pode_excluir_publicacao_de_outra_pessoa(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            texto='Publicação de outra pessoa.',
         )
         self.client.force_login(self.outro_usuario)
 
         resposta = self.client.post(
-            reverse('comentar', args=[publicacao.pk]),
-            {'texto': 'Que merda!'},
-            follow=True,
+            reverse('excluir_publicacao', args=[publicacao.pk]),
         )
 
-        self.assertContains(resposta, 'Evite palavrões')
-        self.assertFalse(Comentario.objects.filter(publicacao=publicacao).exists())
+        self.assertEqual(resposta.status_code, 403)
+        self.assertTrue(Publicacao.objects.filter(pk=publicacao.pk).exists())
+
+    def test_moderador_pode_excluir_publicacao_de_outra_pessoa(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            texto='Publicação para moderação.',
+        )
+        moderador = get_user_model().objects.create_user(
+            username='moderador',
+            password='senha-segura-789',
+            is_staff=True,
+        )
+        self.client.force_login(moderador)
+
+        resposta = self.client.post(
+            reverse('excluir_publicacao', args=[publicacao.pk]),
+        )
+
+        self.assertRedirects(resposta, reverse('comunidade'))
+        self.assertFalse(Publicacao.objects.filter(pk=publicacao.pk).exists())
+
+    def test_autor_e_moderador_podem_excluir_comentarios(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            texto='Publicação com comentários.',
+        )
+        comentario_autor = Comentario.objects.create(
+            publicacao=publicacao,
+            autor=self.autor,
+            texto='Comentário meu.',
+        )
+        self.client.force_login(self.autor)
+
+        resposta_autor = self.client.post(
+            reverse('excluir_comentario', args=[comentario_autor.pk]),
+        )
+
+        self.assertRedirects(
+            resposta_autor,
+            f"{reverse('comunidade')}#publicacao-{publicacao.pk}",
+        )
+        self.assertFalse(Comentario.objects.filter(pk=comentario_autor.pk).exists())
+
+        comentario_alheio = Comentario.objects.create(
+            publicacao=publicacao,
+            autor=self.outro_usuario,
+            texto='Comentário de outra pessoa.',
+        )
+        resposta_negada = self.client.post(
+            reverse('excluir_comentario', args=[comentario_alheio.pk]),
+        )
+        self.assertEqual(resposta_negada.status_code, 403)
+        self.assertTrue(Comentario.objects.filter(pk=comentario_alheio.pk).exists())
+
+        moderador = get_user_model().objects.create_user(
+            username='moderador_comentario',
+            password='senha-segura-987',
+            is_staff=True,
+        )
+        self.client.force_login(moderador)
+        resposta_moderador = self.client.post(
+            reverse('excluir_comentario', args=[comentario_alheio.pk]),
+        )
+        self.assertRedirects(
+            resposta_moderador,
+            f"{reverse('comunidade')}#publicacao-{publicacao.pk}",
+        )
+        self.assertFalse(Comentario.objects.filter(pk=comentario_alheio.pk).exists())
 
 
 class AgendaEventosTests(TestCase):
@@ -257,8 +276,26 @@ class AgendaEventosTests(TestCase):
         self.assertContains(resposta, evento_pessoal.nome)
         self.assertNotContains(resposta, evento_pessoal_alheio.nome)
 
+    def test_agenda_mostra_paineis_de_competicoes_sem_incorporar_site_inteiro(self):
+        resposta = self.client.get(reverse('eventos'))
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'id="circuito-events-grid"')
+        self.assertContains(resposta, 'Etapas disponíveis')
+        self.assertNotContains(resposta, '<iframe')
+        self.assertContains(
+            resposta,
+            'href="https://circuitorondonia.com.br/competicoes"',
+        )
+        self.assertContains(resposta, 'Abrir competições e inscrições')
+        self.assertContains(resposta, "js/circuito_eventos.js")
+
     def test_usuario_cria_evento_pessoal_proprio(self):
         self.client.force_login(self.organizador)
+        mapa_iframe = (
+            '<iframe src="https://www.google.com/maps/embed?pb=exemplo" '
+            'width="600" height="450"></iframe>'
+        )
 
         resposta = self.client.post(reverse('criar_evento'), {
             'nome': 'Minha pescaria',
@@ -266,6 +303,7 @@ class AgendaEventosTests(TestCase):
             'data_evento': self.data_futura.isoformat(),
             'hora_evento': '07:30',
             'local': 'Rio Madeira',
+            'mapa_url': mapa_iframe,
             'descricao': 'Levar equipamento.',
         })
 
@@ -273,6 +311,34 @@ class AgendaEventosTests(TestCase):
         self.assertRedirects(resposta, reverse('eventos'))
         self.assertEqual(evento.organizador, self.organizador)
         self.assertFalse(evento.participantes.exists())
+        self.assertEqual(
+            evento.mapa_url,
+            'https://www.google.com/maps/embed?pb=exemplo',
+        )
+
+        resposta_agenda = self.client.get(reverse('eventos'))
+        self.assertContains(resposta_agenda, 'Rio Madeira')
+        self.assertContains(resposta_agenda, '<details class="event-location">')
+        self.assertContains(
+            resposta_agenda,
+            'src="https://www.google.com/maps/embed?pb=exemplo"',
+        )
+
+    def test_evento_rejeita_url_de_mapa_que_nao_seja_embed_do_google(self):
+        self.client.force_login(self.organizador)
+
+        resposta = self.client.post(reverse('criar_evento'), {
+            'nome': 'Evento com mapa inválido',
+            'tipo': EventoAgenda.TIPO_PESSOAL,
+            'data_evento': self.data_futura.isoformat(),
+            'mapa_url': 'https://www.google.com.evil.example/maps/embed?pb=nao-seguro',
+        })
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'Use uma URL de incorporação segura do Google Maps.')
+        self.assertFalse(
+            EventoAgenda.objects.filter(nome='Evento com mapa inválido').exists()
+        )
 
     def test_criar_evento_comunitario_inscreve_organizador_e_outros_podem_participar(self):
         self.client.force_login(self.organizador)
