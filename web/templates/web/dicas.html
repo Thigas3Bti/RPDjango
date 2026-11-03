@@ -27,11 +27,17 @@
         color: inherit;
         text-align: left;
         cursor: pointer;
+        transition: height 0.35s ease;
     }
 
     .flashcard-button:focus-visible {
         outline: 3px solid #76ad3d;
         outline-offset: 3px;
+    }
+
+    .flashcard-button:hover .flashcard-face {
+        border-color: #b6cfae;
+        box-shadow: 0 6px 18px rgba(37, 76, 43, 0.12);
     }
 
     .flashcard-inner {
@@ -90,8 +96,9 @@
     }
 
     .flashcard-answer {
+        flex: 0 0 auto;
         min-height: 0;
-        overflow-y: auto;
+        overflow-wrap: anywhere;
         font-size: 1rem;
         line-height: 1.55;
     }
@@ -106,6 +113,10 @@
 
     @media (prefers-reduced-motion: reduce) {
         .flashcard-inner {
+            transition: none;
+        }
+
+        .flashcard-button {
             transition: none;
         }
     }
@@ -154,9 +165,9 @@
         </div>
         <p class="small text-muted mb-3" id="estado-filtro-dicas" aria-live="polite">Exibindo todos os níveis.</p>
 
-    <div class="row g-2" id="lista-niveis-dicas">
+    <div class="row g-2 align-items-start" id="lista-niveis-dicas">
             <div class="col-12 col-xl-6 nivel-dica" data-nivel="iniciante">
-                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-3" open>
+                <details class="card dashboard-card dashboard-tip shadow-sm p-3">
                     <summary class="fw-bold">
                         <span class="dashboard-kicker d-block mb-1">NÍVEL 1 · PRIMEIROS PASSOS</span>
                         <span class="h5">Iniciante: segurança e fundamentos</span>
@@ -173,7 +184,7 @@
             </div>
 
             <div class="col-12 col-xl-6 nivel-dica" data-nivel="intermediario">
-                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-3" open>
+                <details class="card dashboard-card dashboard-tip shadow-sm p-3">
                     <summary class="fw-bold">
                         <span class="dashboard-kicker d-block mb-1">NÍVEL 2 · OBSERVAÇÃO E CONTROLE</span>
                         <span class="h5">Intermediário: local, isca e apresentação</span>
@@ -193,7 +204,7 @@
             </div>
 
             <div class="col-12 col-xl-6 nivel-dica" data-nivel="avancado">
-                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-3" open>
+                <details class="card dashboard-card dashboard-tip shadow-sm p-3">
                     <summary class="fw-bold">
                         <span class="dashboard-kicker d-block mb-1">NÍVEL 3 · AJUSTE TÉCNICO</span>
                         <span class="h5">Avançado: equipamento e leitura da pescaria</span>
@@ -214,7 +225,7 @@
             </div>
 
             <div class="col-12 col-xl-6 nivel-dica" data-nivel="veterano">
-                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-3" open>
+                <details class="card dashboard-card dashboard-tip shadow-sm p-3">
                     <summary class="fw-bold">
                         <span class="dashboard-kicker d-block mb-1">NÍVEL 4 · ESTRATÉGIA E EXPERIÊNCIA</span>
                         <span class="h5">Veterano: análise, adaptação e responsabilidade</span>
@@ -315,17 +326,18 @@
 
                 const textoResposta = document.createElement('span');
                 textoResposta.className = 'flashcard-answer';
-                Array.from(dica.childNodes).forEach(function (conteudo) {
-                    if (conteudo !== titulo) {
-                        textoResposta.appendChild(conteudo);
-                    }
-                });
+                textoResposta.textContent = dica.textContent
+                    .replace(titulo.textContent, '')
+                    .trim();
 
                 resposta.appendChild(textoResposta);
                 interior.append(pergunta, resposta);
                 botao.appendChild(interior);
                 botao.addEventListener('click', function () {
                     const virado = flashcard.classList.toggle('is-flipped');
+                    botao.style.height = virado
+                        ? `${Math.max(botao.offsetHeight, resposta.scrollHeight)}px`
+                        : '14rem';
                     botao.setAttribute('aria-pressed', String(virado));
                     botao.setAttribute('aria-label', virado ? 'Mostrar pergunta' : 'Mostrar resposta');
                     pergunta.setAttribute('aria-hidden', String(virado));

@@ -60,6 +60,15 @@ class DashboardFishingTipsTests(TestCase):
         self.assertContains(response, 'Avançado: equipamento e leitura da pescaria')
         self.assertContains(response, 'Veterano: análise, adaptação e responsabilidade')
         self.assertContains(response, 'id="filtro-nivel-dicas"')
+        self.assertContains(response, 'class="row g-2 align-items-start" id="lista-niveis-dicas"')
+        self.assertContains(response, 'class="col-12 nivel-dica" data-nivel="iniciante"')
+        for nivel in ('intermediario', 'avancado', 'veterano'):
+            with self.subTest(nivel=nivel):
+                self.assertContains(
+                    response,
+                    f'class="col-12 col-xl-4 nivel-dica" data-nivel="{nivel}"',
+                )
+        self.assertNotContains(response, 'dashboard-tip h-100 shadow-sm p-3')
         self.assertNotContains(response, 'Adicionar nova dica')
 
     def test_dashboard_menu_links_to_dedicated_tips_page(self):
