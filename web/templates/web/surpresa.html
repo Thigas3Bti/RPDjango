@@ -5,6 +5,15 @@
 
 {% block extra_css %}
 <style>
+   .surprise-card {
+       max-width: 760px;
+       margin: 2rem auto;
+        overflow: hidden;
+        border: 1px solid #dce9d9;
+        border-radius: 1.25rem;
+        background: #fff;
+    }
+
     .surprise-photos {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -29,16 +38,18 @@
 {% endblock %}
 
 {% block content %}
-<section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm text-center">
-    <span class="dashboard-kicker">VOCÊ ENCONTROU</span>
-    <h1 class="display-6 fw-bold mt-2 mb-2">Uma surpresa!</h1>
-    <p class="mb-0 text-muted">Um segredo escondido no rodapé do RondoPesca.</p>
+<section class="surprise-card card shadow-sm text-center">
+    <div class="card-body p-4 p-md-5">
+        <span class="badge rounded-pill text-bg-success mb-3">SEGREDO DESCOBERTO</span>
+        <h1 class="display-5 fw-bold mb-3">Uma surpresa!</h1>
+        <p class="lead text-muted mb-4">Aqui estão as duas fotos da surpresa!</p>
+        <div class="surprise-photos">
+            <img class="surprise-photo" src="{% static 'images/surpresa-1.png' %}"
+                alt="Foto com balões de fala em uma montagem de Lula e outras pessoas">
+            <img class="surprise-photo" src="{% static 'images/surpresa-2.png' %}"
+                alt="Três pessoas posando para uma foto">
+        </div>
+        <a class="btn btn-success px-4 mt-4" href="{% url 'inicio' %}">Voltar para o início</a>
+    </div>
 </section>
-
-<div class="surprise-photos">
-    <img class="surprise-photo" src="{% static 'images/surpresa-1.png' %}"
-        alt="Foto com balões de fala em uma montagem de Lula e outras pessoas">
-    <img class="surprise-photo" src="{% static 'images/surpresa-2.png' %}"
-        alt="Três pessoas posando para uma foto">
-</div>
 {% endblock %}
