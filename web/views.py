@@ -36,6 +36,10 @@ def home(request):
     return render(request, 'web/home.html')
 
 
+def surpresa(request):
+    return render(request, 'web/surpresa.html')
+
+
 def contato(request):
     form = ContatoForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():

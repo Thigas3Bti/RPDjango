@@ -7,6 +7,14 @@ from .models import Dica
 
 
 class ContatoViewTests(TestCase):
+    def test_surprise_page_renders(self):
+        response = self.client.get(reverse('surpresa'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Uma surpresa!')
+        self.assertContains(response, 'surpresa-1.png')
+        self.assertContains(response, 'surpresa-2.png')
+
     def test_contact_page_uses_shared_template_and_renders(self):
         response = self.client.get(reverse('contato'))
 
