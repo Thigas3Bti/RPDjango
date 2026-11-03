@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ local.nome }} | Locais de pesca{% endblock %}
+
+{% block content %}
+<div class="dashboard-home fishing-locations">
+    <div class="mb-3">
+        <a class="btn btn-outline-success" href="{% url 'locais' %}">
+            <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Voltar aos locais
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3" aria-live="polite">
+        {% for message in messages %}
+        <div class="alert alert-success" role="status">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <section class="card dashboard-card location-detail-card shadow-sm mb-4">
+        <div class="row g-0">
+            {% if fotos %}
+            <div class="col-12 col-lg-6">
+                <img class="location-detail-cover" src="{{ fotos.0.url }}" alt="Paisagem de {{ local.nome }}">
+            </div>
+            {% endif %}
+            <div class="col">
+                <div class="card-body p-4 p-lg-5">
+                    <span class="dashboard-kicker">
+                        {% if local_principal %}PONTO CONHECIDO{% else %}LOCAL COMPARTILHADO{% endif %}
+                    </span>
+                    <h1 class="display-6 fw-bold mt-2">{{ local.nome }}</h1>
+                    {% if local.municipio %}
+                    <p class="location-detail-municipality">
+                        <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ local.municipio }}
+                    </p>
+                    {% endif %}
+                    <p class="location-detail-description">
+                        {% if local_principal %}{{ local.descricao }}{% else %}{{ local.descricao|linebreaksbr }}{% endif %}
+                    </p>
+                    {% if local.maps_url %}
+                    <a class="btn btn-success" href="{{ local.maps_url }}" target="_blank" rel="noopener noreferrer">
+                        <i class="bi bi-map me-1" aria-hidden="true"></i>Abrir localização no Maps
+                    </a>
+                    {% endif %}
+                    {% if pode_adicionar_local and not local_principal %}
+                    <a class="btn btn-outline-success ms-sm-2 mt-2 mt-sm-0" href="{% url 'editar_local' local.pk %}">
+                        <i class="bi bi-pencil-square me-1" aria-hidden="true"></i>Editar local
+                    </a>
+                    {% endif %}
+                    {% if not local_principal and local.cadastrado_por %}
+                    <p class="small text-muted mt-3 mb-0">
+                        Compartilhado por {{ local.cadastrado_por.get_full_name|default:local.cadastrado_por.username }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-4" aria-labelledby="location-gallery-title">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+            <div>
+                <span class="dashboard-kicker">REGISTROS DO LOCAL</span>
+                <h2 class="h3 fw-bold mt-1 mb-0" id="location-gallery-title">Fotos</h2>
+            </div>
+            {% if fotos|length > 1 %}
+            <span class="text-muted">{{ fotos|length }} fotos</span>
+            {% endif %}
+        </div>
+        {% if fotos %}
+        <div class="row g-3">
+            {% for foto in fotos %}
+            <div class="col-6 col-md-4 col-xl-3">
+                <a class="location-gallery-photo" href="{{ foto.url }}" target="_blank" rel="noopener noreferrer"
+                    aria-label="Abrir foto de {{ foto.alt }} em tamanho original">
+                    <img src="{{ foto.url }}" alt="Foto de {{ foto.alt }}" loading="lazy">
+                    <span><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i></span>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="dashboard-empty-state">
+            <p class="mb-0">Ainda não há fotos deste local.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    {% if informacoes %}
+    <section class="mb-4" aria-labelledby="location-updates-title">
+        <div class="mb-3">
+            <span class="dashboard-kicker">CONTRIBUIÇÕES DA COMUNIDADE</span>
+            <h2 class="h3 fw-bold mt-1 mb-0" id="location-updates-title">Mais informações</h2>
+        </div>
+        <div class="row g-3">
+            {% for informacao in informacoes %}
+            <div class="col-12">
+                <article class="card dashboard-card location-update-card shadow-sm">
+                    <div class="card-body p-4">
+                        <p class="mb-3">{{ informacao.descricao|linebreaksbr }}</p>
+                        {% if informacao.fotos.all %}
+                        <div class="row g-2">
+                            {% for foto in informacao.fotos.all %}
+                            <div class="col-6 col-md-3">
+                                <a class="location-gallery-photo" href="{{ foto.arquivo.url }}" target="_blank" rel="noopener noreferrer"
+                                    aria-label="Abrir foto de {{ local.nome }} em tamanho original">
+                                    <img src="{{ foto.arquivo.url }}" alt="Foto de {{ local.nome }}" loading="lazy">
+                                    <span><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i></span>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <small class="text-muted d-block mt-3">
+                            Compartilhado por {{ informacao.autor.get_full_name|default:informacao.autor.username }}
+                            em {{ informacao.criada_em|date:"d/m/Y" }}
+                        </small>
+                    </div>
+                </article>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if pode_adicionar_local and not local_principal %}
+    <div class="text-end">
+        <a class="btn btn-success px-4" href="{% url 'adicionar_informacoes_local' local.pk %}">
+            <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Adicionar informações e fotos
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

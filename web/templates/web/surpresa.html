@@ -3,6 +3,31 @@
 
 {% block title %}Surpresa | RondoPesca{% endblock %}
 
+{% block extra_css %}
+<style>
+    .surprise-photos {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .surprise-photo {
+        display: block;
+        width: 100%;
+        max-height: 620px;
+        border-radius: 0.75rem;
+        object-fit: contain;
+        background: #f3f6f2;
+    }
+
+    @media (max-width: 575.98px) {
+        .surprise-photos {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm text-center">
     <span class="dashboard-kicker">VOCÊ ENCONTROU</span>
@@ -10,8 +35,10 @@
     <p class="mb-0 text-muted">Um segredo escondido no rodapé do RondoPesca.</p>
 </section>
 
-<div class="text-center">
-    <img class="img-fluid rounded shadow-sm" src="{% static 'images/surpresa.png' %}"
-        alt="Imagem surpresa enviada para o RondoPesca">
+<div class="surprise-photos">
+    <img class="surprise-photo" src="{% static 'images/surpresa-1.png' %}"
+        alt="Foto com balões de fala em uma montagem de Lula e outras pessoas">
+    <img class="surprise-photo" src="{% static 'images/surpresa-2.png' %}"
+        alt="Três pessoas posando para uma foto">
 </div>
 {% endblock %}

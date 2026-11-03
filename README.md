@@ -16,16 +16,5 @@ Ficarei responsável pelos Apps e Models, organizando as funcionalidades do proj
 Projeto
 O objetivo do RondoPesca é criar um sistema de pesca com informações sobre peixes, tipos de peixe, locais e eventos, utilizando Django para organizar e conectar todas essas partes.
 
-Envio de e-mails
-O projeto usa o SMTP do Gmail para enviar a confirmação de cadastro. Para habilitar o envio, gere uma senha de app na Conta do Google (com a verificação em duas etapas ativada) e configure-a no PowerShell antes de iniciar o Django:
-
-```powershell
-$env:EMAIL_HOST_PASSWORD = "SUA_SENHA_DE_APP"
-python manage.py runserver
-```
-
-Não use a senha normal da conta Google nem compartilhe ou versione a senha de app. As demais configurações SMTP já usam `smtp.gmail.com`, porta `587`, TLS e `rondopescacontato@gmail.com` como remetente por padrão. Para limpar a variável ao terminar a sessão do PowerShell:
-
-```powershell
-Remove-Item Env:EMAIL_HOST_PASSWORD
-```
+Envio de mensagens de contato
+O formulário envia as mensagens para rondopescacontato@gmail.com usando SMTP do Gmail. Configure EMAIL_HOST_USER e EMAIL_HOST_PASSWORD no ambiente do servidor; EMAIL_HOST_PASSWORD deve ser uma senha de app do Google, não a senha normal da conta. Por padrão, o servidor SMTP é smtp.gmail.com na porta 587 com TLS. EMAIL_HOST, EMAIL_PORT e EMAIL_USE_TLS podem ser definidos para outro provedor. Nunca salve credenciais de e-mail no repositório.

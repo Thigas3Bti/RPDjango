@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Locais de pesca | RondoPesca{% endblock %}
+
+{% block content %}
+<div class="dashboard-home fishing-locations">
+    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm" aria-labelledby="locations-title">
+        <span class="dashboard-kicker">DESCUBRA RONDÔNIA</span>
+        <h1 class="display-6 fw-bold mt-2 mb-2" id="locations-title">Locais de pesca</h1>
+        <p class="mb-0 text-muted">Conheça rios famosos do estado, explore os mapas e encontre inspiração para sua próxima pescaria.</p>
+    </section>
+
+    {% if pode_adicionar_local %}
+    <div class="text-end mb-4">
+        <a class="btn btn-success px-4" href="{% url 'adicionar_local' %}">
+            <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Adicionar local de pesca
+        </a>
+    </div>
+    {% endif %}
+
+    {% if messages %}
+    <div class="mb-3" aria-live="polite">
+        {% for message in messages %}
+        <div class="alert alert-success" role="status">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <section class="mb-5" aria-labelledby="main-locations-title">
+        <div class="mb-3">
+            <span class="dashboard-kicker">PONTOS CONHECIDOS</span>
+            <h2 class="h3 fw-bold mt-2 mb-1" id="main-locations-title">Rios para conhecer</h2>
+            <p class="text-muted mb-0">Consulte as condições e regras locais antes de pescar.</p>
+        </div>
+        <div class="row g-4">
+            {% for local in locais_principais %}
+            <div class="col-12 col-md-6 col-xl-4">
+                <article class="card dashboard-card location-card h-100 shadow-sm">
+                    <a class="location-image" href="{% url 'detalhe_local_principal' local.slug %}"
+                        aria-label="Ver mais informações sobre {{ local.nome }}">
+                        <img src="{% static local.imagem %}" alt="Paisagem do {{ local.nome }}" loading="lazy">
+                    </a>
+                    <a class="location-view-button" href="{% url 'detalhe_local_principal' local.slug %}"
+                        aria-label="Ver mais sobre {{ local.nome }}">
+                        <i class="bi bi-eye-fill" aria-hidden="true"></i>
+                    </a>
+                    <div class="card-body d-flex flex-column p-4">
+                        <span class="dashboard-kicker">{{ local.municipio }}</span>
+                        <h3 class="h4 fw-bold mt-2">{{ local.nome }}</h3>
+                        <p class="text-muted">{{ local.descricao }}</p>
+                        <a class="btn btn-outline-success mt-auto align-self-start" href="{{ local.maps_url }}"
+                            target="_blank" rel="noopener noreferrer">
+                            <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>Ver no Maps
+                        </a>
+                    </div>
+                </article>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    {% if locais_cadastrados %}
+    <section class="mb-5" aria-labelledby="community-locations-title">
+        <div class="mb-3">
+            <span class="dashboard-kicker">COMPARTILHADOS PELA EQUIPE</span>
+            <h2 class="h3 fw-bold mt-2 mb-1" id="community-locations-title">Mais locais de pesca</h2>
+        </div>
+        <div class="row g-4">
+            {% for local in locais_cadastrados %}
+            <div class="col-12 col-md-6 col-xl-4">
+                <article class="card dashboard-card location-card h-100 shadow-sm">
+                    {% if local.foto %}
+                    <a class="location-image" href="{% url 'detalhe_local' local.pk %}"
+                        aria-label="Ver mais informações sobre {{ local.nome }}">
+                        <img src="{{ local.foto.url }}" alt="Paisagem de {{ local.nome }}" loading="lazy">
+                    </a>
+                    {% elif local.imagem_url %}
+                    <a class="location-image" href="{% url 'detalhe_local' local.pk %}"
+                        aria-label="Ver mais informações sobre {{ local.nome }}">
+                        <img src="{{ local.imagem_url }}" alt="Paisagem de {{ local.nome }}" loading="lazy">
+                    </a>
+                    {% else %}
+                    <a class="location-image location-image-placeholder" href="{% url 'detalhe_local' local.pk %}"
+                        aria-label="Ver mais informações sobre {{ local.nome }}">
+                        <i class="bi bi-water"></i>
+                    </a>
+                    {% endif %}
+                    <a class="location-view-button" href="{% url 'detalhe_local' local.pk %}"
+                        aria-label="Ver mais sobre {{ local.nome }}">
+                        <i class="bi bi-eye-fill" aria-hidden="true"></i>
+                    </a>
+                    <div class="card-body d-flex flex-column p-4">
+                        {% if local.municipio %}<span class="dashboard-kicker">{{ local.municipio }}</span>{% endif %}
+                        <h3 class="h4 fw-bold mt-2">{{ local.nome }}</h3>
+                        <p class="text-muted">{{ local.descricao }}</p>
+                        {% if local.maps_url %}
+                        <a class="btn btn-outline-success mt-auto align-self-start" href="{{ local.maps_url }}"
+                            target="_blank" rel="noopener noreferrer">
+                            <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>Ver no Maps
+                        </a>
+                        {% endif %}
+                    </div>
+                </article>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
