@@ -4,14 +4,15 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.db.models import Q
-from django.shortcuts import redirect, render
+from django.http import HttpResponseForbidden, HttpResponseNotAllowed
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 import logging
 import smtplib
 
-from .forms import ContatoForm, DicaForm, LoginForm, RegistrationForm
+from .forms import DicaForm, LoginForm, MensagemContatoForm, RegistrationForm
 from forum.models import EventoAgenda
-from .models import Dica
+from .models import Dica, MensagemContato
 
 
 logger = logging.getLogger(__name__)
@@ -41,14 +42,14 @@ def surpresa(request):
 
 
 def contato(request):
-    form = ContatoForm(request.POST or None)
+    form = MensagemContatoForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        dados = form.cleaned_data
-        assunto = f"[RondoPesca] {dados['assunto']}"
+        mensagem_contato = form.save()
+        assunto = f"[RondoPesca] {mensagem_contato.get_assunto_display()}"
         corpo = (
-            f"Nome: {dados['nome']}\n"
-            f"E-mail: {dados['email']}\n\n"
-            f"Mensagem:\n{dados['mensagem']}"
+            f"Nome: {mensagem_contato.nome}\n"
+            f"E-mail: {mensagem_contato.email}\n\n"
+            f"Mensagem:\n{mensagem_contato.mensagem}"
         )
         try:
             EmailMessage(
@@ -56,19 +57,81 @@ def contato(request):
                 body=corpo,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[settings.CONTACT_EMAIL],
-                reply_to=[dados['email']],
+                reply_to=[mensagem_contato.email],
             ).send(fail_silently=False)
         except (OSError, smtplib.SMTPException):
             logger.exception('Falha ao enviar mensagem do formulário de contato.')
-            messages.error(
+            messages.warning(
                 request,
-                'Não foi possível enviar sua mensagem agora. Tente novamente mais tarde.',
+                'Sua mensagem foi registrada, mas não foi possível enviar a notificação por e-mail.',
             )
         else:
             messages.success(request, 'Sua mensagem foi enviada com sucesso!')
-            return redirect('contato')
+        return redirect('contato')
 
     return render(request, 'web/contato.html', {'form': form})
+
+
+@login_required(login_url='login')
+def mensagens_contato(request):
+    if not request.user.is_active or not request.user.is_staff:
+        return HttpResponseForbidden()
+
+    mensagens = MensagemContato.objects.all()
+    status = request.GET.get('status', '')
+    if status == 'lidas':
+        mensagens = mensagens.filter(lida=True)
+    elif status == 'nao_lidas':
+        mensagens = mensagens.filter(lida=False)
+    else:
+        status = ''
+
+    assunto = request.GET.get('assunto', '')
+    assuntos_validos = {valor for valor, _ in MensagemContato.ASSUNTOS}
+    if assunto in assuntos_validos:
+        mensagens = mensagens.filter(assunto=assunto)
+    else:
+        assunto = ''
+
+    busca = request.GET.get('q', '').strip()
+    if busca:
+        mensagens = mensagens.filter(
+            Q(nome__icontains=busca)
+            | Q(email__icontains=busca)
+            | Q(assunto__icontains=busca)
+            | Q(mensagem__icontains=busca)
+        )
+
+    return render(request, 'web/mensagens_contato.html', {
+        'mensagens_contato': mensagens,
+        'total_nao_lidas': MensagemContato.objects.filter(lida=False).count(),
+        'status_selecionado': status,
+        'assunto_selecionado': assunto,
+        'assuntos': MensagemContato.ASSUNTOS,
+        'busca': busca,
+    })
+
+
+@login_required(login_url='login')
+def atualizar_status_mensagem(request, mensagem_id):
+    if not request.user.is_active or not request.user.is_staff:
+        return HttpResponseForbidden()
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    mensagem = get_object_or_404(MensagemContato, pk=mensagem_id)
+    status = request.POST.get('status')
+    if status == 'lida':
+        mensagem.lida = True
+    elif status == 'nao_lida':
+        mensagem.lida = False
+    else:
+        messages.error(request, 'Situação de mensagem inválida.')
+        return redirect('mensagens_contato')
+
+    mensagem.save(update_fields=['lida'])
+    messages.success(request, 'Situação da mensagem atualizada.')
+    return redirect('mensagens_contato')
 
 
 def dicas(request):

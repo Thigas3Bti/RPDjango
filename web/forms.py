@@ -48,55 +48,16 @@ class BioPerfilForm(forms.ModelForm):
         labels = {'bio': 'Sobre você'}
 
 
-class ContatoForm(forms.Form):
-    ASSUNTOS = [
-        ('duvida', 'Dúvida'),
-        ('sugestao', 'Sugestão'),
-        ('experiencia', 'Dica ou experiência de pesca'),
-        ('outro', 'Outro assunto'),
-    ]
-
-    nome = forms.CharField(
-        label='Nome Completo',
-        max_length=150,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Seu nome',
-            'autocomplete': 'name',
-        }),
-    )
-    email = forms.EmailField(
-        label='E-mail',
-        widget=forms.EmailInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'seu@email.com',
-            'autocomplete': 'email',
-        }),
-    )
-    assunto = forms.ChoiceField(
-        label='Assunto',
-        choices=[('', 'Selecione uma opção...'), *ASSUNTOS],
-        widget=forms.Select(attrs={'class': 'form-select'}),
-    )
-    mensagem = forms.CharField(
-        label='Mensagem',
-        widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'placeholder': 'Escreva sua mensagem aqui...',
-        }),
-    )
-
-
 class DicaForm(forms.ModelForm):
     MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
     class Meta:
         model = Dica
-        fields = ['titulo', 'descricao', 'categoria', 'imagem']
+        fields = ['titulo', 'descricao', 'nivel', 'imagem']
         labels = {
             'titulo': 'Título da dica',
             'descricao': 'Descrição da dica',
-            'categoria': 'Categoria',
+            'nivel': 'Nível',
             'imagem': 'Imagem ilustrativa (opcional)',
         }
         widgets = {
@@ -110,7 +71,7 @@ class DicaForm(forms.ModelForm):
                 'rows': 6,
                 'placeholder': 'Explique sua dica com detalhes e contexto (opcional).',
             }),
-            'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'nivel': forms.Select(attrs={'class': 'form-select'}),
             'imagem': forms.ClearableFileInput(attrs={
                 'class': 'form-control',
                 'accept': 'image/*',

@@ -3,7 +3,74 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core import mail
 
-from .models import Dica
+from .models import Dica, MensagemContato
+
+
+class ContactMessagesAdminTests(TestCase):
+    def setUp(self):
+        self.message = MensagemContato.objects.create(
+            nome='Maria Pescadora',
+            email='maria@example.com',
+            assunto='profissional',
+            mensagem='Solicito a alteração do meu cargo.',
+        )
+
+    def test_contact_messages_page_requires_staff(self):
+        response = self.client.get(reverse('mensagens_contato'))
+        self.assertRedirects(
+            response,
+            f'{reverse("login")}?next={reverse("mensagens_contato")}',
+        )
+
+        user = User.objects.create_user(username='pescador', password='senha')
+        self.client.force_login(user)
+        response = self.client.get(reverse('mensagens_contato'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_staff_can_filter_and_view_contact_messages(self):
+        self.client.force_login(User.objects.create_user(
+            username='admin',
+            password='senha',
+            is_staff=True,
+        ))
+
+        response = self.client.get(reverse('mensagens_contato'), {
+            'status': 'nao_lidas',
+            'assunto': 'profissional',
+            'q': 'Maria',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.message.mensagem)
+        self.assertContains(response, 'Solicitar cargo de pescador profissional')
+        self.assertEqual(response.context['total_nao_lidas'], 1)
+
+    def test_staff_can_update_message_read_status(self):
+        self.client.force_login(User.objects.create_user(
+            username='admin',
+            password='senha',
+            is_staff=True,
+        ))
+        url = reverse('atualizar_status_mensagem', args=[self.message.pk])
+
+        response = self.client.post(url, {'status': 'lida'})
+
+        self.assertRedirects(response, reverse('mensagens_contato'))
+        self.message.refresh_from_db()
+        self.assertTrue(self.message.lida)
+
+    def test_message_status_update_rejects_get(self):
+        self.client.force_login(User.objects.create_user(
+            username='admin',
+            password='senha',
+            is_staff=True,
+        ))
+
+        response = self.client.get(
+            reverse('atualizar_status_mensagem', args=[self.message.pk]),
+        )
+
+        self.assertEqual(response.status_code, 405)
 
 
 class ContatoViewTests(TestCase):
@@ -40,6 +107,25 @@ class ContatoViewTests(TestCase):
         self.assertIn('Maria Pescadora', mail.outbox[0].body)
         self.assertIn('Como escolho uma isca?', mail.outbox[0].body)
         self.assertEqual(mail.outbox[0].reply_to, ['maria@example.com'])
+        mensagem = MensagemContato.objects.get()
+        self.assertEqual(mensagem.nome, 'Maria Pescadora')
+        self.assertEqual(mensagem.assunto, 'duvida')
+
+    def test_contact_form_includes_professional_request_and_records_it(self):
+        response = self.client.get(reverse('contato'))
+        self.assertContains(response, 'Solicitar cargo de pescador profissional')
+
+        response = self.client.post(reverse('contato'), {
+            'nome': 'João Pescador',
+            'email': 'joao@example.com',
+            'assunto': 'profissional',
+            'mensagem': 'Solicito o cargo profissional.',
+        })
+
+        self.assertRedirects(response, reverse('contato'))
+        mensagem = MensagemContato.objects.get()
+        self.assertEqual(mensagem.assunto, 'profissional')
+        self.assertIn('profissional', mail.outbox[0].subject.lower())
 
     def test_contact_form_shows_errors_for_invalid_data(self):
         response = self.client.post(reverse('contato'), {
@@ -89,9 +175,9 @@ class DashboardFishingTipsTests(TestCase):
             response,
             'images/banner_tela_inicio.jpg',
         )
-        self.assertContains(response, 'images/galeria/local-1.jpg')
-        self.assertContains(response, 'images/galeria/local-2.jpg')
-        self.assertContains(response, 'images/galeria/local-3.jpg')
+        self.assertContains(response, 'images/local1.jpg')
+        self.assertContains(response, 'images/local2.jpg')
+        self.assertContains(response, 'images/local3.jpg')
         self.assertContains(response, f'href="{reverse("dicas")}"')
         self.assertNotContains(response, 'id="lista-niveis-dicas"')
 
