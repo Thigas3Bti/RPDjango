@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.core.mail import EmailMessage
 from django.db.models import Q
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed
@@ -9,6 +10,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 import logging
 import smtplib
+
+from usuarios.permissoes import eh_pescador
 
 from .forms import DicaForm, LoginForm, MensagemContatoForm, RegistrationForm
 from forum.models import EventoAgenda
@@ -137,11 +140,15 @@ def atualizar_status_mensagem(request, mensagem_id):
 def dicas(request):
     return render(request, 'web/dicas.html', {
         'dicas_publicadas': Dica.objects.select_related('autor').all(),
+        'pode_adicionar_dica': eh_pescador(request.user),
     })
 
 
 @login_required(login_url='login')
 def adicionar_dica(request):
+    if not eh_pescador(request.user):
+        raise PermissionDenied
+
     form = DicaForm(request.POST or None)
 
     if request.method == 'POST' and form.is_valid():

@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.contrib.auth.models import Group
 from django.core import mail
 
 from .models import Dica, MensagemContato
@@ -166,7 +167,8 @@ class DashboardFishingTipsTests(TestCase):
         self.assertContains(response, 'Avançado: equipamento e leitura da pescaria')
         self.assertContains(response, 'Veterano: análise, adaptação e responsabilidade')
         self.assertContains(response, 'id="filtro-nivel-dicas"')
-        self.assertContains(response, 'Adicionar nova dica')
+        self.assertNotContains(response, 'Adicionar nova dica')
+        self.assertContains(response, 'Somente pescadores oficiais podem adicionar dicas.')
 
     def test_dashboard_menu_links_to_dedicated_tips_page(self):
         response = self.client.get(reverse('inicio'))
@@ -181,8 +183,10 @@ class DashboardFishingTipsTests(TestCase):
         self.assertContains(response, f'href="{reverse("dicas")}"')
         self.assertNotContains(response, 'id="lista-niveis-dicas"')
 
-    def test_authenticated_user_can_publish_tip_and_see_it_in_list(self):
+    def test_official_fisherman_can_publish_tip_and_see_it_in_list(self):
         user = User.objects.create_user(username='pescador', password='senha-correta')
+        group, _ = Group.objects.get_or_create(name='Pescador')
+        user.groups.add(group)
         self.client.force_login(user)
 
         response = self.client.post(reverse('adicionar_dica'), {
@@ -206,8 +210,23 @@ class DashboardFishingTipsTests(TestCase):
             f'{reverse("login")}?next={reverse("adicionar_dica")}',
         )
 
+    def test_regular_user_cannot_publish_tip(self):
+        user = User.objects.create_user(username='usuario', password='senha-correta')
+        self.client.force_login(user)
+
+        response = self.client.post(reverse('adicionar_dica'), {
+            'titulo': 'Dica não autorizada',
+            'nivel': 'intermediario',
+            'descricao': 'Descrição válida.',
+        })
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Dica.objects.exists())
+
     def test_invalid_tip_is_not_saved(self):
         user = User.objects.create_user(username='pescador', password='senha-correta')
+        group, _ = Group.objects.get_or_create(name='Pescador')
+        user.groups.add(group)
         self.client.force_login(user)
 
         response = self.client.post(reverse('adicionar_dica'), {

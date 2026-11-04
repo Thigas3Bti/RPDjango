@@ -35,11 +35,16 @@
                         <option value="veterano">Veterano</option>
                     </select>
                 </div>
+                {% if pode_adicionar_dica %}
                 <a class="btn btn-success text-nowrap" href="{% url 'adicionar_dica' %}">
                     <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Adicionar nova dica
                 </a>
+                {% endif %}
             </div>
         </div>
+        {% if not pode_adicionar_dica %}
+        <p class="small text-muted mb-3">Somente pescadores oficiais podem adicionar dicas. Peça a um administrador para promover sua conta.</p>
+        {% endif %}
         <p class="small text-muted mb-3" id="estado-filtro-dicas" aria-live="polite">Exibindo todos os níveis.</p>
 
     <div class="row g-3" id="lista-niveis-dicas">

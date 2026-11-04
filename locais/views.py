@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.views.decorators.http import require_GET
 
+from usuarios.permissoes import eh_pescador
+
 from .forms import InformacaoLocalForm, LocalPescaForm
 from .models import FotoLocal, InformacaoLocal, LocalPesca
 
@@ -38,20 +40,9 @@ LOCAIS_PRINCIPAIS = [
 ]
 
 
-def pode_adicionar_local(usuario):
-    return (
-        usuario.is_authenticated
-        and (
-            usuario.is_staff
-            or usuario.is_superuser
-            or usuario.groups.filter(name__iexact='pescador').exists()
-        )
-    )
-
-
 @require_GET
 def lista_locais(request):
-    permissao_cadastro = pode_adicionar_local(request.user)
+    permissao_cadastro = eh_pescador(request.user)
     return render(request, 'locais/locais.html', {
         'locais_principais': LOCAIS_PRINCIPAIS,
         'locais_cadastrados': LocalPesca.objects.select_related('cadastrado_por'),
@@ -61,7 +52,7 @@ def lista_locais(request):
 
 @login_required(login_url='login')
 def adicionar_local(request):
-    if not pode_adicionar_local(request.user):
+    if not eh_pescador(request.user):
         raise PermissionDenied
 
     form = LocalPescaForm(
@@ -83,7 +74,7 @@ def adicionar_local(request):
 
 @login_required(login_url='login')
 def editar_local(request, pk):
-    if not pode_adicionar_local(request.user):
+    if not eh_pescador(request.user):
         raise PermissionDenied
 
     local = get_object_or_404(LocalPesca, pk=pk)
@@ -145,14 +136,14 @@ def detalhe_local(request, pk):
     return render(request, 'locais/detalhe_local.html', {
         'local': local,
         'fotos': fotos,
-        'pode_adicionar_local': pode_adicionar_local(request.user),
+        'pode_adicionar_local': eh_pescador(request.user),
         'informacoes': informacoes,
     })
 
 
 @login_required(login_url='login')
 def adicionar_informacoes_local(request, pk):
-    if not pode_adicionar_local(request.user):
+    if not eh_pescador(request.user):
         raise PermissionDenied
 
     local = get_object_or_404(LocalPesca, pk=pk)
