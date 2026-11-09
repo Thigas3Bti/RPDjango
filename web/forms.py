@@ -29,6 +29,64 @@ class FotoPerfilForm(forms.ModelForm):
         return foto
 
 
+class BioPerfilForm(forms.ModelForm):
+    bio = forms.CharField(
+        label='Sobre você',
+        required=False,
+        max_length=500,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'maxlength': 500,
+            'placeholder': 'Conte um pouco sobre você e sua paixão pela pesca.',
+        }),
+    )
+
+    class Meta:
+        model = PerfilUsuario
+        fields = ['bio']
+        labels = {'bio': 'Sobre você'}
+
+
+class ContatoForm(forms.Form):
+    ASSUNTOS = [
+        ('duvida', 'Dúvida'),
+        ('sugestao', 'Sugestão'),
+        ('experiencia', 'Dica ou experiência de pesca'),
+        ('outro', 'Outro assunto'),
+    ]
+
+    nome = forms.CharField(
+        label='Nome Completo',
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Seu nome',
+            'autocomplete': 'name',
+        }),
+    )
+    email = forms.EmailField(
+        label='E-mail',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'seu@email.com',
+            'autocomplete': 'email',
+        }),
+    )
+    assunto = forms.ChoiceField(
+        label='Assunto',
+        choices=[('', 'Selecione uma opção...'), *ASSUNTOS],
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    mensagem = forms.CharField(
+        label='Mensagem',
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Escreva sua mensagem aqui...',
+        }),
+    )
+
+
 class DicaForm(forms.ModelForm):
     MAX_IMAGE_SIZE = 5 * 1024 * 1024
 

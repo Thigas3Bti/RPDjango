@@ -1,18 +1,20 @@
 from django.contrib import messages
-from django.contrib.auth import (
-    login as auth_login,
-    logout as auth_logout,
-)
+from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.conf import settings
+from django.core.mail import EmailMessage
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.utils import timezone
+import logging
+import smtplib
 
-from .forms import DicaForm, FotoPerfilForm, LoginForm, RegistrationForm
+from .forms import ContatoForm, DicaForm, LoginForm, RegistrationForm
 from forum.models import EventoAgenda
 from .models import Dica
-from usuarios.models import PerfilUsuario
+
+
+logger = logging.getLogger(__name__)
 
 
 def _eventos_proximos(user):
@@ -34,12 +36,39 @@ def home(request):
     return render(request, 'web/home.html')
 
 
-def contato(request):
-    return render(request, 'web/contato.html')
-
-
 def surpresa(request):
     return render(request, 'web/surpresa.html')
+
+
+def contato(request):
+    form = ContatoForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        dados = form.cleaned_data
+        assunto = f"[RondoPesca] {dados['assunto']}"
+        corpo = (
+            f"Nome: {dados['nome']}\n"
+            f"E-mail: {dados['email']}\n\n"
+            f"Mensagem:\n{dados['mensagem']}"
+        )
+        try:
+            EmailMessage(
+                subject=assunto,
+                body=corpo,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[settings.CONTACT_EMAIL],
+                reply_to=[dados['email']],
+            ).send(fail_silently=False)
+        except (OSError, smtplib.SMTPException):
+            logger.exception('Falha ao enviar mensagem do formulário de contato.')
+            messages.error(
+                request,
+                'Não foi possível enviar sua mensagem agora. Tente novamente mais tarde.',
+            )
+        else:
+            messages.success(request, 'Sua mensagem foi enviada com sucesso!')
+            return redirect('contato')
+
+    return render(request, 'web/contato.html', {'form': form})
 
 
 def dicas(request):
@@ -50,19 +79,13 @@ def dicas(request):
 
 @login_required(login_url='login')
 def adicionar_dica(request):
-    if not request.user.is_staff:
-        raise PermissionDenied
-
-    form = DicaForm(
-        data=request.POST if request.method == 'POST' else None,
-        files=request.FILES if request.method == 'POST' else None,
-    )
+    form = DicaForm(request.POST or None)
 
     if request.method == 'POST' and form.is_valid():
         dica = form.save(commit=False)
         dica.autor = request.user
         dica.save()
-        messages.success(request, 'A dica foi cadastrada com sucesso.')
+        messages.success(request, 'Sua dica foi adicionada com sucesso.')
         return redirect('dicas')
 
     return render(request, 'web/adicionar_dica.html', {'form': form})
@@ -91,28 +114,7 @@ def painel(request):
 
 @login_required(login_url='login')
 def perfil(request):
-    perfil_usuario, _ = PerfilUsuario.objects.get_or_create(usuario=request.user)
-    if request.method == 'POST' and request.POST.get('remover_foto') == '1':
-        if perfil_usuario.foto:
-            perfil_usuario.foto.delete(save=True)
-            messages.success(request, 'Sua foto de perfil foi removida.')
-        return redirect('perfil')
-
-    form = FotoPerfilForm(
-        request.POST or None,
-        request.FILES or None,
-        instance=perfil_usuario,
-    )
-    if request.method == 'POST':
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Sua foto de perfil foi atualizada.')
-            return redirect('perfil')
-
-    return render(request, 'usuarios/pescador/perfil.html', {
-        'perfil_usuario': perfil_usuario,
-        'foto_form': form,
-    })
+    return render(request, 'usuarios/pescador/perfil.html')
 
 
 def login(request):
@@ -134,9 +136,8 @@ def cadastro(request):
     )
 
     if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Cadastro realizado. Agora você pode entrar na sua conta.')
-        return redirect('login')
+        auth_login(request, form.save())
+        return redirect('painel')
 
     return render(request, 'usuarios/acesso/cadastro.html', {'form': form})
 
