@@ -98,7 +98,7 @@
                     <p class="mb-0 profile-bio-text">{{ perfil_usuario.bio|linebreaksbr }}</p>
                 {% else %}
                     <p class="mb-0 text-muted profile-bio-empty">Adicione uma apresentação para que a comunidade conheça você.</p>
-                {% endif %}
+                {% endif %
             </div>
             <form method="post" id="bioEditForm" data-saved-bio="{{ perfil_usuario.bio }}"{% if not editar_bio %} class="d-none"{% endif %}>
                 {% csrf_token %}
