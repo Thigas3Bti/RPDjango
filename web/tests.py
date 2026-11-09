@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core import mail
 
-from .models import Dica
+from forum.models import Dica
 
 
 class ContatoViewTests(TestCase):
@@ -86,7 +86,7 @@ class DashboardFishingTipsTests(TestCase):
         self.assertContains(response, 'Avançado: equipamento e leitura da pescaria')
         self.assertContains(response, 'Veterano: análise, adaptação e responsabilidade')
         self.assertContains(response, 'id="filtro-nivel-dicas"')
-        self.assertContains(response, 'Adicionar nova dica')
+        self.assertNotContains(response, 'Adicionar nova dica')
 
     def test_dashboard_menu_links_to_dedicated_tips_page(self):
         response = self.client.get(reverse('inicio'))
