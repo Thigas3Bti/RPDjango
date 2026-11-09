@@ -284,7 +284,8 @@
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
 
-    <script src=" {% static 'js/base.js' %}"></script>
+    <script src="{% static 'js/base.js' %}?v=20261026-secret-command"
+        data-surprise-url="{% url 'surpresa' %}"></script>
 
 {% block extra_js %} {% endblock %}
 </body>

@@ -71,6 +71,12 @@ class ContatoViewTests(TestCase):
 
 class DashboardFishingTipsTests(TestCase):
     def test_dedicated_tips_page_displays_each_level_and_filter(self):
+        admin = User.objects.create_user(
+            username='administrador',
+            password='senha-correta',
+            is_staff=True,
+        )
+        self.client.force_login(admin)
         response = self.client.get(reverse('dicas'))
 
         self.assertEqual(response.status_code, 200)
@@ -89,9 +95,9 @@ class DashboardFishingTipsTests(TestCase):
             response,
             'images/banner_tela_inicio.jpg',
         )
-        self.assertContains(response, 'images/galeria/local-1.jpg')
-        self.assertContains(response, 'images/galeria/local-2.jpg')
-        self.assertContains(response, 'images/galeria/local-3.jpg')
+        self.assertContains(response, 'images/local1.jpg')
+        self.assertContains(response, 'images/local2.jpg')
+        self.assertContains(response, 'images/local3.jpg')
         self.assertContains(response, f'href="{reverse("dicas")}"')
         self.assertNotContains(response, 'id="lista-niveis-dicas"')
 
@@ -101,7 +107,7 @@ class DashboardFishingTipsTests(TestCase):
 
         response = self.client.post(reverse('adicionar_dica'), {
             'titulo': 'Ler a correnteza',
-            'nivel': 'intermediario',
+            'categoria': 'intermediario',
             'descricao': 'Observe onde a corrente muda de velocidade.',
         })
 

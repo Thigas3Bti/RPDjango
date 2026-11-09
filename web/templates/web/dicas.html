@@ -1,14 +1,37 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Dicas de Pesca | RondoPesca{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/web/dicas.css' %}?v=20261109-1">
+{% endblock %}
+
 {% block content %}
-<div class="dashboard-home dicas-page">
-    <section class="dashboard-welcome dicas-welcome mb-4 p-4 p-lg-5 shadow-sm">
-        <span class="dashboard-kicker">APRENDA NO SEU RITMO</span>
-        <h1 class="display-6 fw-bold mt-2 mb-2">Dicas de pesca: do básico ao avançado</h1>
-        <p class="mb-0 text-muted">Abra cada nível para ver explicações e sugestões práticas. As técnicas variam conforme a espécie, o ambiente e as regras locais.</p>
+<div class="dashboard-home learning-page">
+    <section class="dashboard-welcome learning-hero mb-4 p-4 p-lg-5 shadow-sm">
+        <div class="learning-hero-copy">
+            <span class="dashboard-kicker"><i class="bi bi-water me-1" aria-hidden="true"></i> APRENDA NO SEU RITMO</span>
+            <h1 class="display-6 fw-bold mt-3 mb-2">Dicas de pesca: do básico ao avançado</h1>
+            <p class="mb-4">Cada pescaria ensina algo novo. Explore os níveis, experimente com calma e descubra o que funciona para você.</p>
+            <a class="btn btn-light learning-hero-button" href="#dicas">
+                Começar a aprender <i class="bi bi-arrow-down-right ms-1" aria-hidden="true"></i>
+            </a>
+        </div>
+        <div class="learning-hero-art" aria-hidden="true">
+            <span class="learning-hero-orbit learning-hero-orbit-one"></span>
+            <span class="learning-hero-orbit learning-hero-orbit-two"></span>
+            <i class="bi bi-compass"></i>
+            <span class="learning-hero-art-caption">Conhecimento que acompanha você</span>
+        </div>
     </section>
+
+    <nav class="learning-path mb-4" aria-label="Níveis de aprendizado">
+        <a href="#nivel-iniciante"><span>01</span> Iniciante</a>
+        <a href="#nivel-intermediario"><span>02</span> Intermediário</a>
+        <a href="#nivel-avancado"><span>03</span> Avançado</a>
+        <a href="#nivel-veterano"><span>04</span> Veterano</a>
+    </nav>
 
     {% if messages %}
     <div class="mb-3" aria-live="polite">
@@ -45,10 +68,10 @@
         <p class="small text-muted mb-3" id="estado-filtro-dicas" aria-live="polite">Exibindo todos os níveis.</p>
 
     <div class="row g-3" id="lista-niveis-dicas">
-            <div class="col-12 col-xl-6 nivel-dica" data-nivel="iniciante">
-                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
+            <div class="col-12 col-xl-6 nivel-dica" data-nivel="iniciante" id="nivel-iniciante">
+                <details class="card dashboard-card dashboard-tip learning-level-card h-100 shadow-sm p-4">
                     <summary class="fw-bold">
-                        <span class="dashboard-kicker d-block mb-1">NÍVEL 1 · PRIMEIROS PASSOS</span>
+                        <span class="dashboard-kicker d-block mb-1"><span class="learning-level-number">01</span> PRIMEIROS PASSOS</span>
                         <span class="h5">Iniciante: segurança e fundamentos</span>
                         <span class="d-block small text-muted fw-normal mt-1">Entenda o que preparar antes de arremessar.</span>
                     </summary>
@@ -62,10 +85,10 @@
                 </details>
             </div>
 
-            <div class="col-12 col-xl-6 nivel-dica" data-nivel="intermediario">
-                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
+            <div class="col-12 col-xl-6 nivel-dica" data-nivel="intermediario" id="nivel-intermediario">
+                <details class="card dashboard-card dashboard-tip learning-level-card h-100 shadow-sm p-4">
                     <summary class="fw-bold">
-                        <span class="dashboard-kicker d-block mb-1">NÍVEL 2 · OBSERVAÇÃO E CONTROLE</span>
+                        <span class="dashboard-kicker d-block mb-1"><span class="learning-level-number">02</span> OBSERVAÇÃO E CONTROLE</span>
                         <span class="h5">Intermediário: local, isca e apresentação</span>
                         <span class="d-block small text-muted fw-normal mt-1">Aprenda a procurar o peixe e a adaptar sua estratégia.</span>
                     </summary>
@@ -82,10 +105,10 @@
                 </details>
             </div>
 
-            <div class="col-12 col-xl-6 nivel-dica" data-nivel="avancado">
-                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
+            <div class="col-12 col-xl-6 nivel-dica" data-nivel="avancado" id="nivel-avancado">
+                <details class="card dashboard-card dashboard-tip learning-level-card h-100 shadow-sm p-4">
                     <summary class="fw-bold">
-                        <span class="dashboard-kicker d-block mb-1">NÍVEL 3 · AJUSTE TÉCNICO</span>
+                        <span class="dashboard-kicker d-block mb-1"><span class="learning-level-number">03</span> AJUSTE TÉCNICO</span>
                         <span class="h5">Avançado: equipamento e leitura da pescaria</span>
                         <span class="d-block small text-muted fw-normal mt-1">Ajuste o material e interprete melhor o que acontece na linha.</span>
                     </summary>
@@ -103,10 +126,10 @@
                 </details>
             </div>
 
-            <div class="col-12 col-xl-6 nivel-dica" data-nivel="veterano">
-                <details class="card dashboard-card dashboard-tip h-100 shadow-sm p-4" open>
+            <div class="col-12 col-xl-6 nivel-dica" data-nivel="veterano" id="nivel-veterano">
+                <details class="card dashboard-card dashboard-tip learning-level-card h-100 shadow-sm p-4">
                     <summary class="fw-bold">
-                        <span class="dashboard-kicker d-block mb-1">NÍVEL 4 · ESTRATÉGIA E EXPERIÊNCIA</span>
+                        <span class="dashboard-kicker d-block mb-1"><span class="learning-level-number">04</span> ESTRATÉGIA E EXPERIÊNCIA</span>
                         <span class="h5">Veterano: análise, adaptação e responsabilidade</span>
                         <span class="d-block small text-muted fw-normal mt-1">Use observação e experiência sem deixar de validar suas hipóteses.</span>
                     </summary>
@@ -126,7 +149,7 @@
         {% if dicas_publicadas %}
             {% for dica in dicas_publicadas %}
                 <div class="col-12 col-xl-6 nivel-dica" data-nivel="{{ dica.nivel }}">
-                    <article class="card dashboard-card h-100 shadow-sm p-4">
+                    <article class="card dashboard-card learning-community-card h-100 shadow-sm p-4">
                         <span class="dashboard-kicker">{{ dica.get_nivel_display|upper }} · DICA DA COMUNIDADE</span>
                         <h3 class="h5 fw-bold mt-2">{{ dica.titulo }}</h3>
                         <p class="mb-3">{{ dica.descricao|linebreaksbr }}</p>
