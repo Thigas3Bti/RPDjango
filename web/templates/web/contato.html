@@ -7,6 +7,12 @@
 {% endblock %}
 
 {% block content %}
+<div class="contact-back-button">
+    <a href="{% url 'home' %}" class="btn btn-outline-success">
+        <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Voltar
+    </a>
+</div>
+
 <section class="contact-page py-2">
     <header class="contact-heading text-center">
         <h1>Fale com o RondoPesca</h1>
@@ -58,6 +64,14 @@
                 <h2 id="contact-form-title">Envie uma Mensagem</h2>
                 <form class="contact-form" method="post" aria-label="Formulário de contato">
                     {% csrf_token %}
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" role="status">{{ message }}</div>
+                    {% endfor %}
+                    {% endif %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+                    {% endif %}
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label for="{{ form.nome.id_for_label }}" class="form-label">{{ form.nome.label }}</label>

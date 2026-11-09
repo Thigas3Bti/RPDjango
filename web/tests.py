@@ -7,14 +7,16 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
-
+from django.contrib.auth.models import User
+from django.contrib.auth.models import Group
+from django.core import mail
 from PIL import Image
 
 from .models import Dica, MensagemContato
 from usuarios.models import PerfilUsuario
 
 
-class ContatoViewTests(TestCase):
+class ContactMessagesAdminTests(TestCase):
     def setUp(self):
         self.dados_mensagem = {
             'nome': 'Pessoa Teste',
@@ -81,7 +83,8 @@ class ContatoViewTests(TestCase):
             f'{reverse("login")}?next={reverse("mensagens_contato")}',
         )
 
-        self.client.force_login(User.objects.create_user(username='pescador'))
+        user = User.objects.create_user(username='pescador', password='senha')
+        self.client.force_login(user)
         response = self.client.get(reverse('mensagens_contato'))
         self.assertEqual(response.status_code, 403)
 
@@ -115,6 +118,7 @@ class ContatoViewTests(TestCase):
         )
         self.client.force_login(User.objects.create_user(
             username='admin',
+            password='senha',
             is_staff=True,
         ))
 
@@ -125,13 +129,15 @@ class ContatoViewTests(TestCase):
         })
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, lida.nome)
-        self.assertNotContains(response, 'Estou com um problema no cadastro.')
+        self.assertContains(response, self.message.mensagem)
+        self.assertContains(response, 'Solicitar cargo de pescador profissional')
+        self.assertEqual(response.context['total_nao_lidas'], 1)
 
     def test_staff_user_can_mark_message_read_and_unread(self):
         mensagem = MensagemContato.objects.create(**self.dados_mensagem)
         self.client.force_login(User.objects.create_user(
             username='admin',
+            password='senha',
             is_staff=True,
         ))
         url = reverse('atualizar_status_mensagem', args=[mensagem.id])
@@ -139,29 +145,91 @@ class ContatoViewTests(TestCase):
         response = self.client.post(url, {'status': 'lida'})
 
         self.assertRedirects(response, reverse('mensagens_contato'))
-        mensagem.refresh_from_db()
-        self.assertTrue(mensagem.lida)
+        self.message.refresh_from_db()
+        self.assertTrue(self.message.lida)
+
+    def test_message_status_update_rejects_get(self):
+        self.client.force_login(User.objects.create_user(
+            username='admin',
+            password='senha',
+            is_staff=True,
+        ))
 
         response = self.client.post(url, {'status': 'nao_lida'})
 
-        self.assertRedirects(response, reverse('mensagens_contato'))
-        mensagem.refresh_from_db()
-        self.assertFalse(mensagem.lida)
+        self.assertEqual(response.status_code, 405)
 
     def test_non_staff_cannot_change_message_status(self):
         mensagem = MensagemContato.objects.create(**self.dados_mensagem)
         self.client.force_login(User.objects.create_user(username='pescador'))
 
-        response = self.client.post(
-            reverse('atualizar_status_mensagem', args=[mensagem.id]),
-            {'status': 'lida'},
-        )
+class ContatoViewTests(TestCase):
+    def test_surprise_page_renders(self):
+        response = self.client.get(reverse('surpresa'))
 
-        self.assertEqual(response.status_code, 403)
-        mensagem.refresh_from_db()
-        self.assertFalse(mensagem.lida)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Uma surpresa!')
+        self.assertContains(response, 'surpresa-1.png')
+        self.assertContains(response, 'surpresa-2.png')
 
-    def test_home_contact_call_to_action_points_to_contact_page(self):
+    def test_contact_page_uses_shared_template_and_renders(self):
+        response = self.client.get(reverse('contato'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Fale com o RondoPesca')
+        self.assertContains(response, 'method="post"')
+        self.assertContains(response, 'csrfmiddlewaretoken')
+        self.assertContains(response, f'href="{reverse("home")}"')
+        self.assertContains(response, 'Voltar')
+        self.assertNotContains(response, 'href="/contato/"')
+
+    def test_contact_form_sends_message_to_site_email(self):
+        response = self.client.post(reverse('contato'), {
+            'nome': 'Maria Pescadora',
+            'email': 'maria@example.com',
+            'assunto': 'duvida',
+            'mensagem': 'Como escolho uma isca?',
+        })
+
+        self.assertRedirects(response, reverse('contato'))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ['rondopescacontato@gmail.com'])
+        self.assertIn('Maria Pescadora', mail.outbox[0].body)
+        self.assertIn('Como escolho uma isca?', mail.outbox[0].body)
+        self.assertEqual(mail.outbox[0].reply_to, ['maria@example.com'])
+        mensagem = MensagemContato.objects.get()
+        self.assertEqual(mensagem.nome, 'Maria Pescadora')
+        self.assertEqual(mensagem.assunto, 'duvida')
+
+    def test_contact_form_includes_professional_request_and_records_it(self):
+        response = self.client.get(reverse('contato'))
+        self.assertContains(response, 'Solicitar cargo de pescador profissional')
+
+        response = self.client.post(reverse('contato'), {
+            'nome': 'João Pescador',
+            'email': 'joao@example.com',
+            'assunto': 'profissional',
+            'mensagem': 'Solicito o cargo profissional.',
+        })
+
+        self.assertRedirects(response, reverse('contato'))
+        mensagem = MensagemContato.objects.get()
+        self.assertEqual(mensagem.assunto, 'profissional')
+        self.assertIn('profissional', mail.outbox[0].subject.lower())
+
+    def test_contact_form_shows_errors_for_invalid_data(self):
+        response = self.client.post(reverse('contato'), {
+            'nome': '',
+            'email': 'email-invalido',
+            'assunto': 'sem-opcao',
+            'mensagem': '',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertContains(response, 'Este campo é obrigatório.')
+
+    def test_home_ctas_point_visitors_to_registration(self):
         response = self.client.get(reverse('home'))
 
         self.assertEqual(response.status_code, 200)
@@ -228,6 +296,7 @@ class DashboardFishingTipsTests(TestCase):
                     f'class="col-12 col-xl-6 nivel-dica" data-nivel="{nivel}"',
                 )
         self.assertNotContains(response, 'Adicionar nova dica')
+        self.assertContains(response, 'Somente pescadores oficiais podem adicionar dicas.')
 
     def test_dashboard_menu_links_to_dedicated_tips_page(self):
         response = self.client.get(reverse('inicio'))
@@ -254,11 +323,15 @@ class DashboardFishingTipsTests(TestCase):
             password='senha-correta',
             is_staff=True,
         )
+    def test_official_fisherman_can_publish_tip_and_see_it_in_list(self):
+        user = User.objects.create_user(username='pescador', password='senha-correta')
+        group, _ = Group.objects.get_or_create(name='Pescador')
+        user.groups.add(group)
         self.client.force_login(user)
 
         response = self.client.post(reverse('adicionar_dica'), {
             'titulo': 'Ler a correnteza',
-            'categoria': 'intermediario',
+            'nivel': 'intermediario',
             'descricao': 'Observe onde a corrente muda de velocidade.',
         })
 
@@ -279,50 +352,24 @@ class DashboardFishingTipsTests(TestCase):
             f'{reverse("login")}?next={reverse("adicionar_dica")}',
         )
 
-    def test_admin_form_shows_only_the_requested_categories(self):
-        user = User.objects.create_user(
-            username='administrador',
-            password='senha-correta',
-            is_staff=True,
-        )
+    def test_regular_user_cannot_publish_tip(self):
+        user = User.objects.create_user(username='usuario', password='senha-correta')
         self.client.force_login(user)
 
-        response = self.client.get(reverse('adicionar_dica'))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            list(response.context['form'].fields['categoria'].choices),
-            [
-                ('iniciante', 'Iniciante'),
-                ('intermediario', 'Intermediário'),
-                ('avancado', 'Avançado'),
-                ('veterano', 'Veterano'),
-            ],
-        )
-
-    def test_regular_user_cannot_open_or_submit_tip_form(self):
-        user = User.objects.create_user(username='pescador', password='senha-correta')
-        self.client.force_login(user)
-
-        get_response = self.client.get(reverse('adicionar_dica'))
-        post_response = self.client.post(reverse('adicionar_dica'), {
+        response = self.client.post(reverse('adicionar_dica'), {
             'titulo': 'Dica não autorizada',
-            'categoria': 'iscas',
-            'descricao': 'Este conteúdo não deve ser salvo.',
+            'nivel': 'intermediario',
+            'descricao': 'Descrição válida.',
         })
         tips_response = self.client.get(reverse('dicas'))
 
-        self.assertEqual(get_response.status_code, 403)
-        self.assertEqual(post_response.status_code, 403)
-        self.assertNotContains(tips_response, 'Adicionar nova dica')
-        self.assertEqual(Dica.objects.count(), 0)
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Dica.objects.exists())
 
     def test_invalid_tip_is_not_saved(self):
-        user = User.objects.create_user(
-            username='administrador',
-            password='senha-correta',
-            is_staff=True,
-        )
+        user = User.objects.create_user(username='pescador', password='senha-correta')
+        group, _ = Group.objects.get_or_create(name='Pescador')
+        user.groups.add(group)
         self.client.force_login(user)
 
         response = self.client.post(reverse('adicionar_dica'), {

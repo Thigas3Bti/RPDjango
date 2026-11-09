@@ -1,14 +1,15 @@
 from django.contrib import messages
-from django.contrib.auth import (
-    login as auth_login,
-    logout as auth_logout,
-)
+from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
+from django.core.mail import EmailMessage
 from django.db.models import Q
+from django.http import HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+import logging
+import smtplib
 
 from .forms import (
     DicaForm,
@@ -17,10 +18,10 @@ from .forms import (
     MensagemContatoForm,
     RegistrationForm,
 )
-from .forms import ContatoForm, LoginForm, RegistrationForm
 from forum.models import EventoAgenda
 from .models import Dica, MensagemContato
 from usuarios.models import PerfilUsuario
+logger = logging.getLogger(__name__)
 
 
 logger = logging.getLogger(__name__)
@@ -54,6 +55,30 @@ def contato(request):
         request.POST if request.method == 'POST' else None,
     )
     if request.method == 'POST' and form.is_valid():
+        mensagem_contato = form.save()
+        assunto = f"[RondoPesca] {mensagem_contato.get_assunto_display()}"
+        corpo = (
+            f"Nome: {mensagem_contato.nome}\n"
+            f"E-mail: {mensagem_contato.email}\n\n"
+            f"Mensagem:\n{mensagem_contato.mensagem}"
+        )
+        try:
+            EmailMessage(
+                subject=assunto,
+                body=corpo,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[settings.CONTACT_EMAIL],
+                reply_to=[mensagem_contato.email],
+            ).send(fail_silently=False)
+        except (OSError, smtplib.SMTPException):
+            logger.exception('Falha ao enviar mensagem do formulário de contato.')
+            messages.warning(
+                request,
+                'Sua mensagem foi registrada, mas não foi possível enviar a notificação por e-mail.',
+            )
+        else:
+            messages.success(request, 'Sua mensagem foi enviada com sucesso!')
+        return redirect('contato')
         dados = form.cleaned_data
         assunto = f"[RondoPesca] {dados['assunto']}"
         corpo = (
@@ -84,25 +109,26 @@ def contato(request):
 
 @login_required(login_url='login')
 def mensagens_contato(request):
-    if not request.user.is_staff:
-        raise PermissionDenied
+    if not request.user.is_active or not request.user.is_staff:
+        return HttpResponseForbidden()
 
-    status = request.GET.get('status', '')
-    assunto = request.GET.get('assunto', '')
-    busca = request.GET.get('q', '').strip()
     mensagens = MensagemContato.objects.all()
-
-    if status == 'nao_lidas':
-        mensagens = mensagens.filter(lida=False)
-    elif status == 'lidas':
+    status = request.GET.get('status', '')
+    if status == 'lidas':
         mensagens = mensagens.filter(lida=True)
+    elif status == 'nao_lidas':
+        mensagens = mensagens.filter(lida=False)
+    else:
+        status = ''
 
+    assunto = request.GET.get('assunto', '')
     assuntos_validos = {valor for valor, _ in MensagemContato.ASSUNTOS}
     if assunto in assuntos_validos:
         mensagens = mensagens.filter(assunto=assunto)
     else:
         assunto = ''
 
+    busca = request.GET.get('q', '').strip()
     if busca:
         mensagens = mensagens.filter(
             Q(nome__icontains=busca)
@@ -113,6 +139,9 @@ def mensagens_contato(request):
 
     return render(request, 'web/mensagens_contato.html', {
         'mensagens_contato': mensagens,
+        'total_nao_lidas': MensagemContato.objects.filter(lida=False).count(),
+        'status_selecionado': status,
+        'assunto_selecionado': assunto,
         'assuntos': MensagemContato.ASSUNTOS,
         'status_selecionado': status if status in ('nao_lidas', 'lidas') else '',
         'assunto_selecionado': assunto,
@@ -124,22 +153,24 @@ def mensagens_contato(request):
 @login_required(login_url='login')
 @require_POST
 def atualizar_status_mensagem(request, mensagem_id):
-    if not request.user.is_staff:
-        raise PermissionDenied
+    if not request.user.is_active or not request.user.is_staff:
+        return HttpResponseForbidden()
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
 
     mensagem = get_object_or_404(MensagemContato, pk=mensagem_id)
     status = request.POST.get('status')
-    if status not in ('lida', 'nao_lida'):
-        messages.error(request, 'Não foi possível atualizar o status da mensagem.')
+    if status == 'lida':
+        mensagem.lida = True
+    elif status == 'nao_lida':
+        mensagem.lida = False
+    else:
+        messages.error(request, 'Situação de mensagem inválida.')
         return redirect('mensagens_contato')
 
     mensagem.lida = status == 'lida'
     mensagem.save(update_fields=['lida'])
-    messages.success(
-        request,
-        'Mensagem marcada como lida.'
-        if mensagem.lida else 'Mensagem marcada como não lida.',
-    )
+    messages.success(request, 'Situação da mensagem atualizada.')
     return redirect('mensagens_contato')
 
 
@@ -150,6 +181,7 @@ def surpresa(request):
 def dicas(request):
     return render(request, 'web/dicas.html', {
         'dicas_publicadas': Dica.objects.select_related('autor').all(),
+        'pode_adicionar_dica': eh_pescador(request.user),
     })
 
 
