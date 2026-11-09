@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar {{ local.nome }} | RondoPesca{% endblock %}
+
+{% block content %}
+<div class="dashboard-home fishing-locations">
+    <div class="mb-3">
+        <a class="btn btn-outline-success" href="{% url 'detalhe_local' local.pk %}">
+            <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Voltar ao local
+        </a>
+    </div>
+
+    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm" aria-labelledby="edit-location-title">
+        <span class="dashboard-kicker">ATUALIZE AS INFORMAÇÕES</span>
+        <h1 class="display-6 fw-bold mt-2 mb-2" id="edit-location-title">Editar {{ local.nome }}</h1>
+        <p class="mb-0 text-muted">Altere somente os campos que deseja atualizar. Os demais dados serão mantidos.</p>
+    </section>
+
+    <section class="card dashboard-card location-form-card shadow-sm" aria-labelledby="edit-location-form-title">
+        <div class="card-body p-4 p-lg-5">
+            <h2 class="h3 fw-bold mb-2" id="edit-location-form-title">Informações do local</h2>
+            <p class="text-muted mb-4">Os campos já estão preenchidos com os dados atuais do local.</p>
+
+            <form method="post" enctype="multipart/form-data" class="row g-3">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="{% if field.name == 'descricao' %}col-12{% else %}col-12 col-md-6{% endif %}">
+                    <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.name == 'municipio' %}
+                    <datalist id="municipios-rondonia">
+                        {% for valor, nome in form.fields.municipio.choices %}
+                        {% if valor %}<option value="{{ valor }}">{% endif %}
+                        {% endfor %}
+                    </datalist>
+                    <div class="form-text">Digite para pesquisar e selecione um município de Rondônia.</div>
+                    {% elif field.name == 'descricao' %}
+                    <div class="form-text">Descreva como chegar, condições de acesso, estrutura disponível e cuidados importantes.</div>
+                    {% elif field.name == 'foto' %}
+                    {% if local.foto %}
+                    <div class="form-text">Foto atual: <a href="{{ local.foto.url }}" target="_blank" rel="noopener noreferrer">visualizar foto</a>. Selecione outra para substituir.</div>
+                    {% else %}
+                    <div class="form-text">Envie uma imagem de até 5 MB. A foto é opcional.</div>
+                    {% endif %}
+                    {% elif field.name == 'fotos' %}
+                    <div class="form-text">As fotos enviadas serão acrescentadas à galeria atual, sem remover as existentes.</div>
+                    {% endif %}
+                    {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+                {% endfor %}
+                {% if form.non_field_errors %}
+                <div class="col-12">
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}<p class="mb-0">{{ error }}</p>{% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="col-12 d-flex flex-wrap gap-2 mt-4">
+                    <button class="btn btn-success px-4" type="submit">
+                        <i class="bi bi-check-circle me-1" aria-hidden="true"></i>Salvar alterações
+                    </button>
+                    <a class="btn btn-outline-secondary" href="{% url 'detalhe_local' local.pk %}">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+{% endblock %}
