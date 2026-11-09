@@ -4,7 +4,6 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from .models import Dica
 from usuarios.models import PerfilUsuario
 
 
@@ -85,48 +84,6 @@ class ContatoForm(forms.Form):
             'placeholder': 'Escreva sua mensagem aqui...',
         }),
     )
-
-
-class DicaForm(forms.ModelForm):
-    MAX_IMAGE_SIZE = 5 * 1024 * 1024
-
-    class Meta:
-        model = Dica
-        fields = ['titulo', 'descricao', 'categoria', 'imagem']
-        labels = {
-            'titulo': 'Título da dica',
-            'descricao': 'Descrição da dica',
-            'categoria': 'Categoria',
-            'imagem': 'Imagem ilustrativa (opcional)',
-        }
-        widgets = {
-            'titulo': forms.TextInput(attrs={
-                'class': 'form-control',
-                'maxlength': 120,
-                'placeholder': 'Ex.: Como escolher a isca para o local',
-            }),
-            'descricao': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 6,
-                'placeholder': 'Explique sua dica com detalhes e contexto (opcional).',
-            }),
-            'categoria': forms.Select(attrs={'class': 'form-select'}),
-            'imagem': forms.ClearableFileInput(attrs={
-                'class': 'form-control',
-                'accept': 'image/*',
-            }),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.error_messages['required'] = _('Este campo é obrigatório.')
-
-    def clean_imagem(self):
-        imagem = self.cleaned_data.get('imagem')
-        if imagem and imagem.size > self.MAX_IMAGE_SIZE:
-            raise ValidationError(_('A imagem deve ter no máximo 5 MB.'))
-        return imagem
 
 
 class LoginForm(AuthenticationForm):
