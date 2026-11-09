@@ -37,6 +37,36 @@ class ComunidadeTests(TestCase):
         self.assertContains(resposta, publicacao.texto)
         self.assertContains(resposta, self.autor.username)
 
+    def test_forum_exibe_link_para_dicas_e_adicao_so_para_administradores(self):
+        resposta_publica = self.client.get(reverse('comunidade'))
+
+        self.assertContains(resposta_publica, f'href="{reverse("dicas")}"')
+        self.assertNotContains(resposta_publica, f'href="{reverse("adicionar_dica")}"')
+
+        administrador = get_user_model().objects.create_user(
+            username='administrador',
+            password='senha-segura-789',
+            is_staff=True,
+        )
+        self.client.force_login(administrador)
+        resposta_admin = self.client.get(reverse('comunidade'))
+
+        self.assertContains(resposta_admin, f'href="{reverse("dicas")}"')
+        self.assertContains(resposta_admin, f'href="{reverse("adicionar_dica")}"')
+
+    def test_menu_lateral_mantem_dicas_ativa_nas_paginas_do_forum(self):
+        self.client.force_login(self.autor)
+
+        for rota in ('dicas', 'adicionar_dica'):
+            with self.subTest(rota=rota):
+                resposta = self.client.get(reverse(rota))
+
+                self.assertEqual(resposta.status_code, 200)
+                self.assertContains(
+                    resposta,
+                    f'<a href="{reverse("dicas")}" class="nav-link active">Dicas</a>',
+                )
+
     def test_usuario_autenticado_cria_publicacao_persistente(self):
         self.client.force_login(self.autor)
 
