@@ -102,7 +102,7 @@
             </div>
             <form method="post" id="bioEditForm" data-saved-bio="{{ perfil_usuario.bio }}"{% if not editar_bio %} class="d-none"{% endif %}>
                 {% csrf_token %}
-                <div class="mb-3">
+                <div class"mb-3">
                     <label class="form-label fw-semibold" for="{{ bio_form.bio.id_for_label }}">
                         {{ bio_form.bio.label }}
                     </label>
