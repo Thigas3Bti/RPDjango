@@ -1,9 +1,83 @@
+from io import BytesIO
+
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
+from PIL import Image
 
 from .models import Dica
+from usuarios.models import PerfilUsuario
+
+
+class PerfilEdicaoTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='perfil-edicao',
+            password='senha-segura-123',
+        )
+        self.client.force_login(self.user)
+        self.perfil = PerfilUsuario.objects.create(usuario=self.user)
+        self.addCleanup(self._remover_foto)
+
+    def _remover_foto(self):
+        self.perfil.refresh_from_db()
+        if self.perfil.foto:
+            self.perfil.foto.delete(save=False)
+
+    def test_perfil_exibe_bio_e_controles_de_edicao(self):
+        self.perfil.bio = 'Gosto de pesca esportiva.'
+        self.perfil.save()
+
+        response = self.client.get(reverse('perfil'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Gosto de pesca esportiva.')
+        self.assertContains(response, 'Editar')
+        self.assertContains(response, 'Cancelar')
+
+    def test_perfil_salva_bio(self):
+        response = self.client.post(
+            reverse('perfil'),
+            {'atualizar_bio': '1', 'bio': 'Minha bio atualizada.'},
+        )
+
+        self.assertRedirects(response, reverse('perfil'))
+        self.perfil.refresh_from_db()
+        self.assertEqual(self.perfil.bio, 'Minha bio atualizada.')
+
+    def test_bio_invalida_mantem_formulario_em_edicao_sem_salvar(self):
+        self.perfil.bio = 'Bio atual.'
+        self.perfil.save()
+
+        response = self.client.post(
+            reverse('perfil'),
+            {'atualizar_bio': '1', 'bio': 'a' * 501},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['editar_bio'])
+        self.perfil.refresh_from_db()
+        self.assertEqual(self.perfil.bio, 'Bio atual.')
+
+    def test_perfil_salva_foto_enviada(self):
+        image_buffer = BytesIO()
+        Image.new('RGB', (1, 1), color='green').save(image_buffer, format='PNG')
+        image = SimpleUploadedFile(
+            'perfil.png',
+            image_buffer.getvalue(),
+            content_type='image/png',
+        )
+
+        response = self.client.post(
+            reverse('perfil'),
+            {'atualizar_foto': '1', 'foto': image},
+        )
+
+        self.assertRedirects(response, reverse('perfil'))
+        self.perfil.refresh_from_db()
+        self.assertTrue(self.perfil.foto)
 
 
 class ContatoViewTests(TestCase):

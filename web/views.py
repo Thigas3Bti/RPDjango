@@ -9,9 +9,17 @@ from django.utils import timezone
 import logging
 import smtplib
 
-from .forms import ContatoForm, DicaForm, LoginForm, RegistrationForm
+from .forms import (
+    BioPerfilForm,
+    ContatoForm,
+    DicaForm,
+    FotoPerfilForm,
+    LoginForm,
+    RegistrationForm,
+)
 from forum.models import EventoAgenda
 from .models import Dica
+from usuarios.models import PerfilUsuario
 
 
 logger = logging.getLogger(__name__)
@@ -114,7 +122,41 @@ def painel(request):
 
 @login_required(login_url='login')
 def perfil(request):
-    return render(request, 'usuarios/pescador/perfil.html')
+    perfil_usuario, _ = PerfilUsuario.objects.get_or_create(usuario=request.user)
+    foto_form = FotoPerfilForm(instance=perfil_usuario)
+    bio_form = BioPerfilForm(instance=perfil_usuario)
+    editar_bio = False
+
+    if request.method == 'POST':
+        if 'atualizar_foto' in request.POST:
+            foto_form = FotoPerfilForm(
+                request.POST,
+                request.FILES,
+                instance=perfil_usuario,
+            )
+            if foto_form.is_valid():
+                foto_form.save()
+                messages.success(request, 'Foto de perfil atualizada.')
+                return redirect('perfil')
+        elif 'atualizar_bio' in request.POST:
+            bio_form = BioPerfilForm(request.POST, instance=perfil_usuario)
+            if bio_form.is_valid():
+                bio_form.save()
+                messages.success(request, 'Bio atualizada.')
+                return redirect('perfil')
+            editar_bio = True
+        elif 'remover_foto' in request.POST and perfil_usuario.foto:
+            perfil_usuario.foto = None
+            perfil_usuario.save(update_fields=['foto'])
+            messages.success(request, 'Foto de perfil removida.')
+            return redirect('perfil')
+
+    return render(request, 'usuarios/pescador/perfil.html', {
+        'perfil_usuario': perfil_usuario,
+        'foto_form': foto_form,
+        'bio_form': bio_form,
+        'editar_bio': editar_bio,
+    })
 
 
 def login(request):

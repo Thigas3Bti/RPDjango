@@ -18,7 +18,6 @@ class FotoPerfilForm(forms.ModelForm):
                 'class': 'visually-hidden',
                 'accept': 'image/*',
                 'aria-label': 'Escolha uma foto de perfil',
-                'onchange': 'this.form.requestSubmit()',
             }),
         }
 
