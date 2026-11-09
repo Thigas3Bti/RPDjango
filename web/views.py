@@ -17,9 +17,13 @@ from .forms import (
     MensagemContatoForm,
     RegistrationForm,
 )
+from .forms import ContatoForm, LoginForm, RegistrationForm
 from forum.models import EventoAgenda
 from .models import Dica, MensagemContato
 from usuarios.models import PerfilUsuario
+
+
+logger = logging.getLogger(__name__)
 
 
 def _eventos_proximos(user):
@@ -41,14 +45,39 @@ def home(request):
     return render(request, 'web/home.html')
 
 
+def surpresa(request):
+    return render(request, 'web/surpresa.html')
+
+
 def contato(request):
     form = MensagemContatoForm(
         request.POST if request.method == 'POST' else None,
     )
     if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Sua mensagem foi enviada com sucesso.')
-        return redirect('contato')
+        dados = form.cleaned_data
+        assunto = f"[RondoPesca] {dados['assunto']}"
+        corpo = (
+            f"Nome: {dados['nome']}\n"
+            f"E-mail: {dados['email']}\n\n"
+            f"Mensagem:\n{dados['mensagem']}"
+        )
+        try:
+            EmailMessage(
+                subject=assunto,
+                body=corpo,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[settings.CONTACT_EMAIL],
+                reply_to=[dados['email']],
+            ).send(fail_silently=False)
+        except (OSError, smtplib.SMTPException):
+            logger.exception('Falha ao enviar mensagem do formulário de contato.')
+            messages.error(
+                request,
+                'Não foi possível enviar sua mensagem agora. Tente novamente mais tarde.',
+            )
+        else:
+            messages.success(request, 'Sua mensagem foi enviada com sucesso!')
+            return redirect('contato')
 
     return render(request, 'web/contato.html', {'form': form})
 

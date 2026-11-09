@@ -14,8 +14,6 @@ urlpatterns = [
         name='atualizar_status_mensagem',
     ),
     path('surpresa/', views.surpresa, name='surpresa'),
-    path('dicas/', views.dicas, name='dicas'),
-    path('dicas/adicionar/', views.adicionar_dica, name='adicionar_dica'),
     path('login/', views.login, name='login'),
     path('cadastro/', views.cadastro, name='cadastro'),
     path('logout/', views.logout, name='logout'),

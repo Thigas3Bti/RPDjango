@@ -165,6 +165,10 @@ class ContatoViewTests(TestCase):
         response = self.client.get(reverse('home'))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'href="{reverse("cadastro")}"')
+        self.assertContains(response, 'aria-label="Explorar Agora"')
+        self.assertContains(response, 'Cadastre-se e explore mais.')
+        self.assertContains(response, 'Cadastre-se grátis')
         self.assertContains(response, f'href="{reverse("contato")}"')
         self.assertContains(response, 'Falar conosco')
 
@@ -186,6 +190,25 @@ class SurpresaViewTests(TestCase):
         self.assertContains(response, 'images/surpresa.png')
 
 
+class SurpresaViewTests(TestCase):
+    def test_secret_command_is_loaded_without_a_visible_button(self):
+        for page in ('home', 'inicio'):
+            with self.subTest(page=page):
+                response = self.client.get(reverse(page))
+
+                self.assertContains(response, 'js/base.js?v=20261026-secret-command')
+                self.assertContains(response, f'data-surprise-url="{reverse("surpresa")}"')
+                self.assertNotContains(response, 'secret-surprise-button')
+
+    def test_surprise_page_displays_the_attached_image(self):
+        response = self.client.get(reverse('surpresa'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Uma surpresa!')
+        self.assertContains(response, 'images/surpresa-1.png')
+        self.assertContains(response, 'images/surpresa-2.png')
+
+
 class DashboardFishingTipsTests(TestCase):
     def test_dedicated_tips_page_displays_each_level_and_filter(self):
         response = self.client.get(reverse('dicas'))
@@ -197,14 +220,34 @@ class DashboardFishingTipsTests(TestCase):
         self.assertContains(response, 'Avançado: equipamento e leitura da pescaria')
         self.assertContains(response, 'Veterano: análise, adaptação e responsabilidade')
         self.assertContains(response, 'id="filtro-nivel-dicas"')
+        self.assertContains(response, 'class="row g-3" id="lista-niveis-dicas"')
+        for nivel in ('iniciante', 'intermediario', 'avancado', 'veterano'):
+            with self.subTest(nivel=nivel):
+                self.assertContains(
+                    response,
+                    f'class="col-12 col-xl-6 nivel-dica" data-nivel="{nivel}"',
+                )
         self.assertNotContains(response, 'Adicionar nova dica')
 
     def test_dashboard_menu_links_to_dedicated_tips_page(self):
         response = self.client.get(reverse('inicio'))
 
+        self.assertContains(
+            response,
+            'images/banner_tela_inicio.jpg',
+        )
+        self.assertContains(response, 'images/local1.jpg')
+        self.assertContains(response, 'images/local2.jpg')
+        self.assertContains(response, 'images/local3.jpg')
         self.assertContains(response, f'href="{reverse("dicas")}"')
         self.assertNotContains(response, 'id="lista-niveis-dicas"')
 
+    def test_authenticated_user_can_publish_tip_and_see_it_in_list(self):
+        user = User.objects.create_user(
+            username='administrador',
+            password='senha-correta',
+            is_staff=True,
+        )
     def test_admin_can_publish_tip_and_see_it_in_list(self):
         user = User.objects.create_user(
             username='administrador',
@@ -215,7 +258,7 @@ class DashboardFishingTipsTests(TestCase):
 
         response = self.client.post(reverse('adicionar_dica'), {
             'titulo': 'Ler a correnteza',
-            'categoria': 'avancado',
+            'categoria': 'intermediario',
             'descricao': 'Observe onde a corrente muda de velocidade.',
         })
 
