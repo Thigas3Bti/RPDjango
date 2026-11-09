@@ -51,10 +51,17 @@
                             <time class="community-post-time" datetime="{{ publicacao.criada_em|date:'c' }}">{{ publicacao.criada_em|date:"d/m/Y H:i" }}</time>
                         </div>
                         {% if request.user.is_authenticated and publicacao.autor_id == request.user.id or request.user.is_staff %}
-                        <form class="ms-auto" method="post" action="{% url 'excluir_publicacao' publicacao.pk %}" onsubmit="return confirm('Tem certeza de que deseja excluir esta publicação?');">
-                            {% csrf_token %}
-                            <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Excluir publicação">Excluir publicação</button>
-                        </form>
+                        <div class="ms-auto d-flex gap-2">
+                            <a class="btn btn-sm btn-outline-primary" href="{% url 'editar_publicacao' publicacao.pk %}" aria-label="Editar publicação" title="Editar publicação">
+                                <i class="bi bi-pencil" aria-hidden="true"></i>
+                            </a>
+                            <form method="post" action="{% url 'excluir_publicacao' publicacao.pk %}" onsubmit="return confirm('Tem certeza de que deseja excluir esta publicação?');">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Excluir publicação" title="Excluir publicação">
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
+                                </button>
+                            </form>
+                        </div>
                         {% endif %}
                     </header>
 
@@ -64,6 +71,13 @@
 
                     {% if publicacao.texto %}
                     <p class="community-post-text">{{ publicacao.texto }}</p>
+                    {% endif %}
+
+                    {% if publicacao.local_pescaria %}
+                    <p class="small text-muted mb-3">
+                        <i class="bi bi-geo-alt-fill text-success me-1" aria-hidden="true"></i>
+                        Pescado em {{ publicacao.local_pescaria }}
+                    </p>
                     {% endif %}
 
                     {% if publicacao.foto %}
