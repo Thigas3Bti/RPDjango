@@ -538,35 +538,69 @@ class LoginErrorMessageTests(TestCase):
 
 
 class RegistrationTests(TestCase):
+    personal_data = {
+        'first_name': 'Novo',
+        'last_name': 'Pescador',
+        'email': 'novo@example.com',
+    }
+
+    def avancar_para_etapa_dois(self):
+        return self.client.post(
+            reverse('cadastro'),
+            {'etapa': '1', **self.personal_data},
+        )
+
     def test_login_page_links_to_registration(self):
         response = self.client.get(reverse('login'))
 
         self.assertContains(response, 'Não tem uma conta?')
         self.assertContains(response, f'href="{reverse("cadastro")}"')
+        self.assertNotContains(response, 'Google')
 
-    def test_registration_page_renders_account_fields(self):
+    def test_registration_page_renders_first_stage(self):
         response = self.client.get(reverse('cadastro'))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Criar conta')
-        self.assertContains(response, 'Confirme a senha')
-        self.assertContains(response, 'Escolha um nome de usuário para acessar sua conta.')
-        self.assertContains(response, 'Use pelo menos 8 caracteres.')
+        self.assertContains(response, 'Etapa 1 de 2')
+        self.assertContains(response, 'Continuar')
         self.assertContains(response, 'voce@exemplo.com')
+        self.assertNotContains(response, 'Confirme a senha')
+        self.assertNotContains(response, 'Google')
 
     def test_registration_shows_portuguese_required_field_errors(self):
-        response = self.client.post(reverse('cadastro'), {})
+        response = self.client.post(reverse('cadastro'), {'etapa': '1'})
 
         self.assertContains(response, 'Este campo é obrigatório.')
 
+    def test_personal_information_is_saved_before_credentials_stage(self):
+        response = self.avancar_para_etapa_dois()
+
+        self.assertRedirects(response, f'{reverse("cadastro")}?etapa=2')
+        self.assertNotIn('password1', self.client.session['cadastro_dados_pessoais'])
+        response = self.client.get(reverse('cadastro'), {'etapa': '2'})
+        self.assertContains(response, 'Etapa 2 de 2')
+        self.assertContains(response, 'Confirme a senha')
+        self.assertContains(response, 'Escolha um nome de usuário para acessar sua conta.')
+        self.assertContains(response, 'Use pelo menos 8 caracteres.')
+
+    def test_back_link_returns_to_personal_information_with_values(self):
+        self.avancar_para_etapa_dois()
+        response = self.client.get(reverse('cadastro'), {'etapa': '2'})
+
+        self.assertContains(response, f'href="{reverse("cadastro")}?etapa=1">Voltar</a>')
+        response = self.client.get(reverse('cadastro'), {'etapa': '1'})
+        self.assertContains(response, 'value="Novo"')
+        self.assertContains(response, 'value="Pescador"')
+        self.assertContains(response, 'value="novo@example.com"')
+
     def test_registration_shows_portuguese_password_mismatch_error(self):
+        self.avancar_para_etapa_dois()
         response = self.client.post(
             reverse('cadastro'),
             {
+                'etapa': '2',
                 'username': 'novo-pescador',
-                'first_name': 'Novo',
-                'last_name': 'Pescador',
-                'email': 'novo@example.com',
                 'password1': 'SenhaSegura123!',
                 'password2': 'SenhaDiferente123!',
             },
@@ -574,22 +608,55 @@ class RegistrationTests(TestCase):
 
         self.assertContains(response, 'As senhas informadas não são iguais.')
 
-    def test_registration_creates_user_and_logs_them_in(self):
+    def test_registration_redirects_to_login_with_credentials_prefilled_once(self):
+        self.avancar_para_etapa_dois()
         response = self.client.post(
             reverse('cadastro'),
             {
+                'etapa': '2',
                 'username': 'novo-pescador',
-                'first_name': 'Novo',
-                'last_name': 'Pescador',
-                'email': 'novo@example.com',
                 'password1': 'SenhaSegura123!',
                 'password2': 'SenhaSegura123!',
             },
         )
 
-        self.assertRedirects(response, reverse('painel'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], reverse('login'))
         self.assertTrue(User.objects.filter(username='novo-pescador').exists())
-        self.assertIn('_auth_user_id', self.client.session)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+        response = self.client.get(reverse('login'))
+
+        self.assertContains(response, 'value="novo-pescador"')
+        self.assertContains(response, 'value="SenhaSegura123!"')
+        self.assertNotIn('credenciais_cadastro', self.client.session)
+
+        response = self.client.get(reverse('login'))
+        self.assertNotContains(response, 'value="SenhaSegura123!"')
+
+    def test_registration_rejects_existing_username_with_clear_error(self):
+        User.objects.create_user(username='usuario-existente', password='SenhaSegura123!')
+        self.avancar_para_etapa_dois()
+
+        response = self.client.post(reverse('cadastro'), {
+            'etapa': '2',
+            'username': 'USUARIO-EXISTENTE',
+            'password1': 'SenhaSegura123!',
+            'password2': 'SenhaSegura123!',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'Já existe alguém cadastrado com esse nome de usuário',
+        )
+        self.assertEqual(User.objects.count(), 1)
+
+    def test_registration_cannot_skip_personal_information_stage(self):
+        response = self.client.get(reverse('cadastro'), {'etapa': '2'})
+
+        self.assertRedirects(response, reverse('cadastro'))
+        self.assertEqual(User.objects.count(), 0)
 
 
 class UserMenuTests(TestCase):

@@ -222,6 +222,9 @@ class RegistrationForm(UserCreationForm):
 
     error_messages = {
         'password_mismatch': _('As senhas informadas não são iguais.'),
+        'duplicate_username': _(
+            'Já existe alguém cadastrado com esse nome de usuário '
+        ),
     }
 
     class Meta(UserCreationForm.Meta):
@@ -273,7 +276,60 @@ class RegistrationForm(UserCreationForm):
             raise ValidationError(_('Informe um endereço de email válido.'))
         return email
 
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        user_model = get_user_model()
+        username_field = user_model.USERNAME_FIELD
+        if user_model._default_manager.filter(
+            **{f'{username_field}__iexact': username},
+        ).exists():
+            raise ValidationError(
+                self.error_messages['duplicate_username'],
+                code='duplicate_username',
+            )
+        return username
+
     def _get_validation_exclusions(self):
         exclusions = super()._get_validation_exclusions()
         exclusions.add('email')
         return exclusions
+
+
+class RegistrationPersonalForm(forms.ModelForm):
+    class Meta:
+        model = get_user_model()
+        fields = ('first_name', 'last_name', 'email')
+        labels = {
+            'first_name': 'Nome',
+            'last_name': 'Sobrenome',
+            'email': 'E-mail',
+        }
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Seu nome',
+                'autocomplete': 'given-name',
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Seu sobrenome',
+                'autocomplete': 'family-name',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'voce@exemplo.com',
+                'autocomplete': 'email',
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.required = True
+            field.error_messages['required'] = _('Este campo é obrigatório.')
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if '@' not in email:
+            raise ValidationError(_('Informe um endereço de email válido.'))
+        return email

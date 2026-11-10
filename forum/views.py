@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import ComentarioForm, DicaForm, EventoAgendaForm, PublicacaoForm
 from .models import Comentario, Curtida, Dica, EventoAgenda, Publicacao
+from usuarios.permissoes import eh_pescador
 
 
 def dicas(request):
