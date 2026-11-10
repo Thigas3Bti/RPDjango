@@ -95,6 +95,13 @@ class ContactMessagesAdminTests(TestCase):
         admin = User.objects.create_user(username='admin', is_staff=True)
         self.client.force_login(admin)
 
+        response = self.client.get(reverse('mensagens_contato'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'admin-page-hero')
+        self.assertContains(response, 'Mensagens recebidas')
+        self.assertContains(response, mensagem.nome)
+
 class PerfilEdicaoTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(

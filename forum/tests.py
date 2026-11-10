@@ -150,6 +150,18 @@ class ComunidadeTests(TestCase):
         self.assertContains(resposta_feed, 'Experimente uma isca adequada à espécie.')
         self.assertContains(resposta_feed, 'Rio Madeira')
 
+    def test_formulario_publicacao_exibe_cabecalho_com_layout_de_fotos(self):
+        self.client.force_login(self.autor)
+
+        resposta = self.client.get(reverse('publicar'))
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'community-publish-hero')
+        self.assertContains(resposta, 'community-publish-hero-art')
+        self.assertContains(resposta, 'bi-camera-fill')
+        self.assertContains(resposta, 'Conte sua história de pesca')
+        self.assertContains(resposta, 'Começar a publicar')
+
     def test_autor_pode_editar_publicacao_e_ve_acoes_com_icones(self):
         publicacao = Publicacao.objects.create(
             autor=self.autor,

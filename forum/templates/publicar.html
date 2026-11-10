@@ -6,9 +6,30 @@
 {% block content %}
 <section class="community-page" aria-labelledby="publish-title">
     <section class="community-hero community-publish-hero mb-4">
-        <span class="community-kicker">RONDO PESCA · COMPARTILHE SUA EXPERIÊNCIA</span>
-        <h1 id="publish-title" class="mt-2 mb-2">{% if editando %}Editar publicação{% else %}Nova publicação{% endif %}</h1>
-        <p class="mb-0">{% if editando %}Atualize o texto ou a foto da sua publicação.{% else %}Conte uma história da sua pescaria, compartilhe uma foto ou converse com a comunidade.{% endif %}</p>
+        <div class="community-publish-hero-copy">
+            <span class="community-kicker">
+                <i class="bi bi-camera me-1" aria-hidden="true"></i> COMPARTILHE SUA PESCARIA
+            </span>
+            <h1 id="publish-title" class="display-6 fw-bold mt-3 mb-2">
+                {% if editando %}Editar publicação{% else %}Conte sua história de pesca{% endif %}
+            </h1>
+            <p class="mb-4">
+                {% if editando %}
+                    Atualize os detalhes e a foto da sua publicação.
+                {% else %}
+                    Compartilhe uma foto, conte como foi a pescaria e inspire a comunidade.
+                {% endif %}
+            </p>
+            <a class="btn community-publish-hero-button" href="#publish-form">
+                {% if editando %}Continuar editando{% else %}Começar a publicar{% endif %}
+                <i class="bi bi-arrow-down-right ms-2" aria-hidden="true"></i>
+            </a>
+        </div>
+        <div class="community-publish-hero-art" aria-hidden="true">
+            <span class="community-publish-hero-orbit"></span>
+            <i class="bi bi-camera-fill"></i>
+            <span class="community-publish-hero-caption">Histórias que aproximam</span>
+        </div>
     </section>
 
     <section class="community-card community-publish-form-card">

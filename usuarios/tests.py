@@ -54,6 +54,7 @@ class GerenciarPescadoresTests(TestCase):
         response = self.client.get(reverse('gerenciar_pescadores'))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'admin-page-hero')
         self.assertContains(response, self.usuario.username)
         self.assertContains(response, 'Promover')
 
