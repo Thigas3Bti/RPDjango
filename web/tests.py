@@ -13,7 +13,8 @@ from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
-from .models import Dica, MensagemContato
+from forum.models import Dica
+from .models import MensagemContato
 from usuarios.models import PerfilUsuario
 
 
@@ -94,10 +95,6 @@ class ContactMessagesAdminTests(TestCase):
         admin = User.objects.create_user(username='admin', is_staff=True)
         self.client.force_login(admin)
 
-from .models import Dica
-from usuarios.models import PerfilUsuario
-
-
 class PerfilEdicaoTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -165,16 +162,6 @@ class PerfilEdicaoTests(TestCase):
         self.assertRedirects(response, reverse('perfil'))
         self.perfil.refresh_from_db()
         self.assertTrue(self.perfil.foto)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, mensagem.mensagem)
-        self.assertContains(response, mensagem.email)
-        self.assertContains(response, 'Problema')
-        self.assertContains(response, 'Mensagens recebidas')
-        self.assertContains(
-            response,
-            f'href="{reverse("mensagens_contato")}"',
-        )
 
     def test_staff_user_can_filter_messages_by_status_subject_and_search(self):
         MensagemContato.objects.create(**self.dados_mensagem)

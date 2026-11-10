@@ -8,20 +8,21 @@ from django.db.models import Q
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 import logging
 import smtplib
 
 from .forms import (
     BioPerfilForm,
-    ContatoForm,
     DicaForm,
     FotoPerfilForm,
     LoginForm,
     RegistrationForm,
     MensagemContatoForm,
 )
-from forum.models import EventoAgenda
-from .models import Dica, MensagemContato
+from forum.models import Dica, EventoAgenda
+from usuarios.permissoes import eh_pescador
+from .models import MensagemContato
 from usuarios.models import PerfilUsuario
 logger = logging.getLogger(__name__)
 
@@ -231,34 +232,12 @@ def painel(request):
 @login_required(login_url='login')
 def perfil(request):
     perfil_usuario, _ = PerfilUsuario.objects.get_or_create(usuario=request.user)
-    if request.method == 'POST' and request.POST.get('remover_foto') == '1':
-        if perfil_usuario.foto:
-            perfil_usuario.foto.delete(save=True)
-            messages.success(request, 'Sua foto de perfil foi removida.')
-        return redirect('perfil')
-
-    form = FotoPerfilForm(
-        request.POST or None,
-        request.FILES or None,
-        instance=perfil_usuario,
-    )
-    if request.method == 'POST':
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Sua foto de perfil foi atualizada.')
-            return redirect('perfil')
-
-    return render(request, 'usuarios/pescador/perfil.html', {
-        'perfil_usuario': perfil_usuario,
-        'foto_form': form,
-    })
-    perfil_usuario, _ = PerfilUsuario.objects.get_or_create(usuario=request.user)
     foto_form = FotoPerfilForm(instance=perfil_usuario)
     bio_form = BioPerfilForm(instance=perfil_usuario)
     editar_bio = False
 
     if request.method == 'POST':
-        if 'atualizar_foto' in request.POST:
+        if 'atualizar_foto' in request.POST or 'foto' in request.FILES:
             foto_form = FotoPerfilForm(
                 request.POST,
                 request.FILES,
@@ -266,19 +245,19 @@ def perfil(request):
             )
             if foto_form.is_valid():
                 foto_form.save()
-                messages.success(request, 'Foto de perfil atualizada.')
+                messages.success(request, 'Sua foto de perfil foi atualizada.')
                 return redirect('perfil')
         elif 'atualizar_bio' in request.POST:
             bio_form = BioPerfilForm(request.POST, instance=perfil_usuario)
             if bio_form.is_valid():
                 bio_form.save()
-                messages.success(request, 'Bio atualizada.')
+                messages.success(request, 'Sua bio foi atualizada.')
                 return redirect('perfil')
             editar_bio = True
-        elif 'remover_foto' in request.POST and perfil_usuario.foto:
-            perfil_usuario.foto = None
-            perfil_usuario.save(update_fields=['foto'])
-            messages.success(request, 'Foto de perfil removida.')
+        elif request.POST.get('remover_foto') == '1':
+            if perfil_usuario.foto:
+                perfil_usuario.foto.delete(save=True)
+                messages.success(request, 'Sua foto de perfil foi removida.')
             return redirect('perfil')
 
     return render(request, 'usuarios/pescador/perfil.html', {

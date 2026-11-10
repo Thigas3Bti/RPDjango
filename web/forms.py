@@ -4,7 +4,8 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from .models import Dica, MensagemContato
+from forum.models import Dica
+from .models import MensagemContato
 from usuarios.models import PerfilUsuario
 
 
