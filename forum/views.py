@@ -8,6 +8,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from usuarios.permissoes import eh_pescador
+
 from .forms import ComentarioForm, DicaForm, EventoAgendaForm, PublicacaoForm
 from .models import Comentario, Curtida, Dica, EventoAgenda, Publicacao
 

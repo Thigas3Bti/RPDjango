@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciar pescadores | RondoPesca{% endblock %}
+
+{% block content %}
+<div class="dashboard-home">
+    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm" aria-labelledby="fishermen-title">
+        <span class="dashboard-kicker">ÁREA ADMINISTRATIVA</span>
+        <h1 class="display-6 fw-bold mt-2 mb-2" id="fishermen-title">Gerenciar pescadores</h1>
+        <p class="mb-0 text-muted">Defina quais usuários têm o status de pescador oficial da comunidade.</p>
+    </section>
+
+    {% if messages %}
+    <div class="mb-3" aria-live="polite">
+        {% for message in messages %}
+        {% if message.tags == 'error' %}
+        <div class="alert alert-danger" role="alert">
+            {{ message }}
+        </div>
+        {% else %}
+        <div class="alert alert-success" role="status">{{ message }}</div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <section class="card dashboard-card shadow-sm p-4" aria-labelledby="users-title">
+        <h2 class="h4 fw-bold mb-3" id="users-title">Usuários cadastrados</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Usuário</th>
+                        <th scope="col">E-mail</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td>{{ usuario.get_full_name|default:usuario.username }}</td>
+                        <td>{{ usuario.email|default:"—" }}</td>
+                        <td>
+                            {% if usuario.pk in pescadores_ids %}
+                            <span class="badge text-bg-success">Pescador oficial</span>
+                            {% else %}
+                            <span class="badge text-bg-secondary">Usuário</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form method="post" action="{% url 'atualizar_status_pescador' usuario.pk %}">
+                                {% csrf_token %}
+                                {% if usuario.pk in pescadores_ids %}
+                                <input type="hidden" name="acao" value="remover">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Remover status</button>
+                                {% else %}
+                                <input type="hidden" name="acao" value="promover">
+                                <button type="submit" class="btn btn-success btn-sm">Promover</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">Nenhum usuário cadastrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}
