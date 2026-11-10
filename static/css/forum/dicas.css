@@ -1,0 +1,313 @@
+.learning-page {
+    --learning-green: #17613d;
+    --learning-deep: #103c2b;
+    --learning-lime: #c4e58f;
+}
+
+.learning-hero {
+    position: relative;
+    display: flex;
+    min-height: 270px;
+    align-items: center;
+    overflow: hidden;
+    border: 1px solid #2d7650;
+    border-radius: 1.25rem;
+    background:
+        radial-gradient(circle at 79% 18%, rgb(196 229 143 / 23%), transparent 22%),
+        linear-gradient(115deg, var(--learning-deep), var(--learning-green) 68%, #438146);
+    box-shadow: 0 1rem 2.5rem rgb(16 60 43 / 18%) !important;
+}
+
+.learning-hero-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+}
+
+.learning-hero .dashboard-kicker {
+    display: inline-flex;
+    align-items: center;
+    padding: .45rem .75rem;
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 9%);
+    color: var(--learning-lime);
+}
+
+.learning-hero h1 {
+    color: #fff;
+}
+
+.learning-hero p {
+    max-width: 650px;
+    color: rgb(255 255 255 / 82%);
+    font-size: 1.05rem;
+}
+
+.learning-hero-button {
+    border: 0;
+    border-radius: 999px;
+    color: var(--learning-deep);
+    font-weight: 700;
+}
+
+.learning-hero-art {
+    position: absolute;
+    top: 50%;
+    right: clamp(2rem, 9vw, 8rem);
+    display: grid;
+    width: 190px;
+    height: 190px;
+    place-items: center;
+    border: 1px solid rgb(255 255 255 / 22%);
+    border-radius: 50%;
+    background: rgb(255 255 255 / 8%);
+    color: var(--learning-lime);
+    transform: translateY(-50%);
+}
+
+.learning-hero-art > i {
+    font-size: 5.2rem;
+}
+
+.learning-hero-art-caption {
+    position: absolute;
+    right: -1.5rem;
+    bottom: -1.5rem;
+    padding: .45rem .7rem;
+    border-radius: .7rem;
+    background: #144b34;
+    color: #fff;
+    font-size: .72rem;
+    white-space: nowrap;
+}
+
+.learning-hero-orbit {
+    position: absolute;
+    inset: -14px;
+    border: 1px solid rgb(255 255 255 / 20%);
+    border-radius: 50%;
+}
+
+.learning-hero-orbit-two {
+    inset: 14px;
+    border-color: rgb(196 229 143 / 38%);
+}
+
+.learning-path {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .75rem;
+}
+
+.learning-path a {
+    display: flex;
+    min-height: 58px;
+    align-items: center;
+    gap: .7rem;
+    padding: .65rem .85rem;
+    border: 1px solid #d5e4d3;
+    border-radius: .9rem;
+    background: linear-gradient(135deg, #fff, #f1f8ec);
+    color: #254832;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.learning-path a span,
+.learning-level-number {
+    display: inline-grid;
+    flex: 0 0 2rem;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: 50%;
+    background: #e2f0d7;
+    color: #27623e;
+    font-size: .73rem;
+    font-weight: 800;
+}
+
+.learning-page #dicas-title {
+    color: var(--learning-deep);
+}
+
+.learning-page #filtro-nivel-dicas {
+    min-width: 190px;
+    border-color: #cbdcc9;
+    border-radius: .75rem;
+}
+
+.learning-level-card,
+.learning-community-card {
+    overflow: hidden;
+    border: 1px solid #dce7dc;
+    border-radius: 1rem;
+    background: linear-gradient(145deg, #fff 0%, #fbfdf9 100%);
+    box-shadow: 0 .5rem 1.5rem rgb(19 49 34 / 7%) !important;
+}
+
+.nivel-dica[data-nivel="iniciante"] .learning-level-card { --level-accent: #65a64f; }
+.nivel-dica[data-nivel="intermediario"] .learning-level-card { --level-accent: #2e8b76; }
+.nivel-dica[data-nivel="avancado"] .learning-level-card { --level-accent: #d28b36; }
+.nivel-dica[data-nivel="veterano"] .learning-level-card { --level-accent: #8062a8; }
+
+.learning-level-card {
+    border-top: 4px solid var(--level-accent);
+}
+
+.learning-level-card summary {
+    position: relative;
+    flex: 0 0 auto;
+    padding-right: 2.5rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+.learning-level-card summary::-webkit-details-marker {
+    display: none;
+}
+
+.learning-level-card summary::after {
+    position: absolute;
+    top: .1rem;
+    right: 0;
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--level-accent) 13%, white);
+    color: var(--level-accent);
+    content: "+";
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.learning-level-card[open] summary::after {
+    content: "−";
+}
+
+.learning-level-card .dashboard-kicker {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    color: var(--level-accent);
+}
+
+.learning-level-card summary .h5 {
+    display: block;
+    margin-bottom: 0;
+    color: #203a28;
+}
+
+.learning-level-card[open] {
+    max-height: min(70vh, 640px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #77a486 #edf3ed;
+}
+
+.learning-level-card[open] summary {
+    position: sticky;
+    top: -1rem;
+    z-index: 2;
+    margin: -1.5rem -1rem 0;
+    padding: 1rem 3.5rem .75rem 1rem;
+    background: #fff;
+    box-shadow: 0 -1.5rem 0 #fff;
+}
+
+.learning-scroll-hint {
+    margin: .25rem 0 0;
+    color: #526457;
+    font-size: .8rem;
+}
+
+.learning-level-card[open]::-webkit-scrollbar {
+    width: 10px;
+}
+
+.learning-level-card[open]::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: #edf3ed;
+}
+
+.learning-level-card[open]::-webkit-scrollbar-thumb {
+    border: 2px solid #edf3ed;
+    border-radius: 999px;
+    background: #77a486;
+}
+
+.learning-level-card li::marker {
+    color: var(--level-accent);
+}
+
+.learning-community-card {
+    border-left: 4px solid #27724b;
+}
+
+.learning-community-card .dashboard-kicker {
+    color: #27724b;
+}
+
+.learning-page .nivel-dica[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 767.98px) {
+    .learning-hero {
+        min-height: 0;
+        padding-right: 1.5rem !important;
+    }
+
+    .learning-hero-art {
+        top: auto;
+        right: 1.5rem;
+        bottom: 1.5rem;
+        width: 88px;
+        height: 88px;
+        transform: none;
+    }
+
+    .learning-hero-art > i {
+        font-size: 2.7rem;
+    }
+
+    .learning-hero-art-caption,
+    .learning-hero-orbit {
+        display: none;
+    }
+
+    .learning-hero-copy {
+        padding-right: 5rem;
+    }
+
+    .learning-path {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 420px) {
+    .learning-path a {
+        gap: .45rem;
+        padding-inline: .55rem;
+        font-size: .8rem;
+    }
+
+    .learning-hero-copy {
+        padding-right: 0;
+    }
+
+    .learning-hero-art {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .learning-path a {
+        transition: none;
+    }
+}
