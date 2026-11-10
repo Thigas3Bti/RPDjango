@@ -8,7 +8,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Comentario, Curtida, EventoAgenda, Publicacao
+from .models import Comentario, Curtida, Dica, EventoAgenda, Publicacao
 
 
 class ComunidadeTests(TestCase):
@@ -58,6 +58,62 @@ class ComunidadeTests(TestCase):
         self.assertContains(resposta_admin, f'href="{reverse("dicas")}"')
         self.assertContains(resposta_admin, f'href="{reverse("adicionar_dica")}"')
 
+    def test_pagina_de_dicas_exibe_um_unico_botao_de_adicao_para_admin(self):
+        rota_adicionar = reverse('adicionar_dica')
+        resposta_visitante = self.client.get(reverse('dicas'))
+        self.assertNotContains(resposta_visitante, f'href="{rota_adicionar}"')
+
+        self.client.force_login(self.autor)
+        resposta_usuario = self.client.get(reverse('dicas'))
+        self.assertNotContains(resposta_usuario, f'href="{rota_adicionar}"')
+
+        administrador = get_user_model().objects.create_user(
+            username='administrador-dicas',
+            password='senha-segura-789',
+            is_staff=True,
+        )
+        self.client.force_login(administrador)
+        resposta_admin = self.client.get(reverse('dicas'))
+
+        self.assertEqual(
+            resposta_admin.content.decode().count(f'href="{rota_adicionar}"'),
+            1,
+        )
+        self.assertContains(
+            resposta_admin,
+            'Role sobre o texto ou arraste a barra lateral para ver todas as dicas.',
+        )
+
+    def test_pagina_adicionar_dica_usa_layout_da_pagina_de_dicas(self):
+        self.client.force_login(get_user_model().objects.create_user(
+            username='autor-dica-layout',
+            password='senha-segura-123',
+            is_staff=True,
+        ))
+
+        resposta = self.client.get(reverse('adicionar_dica'))
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'css/forum/dicas.css')
+        self.assertContains(resposta, 'class="card dashboard-card learning-form-card')
+        self.assertContains(resposta, 'Compartilhe sua dica de pesca')
+
+    def test_dica_da_comunidade_mantem_altura_natural_ao_lado_do_nivel_aberto(self):
+        Dica.objects.create(
+            autor=self.autor,
+            titulo='Dica curta',
+            nivel='iniciante',
+            categoria='iniciante',
+            descricao='Texto curto.',
+        )
+
+        resposta = self.client.get(reverse('dicas'))
+
+        self.assertContains(
+            resposta,
+            '<article class="card dashboard-card learning-community-card shadow-sm p-4">',
+        )
+
     def test_menu_lateral_mantem_dicas_ativa_nas_paginas_do_forum(self):
         self.client.force_login(self.autor)
 
@@ -76,6 +132,7 @@ class ComunidadeTests(TestCase):
 
         resposta = self.client.post(reverse('publicar'), {
             'titulo': 'Dica de isca',
+            'local_pescaria': 'Rio Madeira',
             'texto': 'Experimente uma isca adequada à espécie.',
         })
 
@@ -85,11 +142,65 @@ class ComunidadeTests(TestCase):
             f"{reverse('comunidade')}#publicacao-{publicacao.pk}",
         )
         self.assertEqual(publicacao.autor, self.autor)
+        self.assertEqual(publicacao.local_pescaria, 'Rio Madeira')
 
         self.client.logout()
         resposta_feed = self.client.get(reverse('comunidade'))
         self.assertContains(resposta_feed, 'Dica de isca')
         self.assertContains(resposta_feed, 'Experimente uma isca adequada à espécie.')
+        self.assertContains(resposta_feed, 'Rio Madeira')
+
+    def test_autor_pode_editar_publicacao_e_ve_acoes_com_icones(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            titulo='Título original',
+            texto='Texto original.',
+        )
+        self.client.force_login(self.autor)
+
+        resposta_feed = self.client.get(reverse('comunidade'))
+        self.assertContains(
+            resposta_feed,
+            f'href="{reverse("editar_publicacao", args=[publicacao.pk])}"',
+        )
+        self.assertContains(resposta_feed, 'bi-pencil')
+        self.assertContains(resposta_feed, 'bi-trash')
+
+        resposta_edicao = self.client.get(
+            reverse('editar_publicacao', args=[publicacao.pk]),
+        )
+        self.assertEqual(resposta_edicao.status_code, 200)
+        self.assertContains(resposta_edicao, 'Editar publicação')
+
+        resposta_salvar = self.client.post(
+            reverse('editar_publicacao', args=[publicacao.pk]),
+            {
+                'titulo': 'Título atualizado',
+                'local_pescaria': 'Rio Machado',
+                'texto': 'Texto atualizado.',
+            },
+        )
+        publicacao.refresh_from_db()
+        self.assertRedirects(
+            resposta_salvar,
+            f"{reverse('comunidade')}#publicacao-{publicacao.pk}",
+        )
+        self.assertEqual(publicacao.titulo, 'Título atualizado')
+        self.assertEqual(publicacao.local_pescaria, 'Rio Machado')
+        self.assertEqual(publicacao.texto, 'Texto atualizado.')
+
+    def test_usuario_nao_pode_editar_publicacao_de_outra_pessoa(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            texto='Publicação de outra pessoa.',
+        )
+        self.client.force_login(self.outro_usuario)
+
+        resposta = self.client.get(
+            reverse('editar_publicacao', args=[publicacao.pk]),
+        )
+
+        self.assertEqual(resposta.status_code, 403)
 
     def test_foto_da_publicacao_e_salva_no_servidor(self):
         self.client.force_login(self.autor)

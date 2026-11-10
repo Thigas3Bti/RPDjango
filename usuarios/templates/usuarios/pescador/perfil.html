@@ -4,7 +4,7 @@
 {% block title %}Meu perfil | RondoPesca{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/Usuario/perfil.css' %}">
+<link rel="stylesheet" href="{% static 'css/Usuario/perfil.css' %}?v=20261109-3">
 {% endblock %}
 
 {% block content %}
@@ -78,16 +78,29 @@
                 </div>
             </dl>
         </div>
+    </div>
 
-        <section class="profile-bio" aria-labelledby="profile-bio-title">
-            <div class="profile-bio-heading">
-                <div>
-                    <h3 id="profile-bio-title" class="h5 fw-bold mb-1">Sobre você</h3>
-                    <p class="text-muted small mb-0">Conte um pouco sobre quem você é.</p>
-                </div>
-                <i class="bi bi-chat-left-text profile-bio-icon" aria-hidden="true"></i>
+    <section class="profile-bio card shadow-sm mb-4" aria-labelledby="profile-bio-title">
+        <div class="profile-bio-heading">
+            <div>
+                <h3 id="profile-bio-title" class="h5 fw-bold mb-1">Sobre você</h3>
+                <p class="text-muted small mb-0">Conte um pouco sobre quem você é.</p>
             </div>
-            <form method="post">
+        </div>
+        <div class="profile-bio-field">
+            <div class="profile-bio-content{% if editar_bio %} d-none{% endif %}" id="bioDisplay">
+                <button type="button" class="btn btn-outline-success btn-sm profile-bio-edit{% if editar_bio %} d-none{% endif %}"
+                    id="editBioButton" aria-label="Editar bio" title="Editar bio"
+                    aria-controls="bioEditForm" aria-expanded="{% if editar_bio %}true{% else %}false{% endif %}">
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                </button>
+                {% if perfil_usuario.bio %}
+                    <p class="mb-0 profile-bio-text">{{ perfil_usuario.bio|linebreaksbr }}</p>
+                {% else %}
+                    <p class="mb-0 text-muted profile-bio-empty">Adicione uma apresentação para que a comunidade conheça você.</p>
+                {% endif %}
+            </div>
+            <form method="post" id="bioEditForm" data-saved-bio="{{ perfil_usuario.bio }}"{% if not editar_bio %} class="d-none"{% endif %}>
                 {% csrf_token %}
                 <div class="mb-3">
                     <label class="form-label fw-semibold" for="{{ bio_form.bio.id_for_label }}">
@@ -99,12 +112,17 @@
                     {% endfor %}
                     <div class="form-text">Máximo de 500 caracteres.</div>
                 </div>
-                <button type="submit" name="atualizar_bio" value="1" class="btn btn-success">
-                    <i class="bi bi-check2 me-1" aria-hidden="true"></i> Salvar bio
-                </button>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit" name="atualizar_bio" value="1" class="btn btn-success">
+                        <i class="bi bi-check2 me-1" aria-hidden="true"></i> Salvar
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="cancelBioButton">
+                        Cancelar
+                    </button>
+                </div>
             </form>
-        </section>
-    </div>
+        </div>
+    </section>
 </section>
 
 <div class="modal fade profile-modal" id="profilePhotoModal" tabindex="-1"
@@ -125,9 +143,23 @@
                         Escolha uma imagem para personalizar seu perfil.
                     {% endif %}
                 </p>
+                <div class="profile-photo-preview mb-3" aria-live="polite">
+                    {% if perfil_usuario.foto %}
+                        <img id="profilePhotoPreview" src="{{ perfil_usuario.foto.url }}"
+                            alt="Pré-visualização da foto de perfil">
+                        <span id="profilePhotoPlaceholder" class="d-none" aria-hidden="true">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                    {% else %}
+                        <img id="profilePhotoPreview" class="d-none" src="" alt="Pré-visualização da foto de perfil">
+                        <span id="profilePhotoPlaceholder" aria-hidden="true">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                    {% endif %}
+                </div>
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <label class="btn btn-success w-100 profile-modal-option d-flex align-items-center justify-content-center gap-2">
+                    <label class="btn btn-outline-success w-100 profile-modal-option d-flex align-items-center justify-content-center gap-2">
                         <i class="bi bi-camera" aria-hidden="true"></i>
                         {% if perfil_usuario.foto %}Trocar imagem{% else %}Adicionar imagem{% endif %}
                         {{ foto_form.foto }}
@@ -135,6 +167,9 @@
                     {% for error in foto_form.foto.errors %}
                         <div class="text-danger small mt-2" role="alert">{{ error }}</div>
                     {% endfor %}
+                    <button type="submit" name="atualizar_foto" value="1" class="btn btn-success w-100 mt-2">
+                        <i class="bi bi-check2 me-1" aria-hidden="true"></i> Salvar foto
+                    </button>
                 </form>
                 {% if perfil_usuario.foto %}
                     <form method="post" class="mt-2">
@@ -149,6 +184,63 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const photoInput = document.getElementById('{{ foto_form.foto.id_for_label }}');
+        const photoPreview = document.getElementById('profilePhotoPreview');
+        const photoPlaceholder = document.getElementById('profilePhotoPlaceholder');
+        const photoModal = document.getElementById('profilePhotoModal');
+        const originalPreviewSrc = photoPreview.getAttribute('src');
+        let selectedPreviewUrl = null;
+
+        photoInput.addEventListener('change', function () {
+            const file = photoInput.files[0];
+            if (!file) {
+                return;
+            }
+
+            if (selectedPreviewUrl) {
+                URL.revokeObjectURL(selectedPreviewUrl);
+            }
+            selectedPreviewUrl = URL.createObjectURL(file);
+            photoPreview.src = selectedPreviewUrl;
+            photoPreview.classList.remove('d-none');
+            photoPlaceholder.classList.add('d-none');
+        });
+
+        photoModal.addEventListener('hidden.bs.modal', function () {
+            photoInput.value = '';
+            photoPreview.src = originalPreviewSrc;
+            photoPreview.classList.toggle('d-none', !originalPreviewSrc);
+            photoPlaceholder.classList.toggle('d-none', Boolean(originalPreviewSrc));
+            if (selectedPreviewUrl) {
+                URL.revokeObjectURL(selectedPreviewUrl);
+                selectedPreviewUrl = null;
+            }
+        });
+
+        const editButton = document.getElementById('editBioButton');
+        const cancelButton = document.getElementById('cancelBioButton');
+        const display = document.getElementById('bioDisplay');
+        const form = document.getElementById('bioEditForm');
+
+        function setBioEditing(editing) {
+            display.classList.toggle('d-none', editing);
+            form.classList.toggle('d-none', !editing);
+            editButton.classList.toggle('d-none', editing);
+            editButton.setAttribute('aria-expanded', String(editing));
+        }
+
+        editButton.addEventListener('click', function () {
+            setBioEditing(true);
+            form.querySelector('textarea').focus();
+        });
+        cancelButton.addEventListener('click', function () {
+            form.querySelector('textarea').value = form.dataset.savedBio;
+            setBioEditing(false);
+        });
+    });
+</script>
 {% if foto_form.errors %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {

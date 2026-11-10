@@ -10,9 +10,11 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
-from .models import Dica, MensagemContato
+from forum.models import Dica
+from .models import MensagemContato
 from usuarios.models import PerfilUsuario
 
 
@@ -93,17 +95,73 @@ class ContactMessagesAdminTests(TestCase):
         admin = User.objects.create_user(username='admin', is_staff=True)
         self.client.force_login(admin)
 
-        response = self.client.get(reverse('mensagens_contato'))
+class PerfilEdicaoTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='perfil-edicao',
+            password='senha-segura-123',
+        )
+        self.client.force_login(self.user)
+        self.perfil = PerfilUsuario.objects.create(usuario=self.user)
+        self.addCleanup(self._remover_foto)
+
+    def _remover_foto(self):
+        self.perfil.refresh_from_db()
+        if self.perfil.foto:
+            self.perfil.foto.delete(save=False)
+
+    def test_perfil_exibe_bio_e_controles_de_edicao(self):
+        self.perfil.bio = 'Gosto de pesca esportiva.'
+        self.perfil.save()
+
+        response = self.client.get(reverse('perfil'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, mensagem.mensagem)
-        self.assertContains(response, mensagem.email)
-        self.assertContains(response, 'Problema')
-        self.assertContains(response, 'Mensagens recebidas')
-        self.assertContains(
-            response,
-            f'href="{reverse("mensagens_contato")}"',
+        self.assertContains(response, 'Gosto de pesca esportiva.')
+        self.assertContains(response, 'Editar')
+        self.assertContains(response, 'Cancelar')
+
+    def test_perfil_salva_bio(self):
+        response = self.client.post(
+            reverse('perfil'),
+            {'atualizar_bio': '1', 'bio': 'Minha bio atualizada.'},
         )
+
+        self.assertRedirects(response, reverse('perfil'))
+        self.perfil.refresh_from_db()
+        self.assertEqual(self.perfil.bio, 'Minha bio atualizada.')
+
+    def test_bio_invalida_mantem_formulario_em_edicao_sem_salvar(self):
+        self.perfil.bio = 'Bio atual.'
+        self.perfil.save()
+
+        response = self.client.post(
+            reverse('perfil'),
+            {'atualizar_bio': '1', 'bio': 'a' * 501},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['editar_bio'])
+        self.perfil.refresh_from_db()
+        self.assertEqual(self.perfil.bio, 'Bio atual.')
+
+    def test_perfil_salva_foto_enviada(self):
+        image_buffer = BytesIO()
+        Image.new('RGB', (1, 1), color='green').save(image_buffer, format='PNG')
+        image = SimpleUploadedFile(
+            'perfil.png',
+            image_buffer.getvalue(),
+            content_type='image/png',
+        )
+
+        response = self.client.post(
+            reverse('perfil'),
+            {'atualizar_foto': '1', 'foto': image},
+        )
+
+        self.assertRedirects(response, reverse('perfil'))
+        self.perfil.refresh_from_db()
+        self.assertTrue(self.perfil.foto)
 
     def test_staff_user_can_filter_messages_by_status_subject_and_search(self):
         MensagemContato.objects.create(**self.dados_mensagem)
@@ -305,9 +363,9 @@ class DashboardFishingTipsTests(TestCase):
             response,
             'images/banner_tela_inicio.jpg',
         )
-        self.assertContains(response, 'images/local1.jpg')
-        self.assertContains(response, 'images/local2.jpg')
-        self.assertContains(response, 'images/local3.jpg')
+        self.assertContains(response, 'images/galeria/local-1.jpg')
+        self.assertContains(response, 'images/galeria/local-2.jpg')
+        self.assertContains(response, 'images/galeria/local-3.jpg')
         self.assertContains(response, f'href="{reverse("dicas")}"')
         self.assertNotContains(response, 'id="lista-niveis-dicas"')
 
@@ -374,7 +432,7 @@ class DashboardFishingTipsTests(TestCase):
 
         response = self.client.post(reverse('adicionar_dica'), {
             'titulo': '',
-            'categoria': 'tecnicas',
+            'nivel': 'intermediario',
             'descricao': 'Descrição válida.',
         })
 

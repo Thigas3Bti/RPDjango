@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Nova publicação | RondoPesca{% endblock %}
+{% block title %}{% if editando %}Editar publicação{% else %}Nova publicação{% endif %} | RondoPesca{% endblock %}
 
 {% block content %}
 <section class="community-page" aria-labelledby="publish-title">
     <section class="community-hero community-publish-hero mb-4">
         <span class="community-kicker">RONDO PESCA · COMPARTILHE SUA EXPERIÊNCIA</span>
-        <h1 id="publish-title" class="mt-2 mb-2">Nova publicação</h1>
-        <p class="mb-0">Conte uma história da sua pescaria, compartilhe uma foto ou converse com a comunidade.</p>
+        <h1 id="publish-title" class="mt-2 mb-2">{% if editando %}Editar publicação{% else %}Nova publicação{% endif %}</h1>
+        <p class="mb-0">{% if editando %}Atualize o texto ou a foto da sua publicação.{% else %}Conte uma história da sua pescaria, compartilhe uma foto ou converse com a comunidade.{% endif %}</p>
     </section>
 
     <section class="community-card community-publish-form-card">
@@ -18,52 +18,91 @@
             <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
             {% endif %}
 
-            <div class="mb-3">
-                <label for="{{ form.titulo.id_for_label }}" class="form-label fw-semibold">Título <span class="text-muted fw-normal">(opcional)</span></label>
-                <input
-                    type="text"
-                    name="{{ form.titulo.html_name }}"
-                    id="{{ form.titulo.id_for_label }}"
-                    class="form-control community-field"
-                    value="{{ form.titulo.value|default_if_none:'' }}"
-                    maxlength="120"
-                    autocomplete="off">
-                {% for error in form.titulo.errors %}<div class="text-danger small mt-1" role="alert">{{ error }}</div>{% endfor %}
+            <div class="community-form-intro">
+                <span class="community-form-icon"><i class="bi bi-pencil-square" aria-hidden="true"></i></span>
+                <div>
+                    <h2 class="h5 mb-1">{% if editando %}Conteúdo da publicação{% else %}Conte sua história{% endif %}</h2>
+                    <p class="text-muted mb-0">Os campos marcados como opcionais podem ficar em branco.</p>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="{{ form.texto.id_for_label }}" class="form-label fw-semibold">Sua publicação</label>
-                <textarea
-                    name="{{ form.texto.html_name }}"
-                    id="{{ form.texto.id_for_label }}"
-                    class="form-control community-field"
-                    rows="6"
-                    maxlength="2000"
-                    placeholder="Conte uma experiência, faça uma pergunta ou compartilhe uma dica..."
-                    aria-describedby="publish-help">{{ form.texto.value|default_if_none:'' }}</textarea>
-                <div id="publish-help" class="form-text">Você pode publicar um texto, uma foto ou os dois. Máximo de 2.000 caracteres; fotos de até 5 MB (JPG, PNG, GIF, WEBP ou BMP). Publicações com palavrões não são aceitas.</div>
-                {% for error in form.texto.errors %}<div class="text-danger small mt-1" role="alert">{{ error }}</div>{% endfor %}
+            <div class="community-form-fields">
+                <div class="community-form-field">
+                    <label for="{{ form.titulo.id_for_label }}" class="form-label fw-semibold">Título <span class="text-muted fw-normal">(opcional)</span></label>
+                    <input
+                        type="text"
+                        name="{{ form.titulo.html_name }}"
+                        id="{{ form.titulo.id_for_label }}"
+                        class="form-control community-field"
+                        value="{{ form.titulo.value|default_if_none:'' }}"
+                        maxlength="120"
+                        placeholder="Ex.: Uma manhã inesquecível no rio"
+                        autocomplete="off">
+                    {% for error in form.titulo.errors %}<div class="text-danger small mt-1" role="alert">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div class="community-form-field">
+                    <label for="{{ form.local_pescaria.id_for_label }}" class="form-label fw-semibold">
+                        <i class="bi bi-geo-alt me-1 text-success" aria-hidden="true"></i>Local da pescaria
+                        <span class="text-muted fw-normal">(opcional)</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="{{ form.local_pescaria.html_name }}"
+                        id="{{ form.local_pescaria.id_for_label }}"
+                        class="form-control community-field"
+                        value="{{ form.local_pescaria.value|default_if_none:'' }}"
+                        maxlength="150"
+                        placeholder="Ex.: Rio Madeira, próximo a Porto Velho"
+                        autocomplete="off">
+                    {% for error in form.local_pescaria.errors %}<div class="text-danger small mt-1" role="alert">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div class="community-form-field community-form-field-wide">
+                    <label for="{{ form.texto.id_for_label }}" class="form-label fw-semibold">Sua publicação</label>
+                    <textarea
+                        name="{{ form.texto.html_name }}"
+                        id="{{ form.texto.id_for_label }}"
+                        class="form-control community-field"
+                        rows="7"
+                        maxlength="2000"
+                        placeholder="Conte como foi a pescaria, compartilhe uma dica ou faça uma pergunta..."
+                        aria-describedby="publish-help">{{ form.texto.value|default_if_none:'' }}</textarea>
+                    <div id="publish-help" class="form-text">Você pode publicar um texto, uma foto ou os dois. Máximo de 2.000 caracteres; fotos de até 5 MB (JPG, PNG, GIF, WEBP ou BMP). Publicações com palavrões não são aceitas.</div>
+                    {% for error in form.texto.errors %}<div class="text-danger small mt-1" role="alert">{{ error }}</div>{% endfor %}
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="{{ form.foto.id_for_label }}" class="form-label fw-semibold">Imagem da publicação</label>
-                <input
-                    type="file"
-                    name="{{ form.foto.html_name }}"
-                    id="{{ form.foto.id_for_label }}"
-                    class="form-control community-field"
-                    accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,image/jpeg,image/png,image/gif,image/webp,image/bmp"
-                    aria-describedby="publish-photo-help">
-                <div id="publish-photo-help" class="form-text">Opcional. JPG, PNG, GIF, WEBP ou BMP; até 5 MB.</div>
-                <span id="publish-photo-name" class="small text-muted ms-2"></span>
-                {% for error in form.foto.errors %}<div class="text-danger small mt-1" role="alert">{{ error }}</div>{% endfor %}
+            <div class="community-form-photo">
+                <div class="mb-3">
+                    <label for="{{ form.foto.id_for_label }}" class="form-label fw-semibold">Foto da pescaria <span class="text-muted fw-normal">(opcional)</span></label>
+                    <p class="form-text mt-0">Uma imagem ajuda a comunidade a acompanhar sua experiência.</p>
+                {% if publicacao.foto %}
+                    <div class="mb-2"><img class="community-photo-preview is-visible" src="{{ publicacao.foto.url }}" alt="Imagem atual da publicação"></div>
+                {% endif %}
+                    <label class="community-photo-label" for="{{ form.foto.id_for_label }}">
+                        <i class="bi bi-image" aria-hidden="true"></i>Escolher foto
+                    </label>
+                    <input
+                        type="file"
+                        name="{{ form.foto.html_name }}"
+                        id="{{ form.foto.id_for_label }}"
+                        class="community-photo-input"
+                        accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,image/jpeg,image/png,image/gif,image/webp,image/bmp"
+                        aria-describedby="publish-photo-help">
+                    <span id="publish-photo-name" class="small text-muted ms-2"></span>
+                    <div id="publish-photo-help" class="form-text">JPG, PNG, GIF, WEBP ou BMP; até 5 MB.</div>
+                    {% for error in form.foto.errors %}<div class="text-danger small mt-1" role="alert">{{ error }}</div>{% endfor %}
+                </div>
             </div>
 
             <img id="publish-photo-preview" class="community-photo-preview mb-3" alt="Prévia da foto selecionada">
 
             <div class="community-publish-form-actions">
                 <a class="btn btn-outline-success" href="{% url 'comunidade' %}">Cancelar</a>
-                <button class="btn btn-success px-4" type="submit"><i class="bi bi-send me-2" aria-hidden="true"></i>Publicar</button>
+                <button class="btn btn-success px-4" type="submit">
+                    <i class="bi {% if editando %}bi-check-lg{% else %}bi-send{% endif %} me-2" aria-hidden="true"></i>{% if editando %}Salvar alterações{% else %}Publicar{% endif %}
+                </button>
             </div>
         </form>
     </section>
