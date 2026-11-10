@@ -4,7 +4,7 @@
 {% block title %}Meu perfil | RondoPesca{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/Usuario/perfil.css' %}?v=20261109-3">
+<link rel="stylesheet" href="{% static 'css/Usuario/perfil.css' %}?v=20261110-2">
 {% endblock %}
 
 {% block content %}
@@ -39,6 +39,9 @@
                     Perfil RondoPesca
                 </span>
             </div>
+            <a class="btn btn-outline-success ms-auto profile-edit-link" href="{% url 'editar_perfil' %}">
+                <i class="bi bi-pencil-square me-1" aria-hidden="true"></i>Editar perfil
+            </a>
         </div>
 
         {% if messages %}
@@ -49,6 +52,9 @@
             </div>
         {% endif %}
 
+    </div>
+
+    <div class="profile-card card shadow-sm mb-4">
         <div class="profile-details">
             <h3 class="h5 fw-bold mb-3">Informações da conta</h3>
             <dl class="row g-3 mb-0">

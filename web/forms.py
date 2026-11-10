@@ -1,6 +1,10 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    PasswordChangeForm,
+    UserCreationForm,
+)
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -46,6 +50,43 @@ class BioPerfilForm(forms.ModelForm):
         model = PerfilUsuario
         fields = ['bio']
         labels = {'bio': 'Sobre você'}
+
+
+class EditarPerfilForm(forms.ModelForm):
+    class Meta:
+        model = get_user_model()
+        fields = ['first_name', 'last_name', 'username', 'email']
+        labels = {
+            'first_name': 'Nome',
+            'last_name': 'Sobrenome',
+            'username': 'Nome de usuário',
+            'email': 'E-mail',
+        }
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'given-name',
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'family-name',
+            }),
+            'username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'username',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'email',
+            }),
+        }
+
+
+class SenhaPerfilForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
 
 
 class DicaForm(forms.ModelForm):

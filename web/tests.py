@@ -631,7 +631,7 @@ class UserMenuTests(TestCase):
                 response = self.client.get(reverse('home'))
 
         self.assertContains(response, 'src="/media/perfis/foto.png"')
-        self.assertContains(response, '>João Silva</span>')
+        self.assertContains(response, '>pescador</span>')
 
     def test_profile_requires_login(self):
         response = self.client.get(reverse('perfil'))
@@ -652,6 +652,8 @@ class UserMenuTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Meu perfil')
+        self.assertContains(response, 'Editar perfil')
+        self.assertContains(response, reverse('editar_perfil'))
         self.assertContains(response, 'João Silva')
         self.assertContains(response, 'joao@example.com')
         self.assertContains(response, 'aria-label="Escolha uma foto de perfil"')
@@ -719,3 +721,74 @@ class UserMenuTests(TestCase):
 
         self.assertRedirects(response, reverse('home'))
         self.assertNotIn('_auth_user_id', self.client.session)
+
+
+class EditarPerfilTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='pescador',
+            password='CurrentPass123!',
+            email='antes@example.com',
+        )
+        self.client.force_login(self.user)
+
+    def test_pagina_de_edicao_separa_topicos_pessoais_e_seguranca(self):
+        response = self.client.get(reverse('editar_perfil'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Informações pessoais')
+        self.assertContains(response, 'Informações de segurança')
+        self.assertContains(response, 'Salvar alterações')
+
+        response = self.client.get(reverse('editar_perfil'), {'secao': 'seguranca'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Senha antiga')
+        self.assertContains(response, 'Salvar nova senha')
+
+    def test_usuario_edita_dados_pessoais_e_bio(self):
+        response = self.client.post(reverse('editar_perfil'), {
+            'salvar_perfil': '1',
+            'first_name': 'João',
+            'last_name': 'Silva',
+            'username': 'joao-pescador',
+            'email': 'joao@example.com',
+            'bio': 'Pesca esportiva e natureza.',
+        })
+
+        self.assertRedirects(response, reverse('editar_perfil'))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, 'João')
+        self.assertEqual(self.user.last_name, 'Silva')
+        self.assertEqual(self.user.username, 'joao-pescador')
+        self.assertEqual(self.user.email, 'joao@example.com')
+        self.assertEqual(self.user.perfil_usuario.bio, 'Pesca esportiva e natureza.')
+
+    def test_usuario_altera_senha_sem_perder_a_sessao(self):
+        response = self.client.post(
+            f'{reverse("editar_perfil")}?secao=seguranca',
+            {
+                'alterar_senha': '1',
+                'old_password': 'CurrentPass123!',
+                'new_password1': 'NewSecurePass456!',
+                'new_password2': 'NewSecurePass456!',
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            f'{reverse("editar_perfil")}?secao=seguranca',
+        )
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('NewSecurePass456!'))
+        self.assertEqual(self.client.get(reverse('perfil')).status_code, 200)
+
+    def test_edicao_exige_login(self):
+        self.client.logout()
+
+        response = self.client.get(reverse('editar_perfil'))
+
+        self.assertRedirects(
+            response,
+            f'{reverse("login")}?next={reverse("editar_perfil")}',
+        )

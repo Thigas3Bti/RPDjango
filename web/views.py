@@ -1,5 +1,9 @@
 from django.contrib import messages
-from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.contrib.auth import (
+    update_session_auth_hash,
+    login as auth_login,
+    logout as auth_logout,
+)
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
@@ -7,6 +11,7 @@ from django.core.mail import EmailMessage
 from django.db.models import Q
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 import logging
@@ -15,10 +20,12 @@ import smtplib
 from .forms import (
     BioPerfilForm,
     DicaForm,
+    EditarPerfilForm,
     FotoPerfilForm,
     LoginForm,
     RegistrationForm,
     MensagemContatoForm,
+    SenhaPerfilForm,
 )
 from forum.models import Dica, EventoAgenda
 from usuarios.permissoes import eh_pescador
@@ -265,6 +272,44 @@ def perfil(request):
         'foto_form': foto_form,
         'bio_form': bio_form,
         'editar_bio': editar_bio,
+    })
+
+
+@login_required(login_url='login')
+def editar_perfil(request):
+    perfil_usuario, _ = PerfilUsuario.objects.get_or_create(usuario=request.user)
+    secao = request.GET.get('secao', 'pessoal')
+    if secao not in ('pessoal', 'seguranca'):
+        secao = 'pessoal'
+
+    perfil_form = EditarPerfilForm(instance=request.user)
+    bio_form = BioPerfilForm(instance=perfil_usuario)
+    senha_form = SenhaPerfilForm(request.user)
+
+    if request.method == 'POST':
+        if 'salvar_perfil' in request.POST:
+            perfil_form = EditarPerfilForm(request.POST, instance=request.user)
+            bio_form = BioPerfilForm(request.POST, instance=perfil_usuario)
+            secao = 'pessoal'
+            if perfil_form.is_valid() and bio_form.is_valid():
+                perfil_form.save()
+                bio_form.save()
+                messages.success(request, 'Suas informações foram atualizadas.')
+                return redirect('editar_perfil')
+        elif 'alterar_senha' in request.POST:
+            senha_form = SenhaPerfilForm(request.user, request.POST)
+            secao = 'seguranca'
+            if senha_form.is_valid():
+                user = senha_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Sua senha foi alterada.')
+                return redirect(f'{reverse("editar_perfil")}?secao=seguranca')
+
+    return render(request, 'usuarios/pescador/editar_perfil.html', {
+        'perfil_form': perfil_form,
+        'bio_form': bio_form,
+        'senha_form': senha_form,
+        'secao': secao,
     })
 
 

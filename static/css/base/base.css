@@ -1694,3 +1694,36 @@ body {
         width: 100%;
     }
 }
+
+.header-profile-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: min(18rem, 55vw);
+}
+
+.header-profile-toggle span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.header-profile-avatar,
+.header-profile-avatar-placeholder {
+    flex: 0 0 1.8rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+}
+
+.header-profile-avatar {
+    object-fit: cover;
+}
+
+.header-profile-avatar-placeholder {
+    display: grid;
+    place-items: center;
+    color: var(--rondo-verde);
+    background: #eaf3e8;
+    font-size: 1.5rem;
+}
