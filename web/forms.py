@@ -1,6 +1,10 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    PasswordChangeForm,
+    UserCreationForm,
+)
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -46,6 +50,43 @@ class BioPerfilForm(forms.ModelForm):
         model = PerfilUsuario
         fields = ['bio']
         labels = {'bio': 'Sobre você'}
+
+
+class EditarPerfilForm(forms.ModelForm):
+    class Meta:
+        model = get_user_model()
+        fields = ['first_name', 'last_name', 'username', 'email']
+        labels = {
+            'first_name': 'Nome',
+            'last_name': 'Sobrenome',
+            'username': 'Nome de usuário',
+            'email': 'E-mail',
+        }
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'given-name',
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'family-name',
+            }),
+            'username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'username',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'email',
+            }),
+        }
+
+
+class SenhaPerfilForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
 
 
 class DicaForm(forms.ModelForm):
@@ -181,6 +222,9 @@ class RegistrationForm(UserCreationForm):
 
     error_messages = {
         'password_mismatch': _('As senhas informadas não são iguais.'),
+        'duplicate_username': _(
+            'Já existe alguém cadastrado com esse nome de usuário '
+        ),
     }
 
     class Meta(UserCreationForm.Meta):
@@ -232,7 +276,60 @@ class RegistrationForm(UserCreationForm):
             raise ValidationError(_('Informe um endereço de email válido.'))
         return email
 
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        user_model = get_user_model()
+        username_field = user_model.USERNAME_FIELD
+        if user_model._default_manager.filter(
+            **{f'{username_field}__iexact': username},
+        ).exists():
+            raise ValidationError(
+                self.error_messages['duplicate_username'],
+                code='duplicate_username',
+            )
+        return username
+
     def _get_validation_exclusions(self):
         exclusions = super()._get_validation_exclusions()
         exclusions.add('email')
         return exclusions
+
+
+class RegistrationPersonalForm(forms.ModelForm):
+    class Meta:
+        model = get_user_model()
+        fields = ('first_name', 'last_name', 'email')
+        labels = {
+            'first_name': 'Nome',
+            'last_name': 'Sobrenome',
+            'email': 'E-mail',
+        }
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Seu nome',
+                'autocomplete': 'given-name',
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Seu sobrenome',
+                'autocomplete': 'family-name',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'voce@exemplo.com',
+                'autocomplete': 'email',
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.required = True
+            field.error_messages['required'] = _('Este campo é obrigatório.')
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if '@' not in email:
+            raise ValidationError(_('Informe um endereço de email válido.'))
+        return email

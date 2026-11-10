@@ -1,5 +1,9 @@
 from django.contrib import messages
-from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.contrib.auth import (
+    update_session_auth_hash,
+    login as auth_login,
+    logout as auth_logout,
+)
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
@@ -7,6 +11,7 @@ from django.core.mail import EmailMessage
 from django.db.models import Q
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 import logging
@@ -15,10 +20,13 @@ import smtplib
 from .forms import (
     BioPerfilForm,
     DicaForm,
+    EditarPerfilForm,
     FotoPerfilForm,
     LoginForm,
     RegistrationForm,
     MensagemContatoForm,
+    RegistrationPersonalForm,
+    SenhaPerfilForm,
 )
 from forum.models import Dica, EventoAgenda
 from usuarios.permissoes import eh_pescador
@@ -268,30 +276,134 @@ def perfil(request):
     })
 
 
+@login_required(login_url='login')
+def editar_perfil(request):
+    perfil_usuario, _ = PerfilUsuario.objects.get_or_create(usuario=request.user)
+    secao = request.GET.get('secao', 'pessoal')
+    if secao not in ('pessoal', 'seguranca'):
+        secao = 'pessoal'
+
+    perfil_form = EditarPerfilForm(instance=request.user)
+    bio_form = BioPerfilForm(instance=perfil_usuario)
+    senha_form = SenhaPerfilForm(request.user)
+
+    if request.method == 'POST':
+        if 'salvar_perfil' in request.POST:
+            perfil_form = EditarPerfilForm(request.POST, instance=request.user)
+            bio_form = BioPerfilForm(request.POST, instance=perfil_usuario)
+            secao = 'pessoal'
+            if perfil_form.is_valid() and bio_form.is_valid():
+                perfil_form.save()
+                bio_form.save()
+                messages.success(request, 'Suas informações foram atualizadas.')
+                return redirect('editar_perfil')
+        elif 'alterar_senha' in request.POST:
+            senha_form = SenhaPerfilForm(request.user, request.POST)
+            secao = 'seguranca'
+            if senha_form.is_valid():
+                user = senha_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Sua senha foi alterada.')
+                return redirect(f'{reverse("editar_perfil")}?secao=seguranca')
+
+    return render(request, 'usuarios/pescador/editar_perfil.html', {
+        'perfil_form': perfil_form,
+        'bio_form': bio_form,
+        'senha_form': senha_form,
+        'secao': secao,
+    })
+
+
 def login(request):
+    credenciais_cadastro = None
+    initial = None
+    if request.method == 'GET':
+        credenciais_cadastro = request.session.pop('credenciais_cadastro', None)
+        if credenciais_cadastro:
+            initial = {
+                'username': credenciais_cadastro['username'],
+                'password': credenciais_cadastro['password'],
+            }
+    else:
+        request.session.pop('credenciais_cadastro', None)
+
     form = LoginForm(
         request,
         data=request.POST if request.method == 'POST' else None,
+        initial=initial,
     )
+    if credenciais_cadastro:
+        form.fields['password'].widget.render_value = True
 
     if request.method == 'POST' and form.is_valid():
         auth_login(request, form.get_user())
         return redirect('painel')
 
-    return render(request, 'usuarios/acesso/login.html', {'form': form})
+    response = render(request, 'usuarios/acesso/login.html', {
+        'form': form,
+    })
+    if credenciais_cadastro:
+        response['Cache-Control'] = 'no-store'
+    return response
 
 
 def cadastro(request):
-    form = RegistrationForm(
-        request.POST if request.method == 'POST' else None,
+    etapa = (
+        request.POST.get('etapa')
+        if request.method == 'POST'
+        else request.GET.get('etapa', '1')
     )
+    dados_pessoais = request.session.get('cadastro_dados_pessoais')
 
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Cadastro realizado. Agora você pode entrar na sua conta.')
-        return redirect('login')
+    if etapa == '2' and not dados_pessoais:
+        messages.error(request, 'Preencha primeiro suas informações pessoais.')
+        return redirect('cadastro')
 
-    return render(request, 'usuarios/acesso/cadastro.html', {'form': form})
+    if request.method == 'POST' and request.POST.get('voltar') == '1':
+        return redirect(f'{reverse("cadastro")}?etapa=1')
+
+    if etapa == '2':
+        dados_completos = dict(dados_pessoais)
+        dados_completos.update(request.POST.dict() if request.method == 'POST' else {})
+        form = RegistrationForm(
+            dados_completos if request.method == 'POST' else None,
+            initial=dados_pessoais,
+        )
+        if request.method == 'POST' and form.is_valid():
+            usuario = form.save()
+            request.session.pop('cadastro_dados_pessoais', None)
+            request.session['credenciais_cadastro'] = {
+                'username': usuario.get_username(),
+                'password': form.cleaned_data['password1'],
+            }
+            request.session.set_expiry(60)
+            messages.success(
+                request,
+                'Cadastro realizado. Agora você pode entrar na sua conta.',
+            )
+            return redirect('login')
+        form_fields = tuple(form[name] for name in ('username', 'password1', 'password2'))
+        response = render(request, 'usuarios/acesso/cadastro.html', {
+            'form': form,
+            'form_fields': form_fields,
+            'etapa': 2,
+        })
+        return response
+
+    if request.method == 'POST':
+        form = RegistrationPersonalForm(request.POST)
+        if form.is_valid():
+            request.session['cadastro_dados_pessoais'] = form.cleaned_data
+            request.session.set_expiry(600)
+            return redirect(f'{reverse("cadastro")}?etapa=2')
+    else:
+        form = RegistrationPersonalForm(initial=dados_pessoais)
+
+    return render(request, 'usuarios/acesso/cadastro.html', {
+        'form': form,
+        'form_fields': tuple(form[name] for name in ('first_name', 'last_name', 'email')),
+        'etapa': 1,
+    })
 
 
 def logout(request):

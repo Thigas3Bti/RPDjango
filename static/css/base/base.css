@@ -1991,3 +1991,177 @@ body {
         width: 100%;
     }
 }
+
+.header-profile-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: min(18rem, 55vw);
+}
+
+.header-profile-toggle span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.header-profile-avatar,
+.header-profile-avatar-placeholder {
+    flex: 0 0 1.8rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+}
+
+.header-profile-avatar {
+    object-fit: cover;
+}
+
+.header-profile-avatar-placeholder {
+    display: grid;
+    place-items: center;
+    color: var(--rondo-verde);
+    background: #eaf3e8;
+    font-size: 1.5rem;
+}
+
+@media (max-width: 991.98px) {
+    .admin-body {
+        position: relative;
+        min-width: 0;
+    }
+
+    .sidebar {
+        top: 0;
+        max-height: calc(100vh - 60px);
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .content {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .content {
+        padding: 1rem !important;
+    }
+
+    .dashboard-banner {
+        min-height: 340px;
+        border-radius: 0.85rem;
+    }
+
+    .dashboard-banner .dashboard-welcome {
+        padding: 1.25rem;
+    }
+
+    .dashboard-banner .dashboard-welcome h1 {
+        font-size: clamp(1.75rem, 7vw, 2.5rem);
+        overflow-wrap: anywhere;
+    }
+
+    .dashboard-gallery-hint {
+        width: 100%;
+    }
+
+    .dashboard-card .card-body {
+        padding: 1.15rem !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .admin-header {
+        gap: 0.5rem;
+        padding: 0.5rem 0.65rem;
+    }
+
+    .admin-header .header-left,
+    .admin-header .header-right {
+        min-width: 0;
+        gap: 0.45rem !important;
+    }
+
+    .admin-header .header-left {
+        flex: 1 1 auto;
+    }
+
+    .admin-header .header-right {
+        flex: 0 1 auto;
+    }
+
+    .admin-header .brand {
+        font-size: 1.05rem;
+        white-space: nowrap;
+    }
+
+    .admin-header .header-left .btn {
+        min-width: 42px;
+        min-height: 42px;
+        padding: 0.35rem 0.6rem;
+    }
+
+    .header-profile-toggle {
+        max-width: 42vw;
+        min-height: 42px;
+        gap: 0.35rem;
+        padding-right: 0.45rem;
+    }
+
+    .header-profile-toggle span {
+        max-width: 4.5rem;
+    }
+
+    .admin-header .header-right > .btn {
+        min-height: 42px;
+        padding-inline: 0.7rem;
+    }
+
+    .content {
+        padding: 0.75rem !important;
+    }
+
+    .dashboard-banner {
+        min-height: 320px;
+    }
+
+    .dashboard-banner .dashboard-welcome {
+        padding: 1rem;
+    }
+
+    .dashboard-card .card-body {
+        padding: 1rem !important;
+    }
+
+    .dashboard-welcome .btn,
+    .dashboard-card .btn {
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .login-page {
+        min-height: auto;
+        align-items: flex-start;
+        padding: 1rem 0.25rem;
+    }
+
+    .login-card {
+        max-width: none;
+        padding: 1.25rem !important;
+        border-radius: 0.75rem;
+    }
+
+    .login-card .btn {
+        min-height: 44px;
+        white-space: normal;
+    }
+
+    .login-card .form-control {
+        min-height: 44px;
+        font-size: 16px;
+    }
+}

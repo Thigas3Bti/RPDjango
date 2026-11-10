@@ -7,17 +7,18 @@
     <div class="login-card shadow-sm p-4 p-md-5">
         <div class="text-center mb-4">
             <h1 class="h3 fw-bold mb-2">Criar conta</h1>
-            <p class="text-muted mb-0">Cadastre-se para acessar o RondoPesca</p>
+            <p class="text-muted mb-0">Etapa {{ etapa }} de 2 — cadastre-se para acessar o RondoPesca</p>
         </div>
 
         <form method="post" class="login-form">
             {% csrf_token %}
+            <input type="hidden" name="etapa" value="{{ etapa }}">
             {% if form.non_field_errors %}
                 <div class="alert alert-danger" role="alert">
                     {{ form.non_field_errors }}
                 </div>
             {% endif %}
-            {% for field in form %}
+            {% for field in form_fields %}
                 <div class="mb-3">
                     {{ field.label_tag }}
                     {{ field }}
@@ -29,7 +30,13 @@
                     {% endfor %}
                 </div>
             {% endfor %}
-            <button type="submit" class="btn btn-success w-100 py-2 mt-2">Cadastrar</button>
+            {% if etapa == 1 %}
+                <button type="submit" class="btn btn-success w-100 py-2 mt-2">Continuar</button>
+            {% else %}
+                <button type="submit" class="btn btn-success w-100 py-2 mt-2">Criar conta</button>
+                <a class="btn btn-outline-secondary w-100 py-2 mt-2"
+                    href="{% url 'cadastro' %}?etapa=1">Voltar</a>
+            {% endif %}
         </form>
 
         <p class="text-center small mt-4 mb-0">
