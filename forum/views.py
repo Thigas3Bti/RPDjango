@@ -191,6 +191,30 @@ def publicar(request):
 
 
 @login_required(login_url='login')
+def editar_publicacao(request, publicacao_id):
+    publicacao = get_object_or_404(Publicacao, pk=publicacao_id)
+    if publicacao.autor_id != request.user.pk and not request.user.is_staff:
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        form = PublicacaoForm(request.POST, request.FILES, instance=publicacao)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Sua publicação foi atualizada.')
+            return redirect(f"{reverse('comunidade')}#publicacao-{publicacao.pk}")
+    elif request.method == 'GET':
+        form = PublicacaoForm(instance=publicacao)
+    else:
+        return HttpResponseNotAllowed(['GET', 'POST'])
+
+    return render(request, 'publicar.html', {
+        'form': form,
+        'publicacao': publicacao,
+        'editando': True,
+    })
+
+
+@login_required(login_url='login')
 @require_POST
 def comentar(request, publicacao_id):
     if not eh_pescador(request.user):

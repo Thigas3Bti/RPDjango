@@ -201,6 +201,7 @@ class Publicacao(models.Model):
         related_name='publicacoes_forum',
     )
     titulo = models.CharField(max_length=120, blank=True)
+    local_pescaria = models.CharField(max_length=150, blank=True)
     texto = models.TextField(max_length=2000, blank=True)
     foto = models.FileField(upload_to='forum/publicacoes/%Y/%m/', blank=True)
     criada_em = models.DateTimeField(auto_now_add=True)
