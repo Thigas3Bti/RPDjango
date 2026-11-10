@@ -8,7 +8,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Comentario, Curtida, EventoAgenda, Publicacao
+from .models import Comentario, Curtida, Dica, EventoAgenda, Publicacao
 
 
 class ComunidadeTests(TestCase):
@@ -82,6 +82,36 @@ class ComunidadeTests(TestCase):
         self.assertContains(
             resposta_admin,
             'Role sobre o texto ou arraste a barra lateral para ver todas as dicas.',
+        )
+
+    def test_pagina_adicionar_dica_usa_layout_da_pagina_de_dicas(self):
+        self.client.force_login(get_user_model().objects.create_user(
+            username='autor-dica-layout',
+            password='senha-segura-123',
+            is_staff=True,
+        ))
+
+        resposta = self.client.get(reverse('adicionar_dica'))
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'css/forum/dicas.css')
+        self.assertContains(resposta, 'class="card dashboard-card learning-form-card')
+        self.assertContains(resposta, 'Compartilhe sua dica de pesca')
+
+    def test_dica_da_comunidade_mantem_altura_natural_ao_lado_do_nivel_aberto(self):
+        Dica.objects.create(
+            autor=self.autor,
+            titulo='Dica curta',
+            nivel='iniciante',
+            categoria='iniciante',
+            descricao='Texto curto.',
+        )
+
+        resposta = self.client.get(reverse('dicas'))
+
+        self.assertContains(
+            resposta,
+            '<article class="card dashboard-card learning-community-card shadow-sm p-4">',
         )
 
     def test_menu_lateral_mantem_dicas_ativa_nas_paginas_do_forum(self):
