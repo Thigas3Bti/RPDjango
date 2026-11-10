@@ -58,6 +58,32 @@ class ComunidadeTests(TestCase):
         self.assertContains(resposta_admin, f'href="{reverse("dicas")}"')
         self.assertContains(resposta_admin, f'href="{reverse("adicionar_dica")}"')
 
+    def test_pagina_de_dicas_exibe_um_unico_botao_de_adicao_para_admin(self):
+        rota_adicionar = reverse('adicionar_dica')
+        resposta_visitante = self.client.get(reverse('dicas'))
+        self.assertNotContains(resposta_visitante, f'href="{rota_adicionar}"')
+
+        self.client.force_login(self.autor)
+        resposta_usuario = self.client.get(reverse('dicas'))
+        self.assertNotContains(resposta_usuario, f'href="{rota_adicionar}"')
+
+        administrador = get_user_model().objects.create_user(
+            username='administrador-dicas',
+            password='senha-segura-789',
+            is_staff=True,
+        )
+        self.client.force_login(administrador)
+        resposta_admin = self.client.get(reverse('dicas'))
+
+        self.assertEqual(
+            resposta_admin.content.decode().count(f'href="{rota_adicionar}"'),
+            1,
+        )
+        self.assertContains(
+            resposta_admin,
+            'Role sobre o texto ou arraste a barra lateral para ver todas as dicas.',
+        )
+
     def test_menu_lateral_mantem_dicas_ativa_nas_paginas_do_forum(self):
         self.client.force_login(self.autor)
 
