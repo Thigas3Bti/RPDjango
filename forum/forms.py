@@ -148,12 +148,17 @@ class EventoAgendaForm(forms.ModelForm):
 class PublicacaoForm(forms.ModelForm):
     class Meta:
         model = Publicacao
-        fields = ['titulo', 'texto', 'foto']
+        fields = ['titulo', 'local_pescaria', 'texto', 'foto']
         widgets = {
             'titulo': forms.TextInput(attrs={
                 'class': 'form-control community-field',
-                'placeholder': 'Qual é o assunto da sua publicação?',
+                'placeholder': 'Ex.: Uma manhã inesquecível no rio',
                 'maxlength': 120,
+            }),
+            'local_pescaria': forms.TextInput(attrs={
+                'class': 'form-control community-field',
+                'placeholder': 'Ex.: Rio Madeira, próximo a Porto Velho',
+                'maxlength': 150,
             }),
             'texto': forms.Textarea(attrs={
                 'class': 'form-control community-field',

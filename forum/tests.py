@@ -76,6 +76,7 @@ class ComunidadeTests(TestCase):
 
         resposta = self.client.post(reverse('publicar'), {
             'titulo': 'Dica de isca',
+            'local_pescaria': 'Rio Madeira',
             'texto': 'Experimente uma isca adequada à espécie.',
         })
 
@@ -85,11 +86,65 @@ class ComunidadeTests(TestCase):
             f"{reverse('comunidade')}#publicacao-{publicacao.pk}",
         )
         self.assertEqual(publicacao.autor, self.autor)
+        self.assertEqual(publicacao.local_pescaria, 'Rio Madeira')
 
         self.client.logout()
         resposta_feed = self.client.get(reverse('comunidade'))
         self.assertContains(resposta_feed, 'Dica de isca')
         self.assertContains(resposta_feed, 'Experimente uma isca adequada à espécie.')
+        self.assertContains(resposta_feed, 'Rio Madeira')
+
+    def test_autor_pode_editar_publicacao_e_ve_acoes_com_icones(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            titulo='Título original',
+            texto='Texto original.',
+        )
+        self.client.force_login(self.autor)
+
+        resposta_feed = self.client.get(reverse('comunidade'))
+        self.assertContains(
+            resposta_feed,
+            f'href="{reverse("editar_publicacao", args=[publicacao.pk])}"',
+        )
+        self.assertContains(resposta_feed, 'bi-pencil')
+        self.assertContains(resposta_feed, 'bi-trash')
+
+        resposta_edicao = self.client.get(
+            reverse('editar_publicacao', args=[publicacao.pk]),
+        )
+        self.assertEqual(resposta_edicao.status_code, 200)
+        self.assertContains(resposta_edicao, 'Editar publicação')
+
+        resposta_salvar = self.client.post(
+            reverse('editar_publicacao', args=[publicacao.pk]),
+            {
+                'titulo': 'Título atualizado',
+                'local_pescaria': 'Rio Machado',
+                'texto': 'Texto atualizado.',
+            },
+        )
+        publicacao.refresh_from_db()
+        self.assertRedirects(
+            resposta_salvar,
+            f"{reverse('comunidade')}#publicacao-{publicacao.pk}",
+        )
+        self.assertEqual(publicacao.titulo, 'Título atualizado')
+        self.assertEqual(publicacao.local_pescaria, 'Rio Machado')
+        self.assertEqual(publicacao.texto, 'Texto atualizado.')
+
+    def test_usuario_nao_pode_editar_publicacao_de_outra_pessoa(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            texto='Publicação de outra pessoa.',
+        )
+        self.client.force_login(self.outro_usuario)
+
+        resposta = self.client.get(
+            reverse('editar_publicacao', args=[publicacao.pk]),
+        )
+
+        self.assertEqual(resposta.status_code, 403)
 
     def test_foto_da_publicacao_e_salva_no_servidor(self):
         self.client.force_login(self.autor)
