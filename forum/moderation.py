@@ -2,24 +2,51 @@ import re
 import unicodedata
 
 
-_PALAVROES = {
+_PROFANITY = {
+    'babaca',
     'bosta',
+    'bostao',
+    'bostinha',
+    'buceta',
+    'boceta',
     'cacete',
     'caralho',
     'cu',
+    'desgraca',
     'foda',
+    'fodas',
+    'fode',
+    'foder',
+    'fodia',
+    'fodendo',
+    'fodido',
+    'fodida',
+    'fudendo',
+    'fudido',
+    'fudida',
+    'fude',
+    'fuder',
     'merda',
+    'merdas',
+    'pqp',
     'porra',
+    'putaria',
     'puta',
+    'puto',
+    'putas',
+    'putos',
+    'rabao',
+    'rola',
+    'retardado',
+    'retardada',
 }
 
 
 def contem_palavrao(texto):
-    texto_normalizado = unicodedata.normalize('NFKD', texto.casefold())
-    texto_sem_acentos = ''.join(
-        caractere
-        for caractere in texto_normalizado
+    normalizado = unicodedata.normalize('NFKD', texto.casefold())
+    normalizado = ''.join(
+        caractere for caractere in normalizado
         if not unicodedata.combining(caractere)
     )
-    palavras = re.findall(r'[a-z0-9]+', texto_sem_acentos)
-    return any(palavra in _PALAVROES for palavra in palavras)
+    palavras = set(re.findall(r'[a-z0-9]+', normalizado))
+    return bool(palavras & _PROFANITY)

@@ -2,6 +2,7 @@ import tempfile
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -22,6 +23,9 @@ class ComunidadeTests(TestCase):
             username='amigo',
             password='senha-segura-456',
         )
+        pescadores, _ = Group.objects.get_or_create(name='Pescador')
+        self.autor.groups.add(pescadores)
+        self.outro_usuario.groups.add(pescadores)
 
     def test_feed_publico_exibe_publicacoes_salvas(self):
         publicacao = Publicacao.objects.create(
@@ -36,6 +40,36 @@ class ComunidadeTests(TestCase):
         self.assertContains(resposta, publicacao.titulo)
         self.assertContains(resposta, publicacao.texto)
         self.assertContains(resposta, self.autor.username)
+
+    def test_forum_exibe_link_para_dicas_e_adicao_so_para_administradores(self):
+        resposta_publica = self.client.get(reverse('comunidade'))
+
+        self.assertContains(resposta_publica, f'href="{reverse("dicas")}"')
+        self.assertNotContains(resposta_publica, f'href="{reverse("adicionar_dica")}"')
+
+        administrador = get_user_model().objects.create_user(
+            username='administrador',
+            password='senha-segura-789',
+            is_staff=True,
+        )
+        self.client.force_login(administrador)
+        resposta_admin = self.client.get(reverse('comunidade'))
+
+        self.assertContains(resposta_admin, f'href="{reverse("dicas")}"')
+        self.assertContains(resposta_admin, f'href="{reverse("adicionar_dica")}"')
+
+    def test_menu_lateral_mantem_dicas_ativa_nas_paginas_do_forum(self):
+        self.client.force_login(self.autor)
+
+        for rota in ('dicas', 'adicionar_dica'):
+            with self.subTest(rota=rota):
+                resposta = self.client.get(reverse(rota))
+
+                self.assertEqual(resposta.status_code, 200)
+                self.assertContains(
+                    resposta,
+                    f'<a href="{reverse("dicas")}" class="nav-link active">Dicas</a>',
+                )
 
     def test_usuario_autenticado_cria_publicacao_persistente(self):
         self.client.force_login(self.autor)
@@ -91,6 +125,31 @@ class ComunidadeTests(TestCase):
             resposta,
             f"{reverse('login')}?next={reverse('publicar')}",
         )
+
+    def test_usuario_sem_titulo_nao_pode_publicar_ou_comentar(self):
+        usuario = get_user_model().objects.create_user(
+            username='visitante',
+            password='senha-segura-789',
+        )
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            texto='Publicação existente.',
+        )
+        self.client.force_login(usuario)
+
+        resposta_publicar = self.client.post(reverse('publicar'), {
+            'titulo': 'Não autorizado',
+            'texto': 'Esta publicação não deve ser criada.',
+        })
+        resposta_comentar = self.client.post(
+            reverse('comentar', args=[publicacao.pk]),
+            {'texto': 'Este comentário não deve ser criado.'},
+        )
+
+        self.assertEqual(resposta_publicar.status_code, 403)
+        self.assertEqual(resposta_comentar.status_code, 403)
+        self.assertFalse(Publicacao.objects.filter(titulo='Não autorizado').exists())
+        self.assertFalse(Comentario.objects.filter(autor=usuario).exists())
 
     def test_comentar_e_curtir_publicacao(self):
         publicacao = Publicacao.objects.create(

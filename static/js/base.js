@@ -24,3 +24,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+const secretCommandScript = document.querySelector("script[data-surprise-url]");
+const secretSurpriseUrl = secretCommandScript?.dataset.surpriseUrl;
+const secretSurpriseCommand = "surpresa";
+let typedSecretCommand = "";
+
+document.addEventListener("keydown", function (event) {
+    if (
+        event.repeat
+        || document.activeElement.matches("input, textarea, select, [contenteditable='true']")
+    ) {
+        typedSecretCommand = "";
+        return;
+    }
+
+    if (!secretSurpriseUrl || event.key.length !== 1) {
+        return;
+    }
+
+    typedSecretCommand = (typedSecretCommand + event.key.toLowerCase())
+        .slice(-secretSurpriseCommand.length);
+
+    if (typedSecretCommand === secretSurpriseCommand) {
+        window.location.assign(secretSurpriseUrl);
+    }
+});

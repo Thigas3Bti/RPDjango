@@ -8,8 +8,28 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import ComentarioForm, EventoAgendaForm, PublicacaoForm
-from .models import Comentario, Curtida, EventoAgenda, Publicacao
+from .forms import ComentarioForm, DicaForm, EventoAgendaForm, PublicacaoForm
+from .models import Comentario, Curtida, Dica, EventoAgenda, Publicacao
+
+
+def dicas(request):
+    return render(request, 'dicas.html', {
+        'dicas_publicadas': Dica.objects.select_related('autor').all(),
+    })
+
+
+@login_required(login_url='login')
+def adicionar_dica(request):
+    form = DicaForm(request.POST or None, request.FILES or None)
+
+    if request.method == 'POST' and form.is_valid():
+        dica = form.save(commit=False)
+        dica.autor = request.user
+        dica.save()
+        messages.success(request, 'Sua dica foi adicionada com sucesso.')
+        return redirect('dicas')
+
+    return render(request, 'adicionar_dica.html', {'form': form})
 
 
 def eventos(request):
@@ -145,11 +165,15 @@ def comunidade(request):
         'publicacoes': publicacoes,
         'ordenacao': request.GET.get('ordenar', 'recentes'),
         'comentario_form': ComentarioForm(),
+        'pode_publicar': eh_pescador(request.user),
     })
 
 
 @login_required(login_url='login')
 def publicar(request):
+    if not eh_pescador(request.user):
+        raise PermissionDenied
+
     if request.method == 'POST':
         form = PublicacaoForm(request.POST, request.FILES)
         if form.is_valid():
@@ -169,6 +193,9 @@ def publicar(request):
 @login_required(login_url='login')
 @require_POST
 def comentar(request, publicacao_id):
+    if not eh_pescador(request.user):
+        raise PermissionDenied
+
     publicacao = get_object_or_404(Publicacao, pk=publicacao_id)
     form = ComentarioForm(request.POST)
     if form.is_valid():
