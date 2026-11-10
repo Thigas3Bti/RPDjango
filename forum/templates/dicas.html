@@ -153,7 +153,7 @@
         {% if dicas_publicadas %}
             {% for dica in dicas_publicadas %}
                 <div class="col-12 col-xl-6 nivel-dica" data-nivel="{{ dica.nivel }}">
-                    <article class="card dashboard-card learning-community-card h-100 shadow-sm p-4">
+                    <article class="card dashboard-card learning-community-card shadow-sm p-4">
                         <span class="dashboard-kicker">{{ dica.get_nivel_display|upper }} · DICA DA COMUNIDADE</span>
                         <h3 class="h5 fw-bold mt-2">{{ dica.titulo }}</h3>
                         <p class="mb-3">{{ dica.descricao|linebreaksbr }}</p>

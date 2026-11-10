@@ -1,17 +1,36 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Cadastrar Dica | RondoPesca{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/forum/dicas.css' %}?v=20261110-7">
+{% endblock %}
+
 {% block content %}
-<div class="dashboard-home">
-    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm">
-        <span class="dashboard-kicker">CONTEÚDO ADMINISTRATIVO</span>
-        <h1 class="display-6 fw-bold mt-2 mb-2">Cadastrar uma dica de pesca</h1>
-        <p class="mb-0 text-muted">Publique uma orientação para a comunidade de pescadores.</p>
+<div class="dashboard-home learning-page">
+    <section class="dashboard-welcome learning-hero mb-4 p-4 p-lg-5 shadow-sm">
+        <div class="learning-hero-copy">
+            <span class="dashboard-kicker"><i class="bi bi-lightbulb me-1" aria-hidden="true"></i> CONTRIBUA COM A COMUNIDADE</span>
+            <h1 class="display-6 fw-bold mt-3 mb-2">Compartilhe sua dica de pesca</h1>
+            <p class="mb-0">Uma boa experiência pode ajudar outros pescadores a aprender e aproveitar cada pescaria com mais segurança.</p>
+        </div>
+        <div class="learning-hero-art" aria-hidden="true">
+            <span class="learning-hero-orbit learning-hero-orbit-one"></span>
+            <span class="learning-hero-orbit learning-hero-orbit-two"></span>
+            <i class="bi bi-chat-square-heart"></i>
+            <span class="learning-hero-art-caption">Conhecimento compartilhado</span>
+        </div>
     </section>
 
-    <section class="card dashboard-card shadow-sm p-4 p-lg-5" aria-labelledby="form-dica-title">
-        <h2 class="h4 fw-bold mb-3" id="form-dica-title">Detalhes da dica</h2>
+    <section class="card dashboard-card learning-form-card shadow-sm p-4 p-lg-5" aria-labelledby="form-dica-title">
+        <div class="learning-form-heading mb-4">
+            <span class="learning-form-icon" aria-hidden="true"><i class="bi bi-pencil-square"></i></span>
+            <div>
+                <span class="dashboard-kicker">NOVA PUBLICAÇÃO</span>
+                <h2 class="h4 fw-bold mt-1 mb-0" id="form-dica-title">Conteúdo da dica</h2>
+            </div>
+        </div>
         {% if messages %}
         <div class="mb-3" aria-live="polite">
             {% for message in messages %}
@@ -40,10 +59,10 @@
             </div>
             {% endif %}
             <div class="d-flex flex-wrap gap-2">
-                <button type="submit" class="btn btn-success">
+                <button type="submit" class="btn btn-success learning-submit-button">
                     <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Cadastrar dica
                 </button>
-                <a href="{% url 'dicas' %}" class="btn btn-outline-secondary">Cancelar</a>
+                <a href="{% url 'dicas' %}" class="btn btn-outline-secondary learning-cancel-button">Cancelar</a>
             </div>
         </form>
     </section>
