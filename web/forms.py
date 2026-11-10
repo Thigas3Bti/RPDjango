@@ -4,6 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from .models import Dica, MensagemContato
 from usuarios.models import PerfilUsuario
 
 
@@ -47,43 +48,93 @@ class BioPerfilForm(forms.ModelForm):
         labels = {'bio': 'Sobre você'}
 
 
-class ContatoForm(forms.Form):
-    ASSUNTOS = [
-        ('duvida', 'Dúvida'),
-        ('sugestao', 'Sugestão'),
-        ('experiencia', 'Dica ou experiência de pesca'),
-        ('outro', 'Outro assunto'),
-    ]
+class DicaForm(forms.ModelForm):
+    MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
-    nome = forms.CharField(
-        label='Nome Completo',
-        max_length=150,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Seu nome',
-            'autocomplete': 'name',
-        }),
-    )
-    email = forms.EmailField(
-        label='E-mail',
-        widget=forms.EmailInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'seu@email.com',
-            'autocomplete': 'email',
-        }),
-    )
-    assunto = forms.ChoiceField(
-        label='Assunto',
-        choices=[('', 'Selecione uma opção...'), *ASSUNTOS],
-        widget=forms.Select(attrs={'class': 'form-select'}),
-    )
+    class Meta:
+        model = Dica
+        fields = ['titulo', 'descricao', 'nivel', 'imagem']
+        labels = {
+            'titulo': 'Título da dica',
+            'descricao': 'Descrição da dica',
+            'nivel': 'Nível',
+            'imagem': 'Imagem ilustrativa (opcional)',
+        }
+        widgets = {
+            'titulo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'maxlength': 120,
+                'placeholder': 'Ex.: Como escolher a isca para o local',
+            }),
+            'descricao': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 6,
+                'placeholder': 'Explique sua dica com detalhes e contexto (opcional).',
+            }),
+            'nivel': forms.Select(attrs={'class': 'form-select'}),
+            'imagem': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*',
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.error_messages['required'] = _('Este campo é obrigatório.')
+
+    def clean_imagem(self):
+        imagem = self.cleaned_data.get('imagem')
+        if imagem and imagem.size > self.MAX_IMAGE_SIZE:
+            raise ValidationError(_('A imagem deve ter no máximo 5 MB.'))
+        return imagem
+
+
+class MensagemContatoForm(forms.ModelForm):
     mensagem = forms.CharField(
-        label='Mensagem',
+        max_length=5000,
         widget=forms.Textarea(attrs={
             'class': 'form-control',
+            'id': 'contact-message',
             'placeholder': 'Escreva sua mensagem aqui...',
+            'rows': 5,
         }),
     )
+
+    class Meta:
+        model = MensagemContato
+        fields = ['nome', 'email', 'assunto', 'mensagem']
+        labels = {
+            'nome': 'Nome Completo',
+            'email': 'E-mail',
+            'assunto': 'Assunto',
+            'mensagem': 'Mensagem',
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={
+                'class': 'form-control',
+                'id': 'contact-name',
+                'placeholder': 'Seu nome',
+                'autocomplete': 'name',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'id': 'contact-email',
+                'placeholder': 'seu@email.com',
+                'autocomplete': 'email',
+            }),
+            'assunto': forms.Select(attrs={
+                'class': 'form-select',
+                'id': 'contact-topic',
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['assunto'].choices = [
+            ('', 'Selecione uma opção...'),
+            *MensagemContato.ASSUNTOS,
+        ]
 
 
 class LoginForm(AuthenticationForm):
