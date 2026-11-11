@@ -15,7 +15,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
 from forum.models import Dica
-from .models import MensagemContato, SolicitacaoRedefinicaoSenha
+from .models import Equipamento, MensagemContato
+from .models import SolicitacaoRedefinicaoSenha
 from usuarios.models import PerfilUsuario
 
 
@@ -96,6 +97,80 @@ class ContactMessagesAdminTests(TestCase):
         admin = User.objects.create_user(username='admin', is_staff=True)
         self.client.force_login(admin)
 
+        response = self.client.get(reverse('mensagens_contato'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'admin-page-hero')
+        self.assertContains(response, 'Mensagens recebidas')
+        self.assertContains(response, mensagem.nome)
+
+    def test_staff_user_can_filter_messages_by_status_subject_and_search(self):
+        MensagemContato.objects.create(**self.dados_mensagem)
+        mensagem_lida = MensagemContato.objects.create(
+            **{
+                **self.dados_mensagem,
+                'nome': 'Outra pessoa',
+                'assunto': 'duvida',
+                'mensagem': 'Mensagem de dúvida para filtrar.',
+            },
+            lida=True,
+        )
+        self.client.force_login(User.objects.create_user(
+            username='admin',
+            password='senha',
+            is_staff=True,
+        ))
+
+        response = self.client.get(reverse('mensagens_contato'), {
+            'status': 'lidas',
+            'assunto': 'duvida',
+            'q': 'Outra pessoa',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, mensagem_lida.mensagem)
+        self.assertEqual(response.context['total_nao_lidas'], 1)
+
+    def test_staff_user_can_mark_message_read_and_unread(self):
+        mensagem = MensagemContato.objects.create(**self.dados_mensagem)
+        self.client.force_login(User.objects.create_user(
+            username='admin',
+            password='senha',
+            is_staff=True,
+        ))
+        url = reverse('atualizar_status_mensagem', args=[mensagem.id])
+
+        response = self.client.post(url, {'status': 'lida'})
+
+        self.assertRedirects(response, reverse('mensagens_contato'))
+        mensagem.refresh_from_db()
+        self.assertTrue(mensagem.lida)
+
+    def test_message_status_update_rejects_get(self):
+        self.client.force_login(User.objects.create_user(
+            username='admin',
+            password='senha',
+            is_staff=True,
+        ))
+
+        response = self.client.get(
+            reverse('atualizar_status_mensagem', args=[1]),
+        )
+
+        self.assertEqual(response.status_code, 405)
+
+    def test_non_staff_cannot_change_message_status(self):
+        mensagem = MensagemContato.objects.create(**self.dados_mensagem)
+        self.client.force_login(User.objects.create_user(username='pescador'))
+
+        response = self.client.post(
+            reverse('atualizar_status_mensagem', args=[mensagem.id]),
+            {'status': 'lida'},
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+
 class PerfilEdicaoTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -173,63 +248,131 @@ class PerfilEdicaoTests(TestCase):
         self.perfil.refresh_from_db()
         self.assertTrue(self.perfil.foto)
 
-    def test_staff_user_can_filter_messages_by_status_subject_and_search(self):
-        MensagemContato.objects.create(**self.dados_mensagem)
-        lida = MensagemContato.objects.create(
-            **{
-                **self.dados_mensagem,
-                'nome': 'Outra pessoa',
-                'assunto': 'duvida',
-                'mensagem': 'Mensagem de dúvida para filtrar.',
-            },
-            lida=True,
-        )
-        self.client.force_login(User.objects.create_user(
-            username='admin',
-            password='senha',
-            is_staff=True,
-        ))
+class EquipamentosTests(TestCase):
+    def setUp(self):
+        self.media_dir = TemporaryDirectory()
+        self.settings_override = override_settings(MEDIA_ROOT=self.media_dir.name)
+        self.settings_override.enable()
+        self.addCleanup(self.settings_override.disable)
+        self.addCleanup(self.media_dir.cleanup)
 
-        response = self.client.get(reverse('mensagens_contato'), {
-            'status': 'lidas',
-            'assunto': 'duvida',
-            'q': 'Outra pessoa',
+    def _imagem(self, nome):
+        image_buffer = BytesIO()
+        Image.new('RGB', (2, 2), color='green').save(image_buffer, format='PNG')
+        return SimpleUploadedFile(
+            nome,
+            image_buffer.getvalue(),
+            content_type='image/png',
+        )
+
+    def test_catalog_lists_equipment_without_long_descriptions(self):
+        equipamento = Equipamento.objects.create(
+            nome='Vara de teste',
+            categoria='vara',
+            descricao='Descrição detalhada da vara.',
+            uso='Uso recomendado da vara.',
+        )
+
+        response = self.client.get(reverse('equipamentos'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, equipamento.nome)
+        self.assertContains(
+            response,
+            reverse('detalhe_equipamento', args=[equipamento.pk]),
+        )
+        self.assertNotContains(response, equipamento.descricao)
+        self.assertNotContains(response, equipamento.uso)
+
+    def test_equipment_detail_shows_details_and_other_equipment(self):
+        equipamento = Equipamento.objects.create(
+            nome='Vara principal',
+            categoria='vara',
+            descricao='Descrição completa do equipamento.',
+            uso='Indicado para pesca em rios.',
+        )
+        relacionado = Equipamento.objects.create(
+            nome='Vara relacionada',
+            categoria='vara',
+            descricao='Outro item para explorar.',
+        )
+
+        response = self.client.get(
+            reverse('detalhe_equipamento', args=[equipamento.pk]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, equipamento.descricao)
+        self.assertContains(response, equipamento.uso)
+        self.assertContains(response, relacionado.nome)
+        self.assertContains(
+            response,
+            reverse('detalhe_equipamento', args=[relacionado.pk]),
+        )
+
+    def test_staff_must_add_at_least_one_photo_to_create_equipment(self):
+        admin = User.objects.create_user(
+            username='equipamento-admin',
+            password='senha-segura-123',
+            is_staff=True,
+        )
+        self.client.force_login(admin)
+
+        response = self.client.post(reverse('cadastrar_equipamento'), {
+            'nome': 'Vara sem foto',
+            'categoria': 'vara',
+            'descricao': 'Descrição do equipamento.',
+            'uso': 'Uso recomendado.',
         })
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.message.mensagem)
-        self.assertContains(response, 'Solicitar cargo de pescador profissional')
-        self.assertEqual(response.context['total_nao_lidas'], 1)
+        self.assertContains(response, 'Adicione pelo menos uma foto')
+        self.assertFalse(Equipamento.objects.exists())
 
-    def test_staff_user_can_mark_message_read_and_unread(self):
-        mensagem = MensagemContato.objects.create(**self.dados_mensagem)
-        self.client.force_login(User.objects.create_user(
-            username='admin',
-            password='senha',
+    def test_equipment_photo_controls_follow_the_name_field(self):
+        admin = User.objects.create_user(
+            username='equipamento-admin',
+            password='senha-segura-123',
             is_staff=True,
-        ))
-        url = reverse('atualizar_status_mensagem', args=[mensagem.id])
+        )
+        self.client.force_login(admin)
 
-        response = self.client.post(url, {'status': 'lida'})
+        response = self.client.get(reverse('cadastrar_equipamento'))
 
-        self.assertRedirects(response, reverse('mensagens_contato'))
-        self.message.refresh_from_db()
-        self.assertTrue(self.message.lida)
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertLess(html.index('name="nome"'), html.index('id="equipmentPhotoGrid"'))
+        self.assertIn('Trocar foto', html)
+        self.assertIn('Excluir foto', html)
+        self.assertIn("dragstart", html)
 
-    def test_message_status_update_rejects_get(self):
-        self.client.force_login(User.objects.create_user(
-            username='admin',
-            password='senha',
+    def test_staff_can_upload_multiple_equipment_photos(self):
+        admin = User.objects.create_user(
+            username='equipamento-admin',
+            password='senha-segura-123',
             is_staff=True,
-        ))
+        )
+        self.client.force_login(admin)
 
-        response = self.client.post(url, {'status': 'nao_lida'})
+        response = self.client.post(reverse('cadastrar_equipamento'), {
+            'nome': 'Vara com fotos',
+            'categoria': 'vara',
+            'descricao': 'Descrição do equipamento.',
+            'uso': 'Uso recomendado.',
+            'fotos': [self._imagem('frente.png'), self._imagem('lado.png')],
+        })
 
-        self.assertEqual(response.status_code, 405)
+        equipamento = Equipamento.objects.get(nome='Vara com fotos')
+        self.assertRedirects(response, reverse('equipamentos'))
+        self.assertTrue(equipamento.foto)
+        self.assertEqual(equipamento.fotos_adicionais.count(), 1)
 
-    def test_non_staff_cannot_change_message_status(self):
-        mensagem = MensagemContato.objects.create(**self.dados_mensagem)
-        self.client.force_login(User.objects.create_user(username='pescador'))
+        response = self.client.get(
+            reverse('detalhe_equipamento', args=[equipamento.pk]),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['fotos_equipamento']), 2)
+
 
 class ContatoViewTests(TestCase):
     def test_surprise_page_renders(self):
@@ -249,7 +392,7 @@ class ContatoViewTests(TestCase):
         self.assertContains(response, 'csrfmiddlewaretoken')
         self.assertContains(response, f'href="{reverse("home")}"')
         self.assertContains(response, 'Voltar')
-        self.assertNotContains(response, 'href="/contato/"')
+        self.assertContains(response, 'href="/contato/"')
 
     def test_contact_form_sends_message_to_site_email(self):
         response = self.client.post(reverse('contato'), {
@@ -306,7 +449,7 @@ class ContatoViewTests(TestCase):
         self.assertContains(response, 'Cadastre-se e explore mais.')
         self.assertContains(response, 'Cadastre-se grátis')
         self.assertContains(response, f'href="{reverse("contato")}"')
-        self.assertContains(response, 'Falar conosco')
+        self.assertContains(response, 'Fale conosco')
 
 
 class SurpresaViewTests(TestCase):
@@ -373,9 +516,9 @@ class DashboardFishingTipsTests(TestCase):
             response,
             'images/banner_tela_inicio.jpg',
         )
-        self.assertContains(response, 'images/galeria/local-1.jpg')
-        self.assertContains(response, 'images/galeria/local-2.jpg')
-        self.assertContains(response, 'images/galeria/local-3.jpg')
+        self.assertContains(response, 'images/local1.jpg')
+        self.assertContains(response, 'images/local2.jpg')
+        self.assertContains(response, 'images/local3.jpg')
         self.assertContains(response, f'href="{reverse("dicas")}"')
         self.assertNotContains(response, 'id="lista-niveis-dicas"')
 
@@ -406,7 +549,8 @@ class DashboardFishingTipsTests(TestCase):
         self.assertRedirects(response, reverse('dicas'))
         dica = Dica.objects.get(titulo='Ler a correnteza')
         self.assertEqual(dica.autor, user)
-        self.assertEqual(dica.categoria, 'avancado')
+        self.assertEqual(dica.nivel, 'intermediario')
+        self.assertEqual(dica.categoria, 'intermediario')
         tips_response = self.client.get(reverse('dicas'))
         self.assertContains(tips_response, 'Ler a correnteza')
         self.assertContains(tips_response, 'DICA DA COMUNIDADE')
@@ -470,7 +614,7 @@ class DashboardFishingTipsTests(TestCase):
             with override_settings(MEDIA_ROOT=media_directory):
                 response = self.client.post(reverse('adicionar_dica'), {
                     'titulo': 'Dica com imagem',
-                    'categoria': 'iniciante',
+                    'nivel': 'iniciante',
                     'descricao': '',
                     'imagem': image,
                 })
@@ -490,7 +634,7 @@ class DashboardFishingTipsTests(TestCase):
 
         response = self.client.post(reverse('adicionar_dica'), {
             'titulo': 'Dica sem imagem válida',
-            'categoria': 'iniciante',
+            'nivel': 'iniciante',
             'imagem': SimpleUploadedFile(
                 'nao-e-imagem.png',
                 b'conteudo invalido',
@@ -514,7 +658,7 @@ class DashboardFishingTipsTests(TestCase):
         Image.new('RGB', (1, 1), color='green').save(image_buffer, format='PNG')
         response = self.client.post(reverse('adicionar_dica'), {
             'titulo': 'Dica com extensão insegura',
-            'categoria': 'iniciante',
+            'nivel': 'iniciante',
             'imagem': SimpleUploadedFile(
                 'arquivo.php',
                 image_buffer.getvalue(),
@@ -548,35 +692,69 @@ class LoginErrorMessageTests(TestCase):
 
 
 class RegistrationTests(TestCase):
+    personal_data = {
+        'first_name': 'Novo',
+        'last_name': 'Pescador',
+        'email': 'novo@example.com',
+    }
+
+    def avancar_para_etapa_dois(self):
+        return self.client.post(
+            reverse('cadastro'),
+            {'etapa': '1', **self.personal_data},
+        )
+
     def test_login_page_links_to_registration(self):
         response = self.client.get(reverse('login'))
 
         self.assertContains(response, 'Não tem uma conta?')
         self.assertContains(response, f'href="{reverse("cadastro")}"')
+        self.assertNotContains(response, 'Google')
 
-    def test_registration_page_renders_account_fields(self):
+    def test_registration_page_renders_first_stage(self):
         response = self.client.get(reverse('cadastro'))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Criar conta')
-        self.assertContains(response, 'Confirme a senha')
-        self.assertContains(response, 'Escolha um nome de usuário para acessar sua conta.')
-        self.assertContains(response, 'Use pelo menos 8 caracteres.')
+        self.assertContains(response, 'Etapa 1 de 2')
+        self.assertContains(response, 'Continuar')
         self.assertContains(response, 'voce@exemplo.com')
+        self.assertNotContains(response, 'Confirme a senha')
+        self.assertNotContains(response, 'Google')
 
     def test_registration_shows_portuguese_required_field_errors(self):
-        response = self.client.post(reverse('cadastro'), {})
+        response = self.client.post(reverse('cadastro'), {'etapa': '1'})
 
         self.assertContains(response, 'Este campo é obrigatório.')
 
+    def test_personal_information_is_saved_before_credentials_stage(self):
+        response = self.avancar_para_etapa_dois()
+
+        self.assertRedirects(response, f'{reverse("cadastro")}?etapa=2')
+        self.assertNotIn('password1', self.client.session['cadastro_dados_pessoais'])
+        response = self.client.get(reverse('cadastro'), {'etapa': '2'})
+        self.assertContains(response, 'Etapa 2 de 2')
+        self.assertContains(response, 'Confirme a senha')
+        self.assertContains(response, 'Escolha um nome de usuário para acessar sua conta.')
+        self.assertContains(response, 'Use pelo menos 8 caracteres.')
+
+    def test_back_link_returns_to_personal_information_with_values(self):
+        self.avancar_para_etapa_dois()
+        response = self.client.get(reverse('cadastro'), {'etapa': '2'})
+
+        self.assertContains(response, f'href="{reverse("cadastro")}?etapa=1">Voltar</a>')
+        response = self.client.get(reverse('cadastro'), {'etapa': '1'})
+        self.assertContains(response, 'value="Novo"')
+        self.assertContains(response, 'value="Pescador"')
+        self.assertContains(response, 'value="novo@example.com"')
+
     def test_registration_shows_portuguese_password_mismatch_error(self):
+        self.avancar_para_etapa_dois()
         response = self.client.post(
             reverse('cadastro'),
             {
+                'etapa': '2',
                 'username': 'novo-pescador',
-                'first_name': 'Novo',
-                'last_name': 'Pescador',
-                'email': 'novo@example.com',
                 'password1': 'SenhaSegura123!',
                 'password2': 'SenhaDiferente123!',
             },
@@ -584,22 +762,55 @@ class RegistrationTests(TestCase):
 
         self.assertContains(response, 'As senhas informadas não são iguais.')
 
-    def test_registration_creates_user_and_logs_them_in(self):
+    def test_registration_redirects_to_login_with_credentials_prefilled_once(self):
+        self.avancar_para_etapa_dois()
         response = self.client.post(
             reverse('cadastro'),
             {
+                'etapa': '2',
                 'username': 'novo-pescador',
-                'first_name': 'Novo',
-                'last_name': 'Pescador',
-                'email': 'novo@example.com',
                 'password1': 'SenhaSegura123!',
                 'password2': 'SenhaSegura123!',
             },
         )
 
-        self.assertRedirects(response, reverse('painel'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], reverse('login'))
         self.assertTrue(User.objects.filter(username='novo-pescador').exists())
-        self.assertIn('_auth_user_id', self.client.session)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+        response = self.client.get(reverse('login'))
+
+        self.assertContains(response, 'value="novo-pescador"')
+        self.assertContains(response, 'value="SenhaSegura123!"')
+        self.assertNotIn('credenciais_cadastro', self.client.session)
+
+        response = self.client.get(reverse('login'))
+        self.assertNotContains(response, 'value="SenhaSegura123!"')
+
+    def test_registration_rejects_existing_username_with_clear_error(self):
+        User.objects.create_user(username='usuario-existente', password='SenhaSegura123!')
+        self.avancar_para_etapa_dois()
+
+        response = self.client.post(reverse('cadastro'), {
+            'etapa': '2',
+            'username': 'USUARIO-EXISTENTE',
+            'password1': 'SenhaSegura123!',
+            'password2': 'SenhaSegura123!',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'Já existe alguém cadastrado com esse nome de usuário',
+        )
+        self.assertEqual(User.objects.count(), 1)
+
+    def test_registration_cannot_skip_personal_information_stage(self):
+        response = self.client.get(reverse('cadastro'), {'etapa': '2'})
+
+        self.assertRedirects(response, reverse('cadastro'))
+        self.assertEqual(User.objects.count(), 0)
 
 
 class PasswordResetTests(TestCase):
@@ -755,7 +966,7 @@ class UserMenuTests(TestCase):
                 response = self.client.get(reverse('home'))
 
         self.assertContains(response, 'src="/media/perfis/foto.png"')
-        self.assertContains(response, '>João Silva</span>')
+        self.assertContains(response, '>pescador</span>')
 
     def test_profile_requires_login(self):
         response = self.client.get(reverse('perfil'))
@@ -776,6 +987,8 @@ class UserMenuTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Meu perfil')
+        self.assertContains(response, 'Editar perfil')
+        self.assertContains(response, reverse('editar_perfil'))
         self.assertContains(response, 'João Silva')
         self.assertContains(response, 'joao@example.com')
         self.assertContains(response, 'aria-label="Escolha uma foto de perfil"')
@@ -843,3 +1056,74 @@ class UserMenuTests(TestCase):
 
         self.assertRedirects(response, reverse('home'))
         self.assertNotIn('_auth_user_id', self.client.session)
+
+
+class EditarPerfilTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='pescador',
+            password='CurrentPass123!',
+            email='antes@example.com',
+        )
+        self.client.force_login(self.user)
+
+    def test_pagina_de_edicao_separa_topicos_pessoais_e_seguranca(self):
+        response = self.client.get(reverse('editar_perfil'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Informações pessoais')
+        self.assertContains(response, 'Informações de segurança')
+        self.assertContains(response, 'Salvar alterações')
+
+        response = self.client.get(reverse('editar_perfil'), {'secao': 'seguranca'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Senha antiga')
+        self.assertContains(response, 'Salvar nova senha')
+
+    def test_usuario_edita_dados_pessoais_e_bio(self):
+        response = self.client.post(reverse('editar_perfil'), {
+            'salvar_perfil': '1',
+            'first_name': 'João',
+            'last_name': 'Silva',
+            'username': 'joao-pescador',
+            'email': 'joao@example.com',
+            'bio': 'Pesca esportiva e natureza.',
+        })
+
+        self.assertRedirects(response, reverse('editar_perfil'))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, 'João')
+        self.assertEqual(self.user.last_name, 'Silva')
+        self.assertEqual(self.user.username, 'joao-pescador')
+        self.assertEqual(self.user.email, 'joao@example.com')
+        self.assertEqual(self.user.perfil_usuario.bio, 'Pesca esportiva e natureza.')
+
+    def test_usuario_altera_senha_sem_perder_a_sessao(self):
+        response = self.client.post(
+            f'{reverse("editar_perfil")}?secao=seguranca',
+            {
+                'alterar_senha': '1',
+                'old_password': 'CurrentPass123!',
+                'new_password1': 'NewSecurePass456!',
+                'new_password2': 'NewSecurePass456!',
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            f'{reverse("editar_perfil")}?secao=seguranca',
+        )
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('NewSecurePass456!'))
+        self.assertEqual(self.client.get(reverse('perfil')).status_code, 200)
+
+    def test_edicao_exige_login(self):
+        self.client.logout()
+
+        response = self.client.get(reverse('editar_perfil'))
+
+        self.assertRedirects(
+            response,
+            f'{reverse("login")}?next={reverse("editar_perfil")}',
+        )

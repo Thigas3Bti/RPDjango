@@ -14,11 +14,11 @@ class DicaForm(forms.ModelForm):
 
     class Meta:
         model = Dica
-        fields = ['titulo', 'descricao', 'categoria', 'imagem']
+        fields = ['titulo', 'descricao', 'nivel', 'imagem']
         labels = {
             'titulo': 'Título da dica',
             'descricao': 'Descrição da dica',
-            'categoria': 'Categoria',
+            'nivel': 'Nível de experiência',
             'imagem': 'Imagem ilustrativa (opcional)',
         }
         widgets = {
@@ -32,7 +32,7 @@ class DicaForm(forms.ModelForm):
                 'rows': 6,
                 'placeholder': 'Explique sua dica com detalhes e contexto (opcional).',
             }),
-            'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'nivel': forms.Select(attrs={'class': 'form-select'}),
             'imagem': forms.ClearableFileInput(attrs={
                 'class': 'form-control',
                 'accept': 'image/*',

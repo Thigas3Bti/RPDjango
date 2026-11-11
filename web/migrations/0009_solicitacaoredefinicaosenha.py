@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('web', '0008_merge_dica_mensagem'),
+        ('web', '0007_mensagemcontato_profissional_subject'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

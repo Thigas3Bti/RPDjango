@@ -1,15 +1,21 @@
 from django.contrib import messages
-from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.contrib.auth import (
+    update_session_auth_hash,
+    login as auth_login,
+    logout as auth_logout,
+)
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import EmailMessage
 from django.db import transaction
 from django.db.models import Q
+from django.forms import ImageField
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 import logging
@@ -18,21 +24,26 @@ import smtplib
 from .forms import (
     BioPerfilForm,
     DicaForm,
+    EditarPerfilForm,
+    EquipamentoForm,
     FotoPerfilForm,
     LoginForm,
     RegistrationForm,
     MensagemContatoForm,
+    RegistrationPersonalForm,
+    SenhaPerfilForm,
     SolicitarRedefinicaoSenhaForm,
 )
 from forum.models import Dica, EventoAgenda
 from usuarios.permissoes import eh_pescador
-from .models import MensagemContato, SolicitacaoRedefinicaoSenha
+from .models import (
+    Equipamento,
+    FotoAdicionalEquipamento,
+    MensagemContato,
+    SolicitacaoRedefinicaoSenha,
+)
 from usuarios.models import PerfilUsuario
 logger = logging.getLogger(__name__)
-
-
-logger = logging.getLogger(__name__)
-
 
 def _eventos_proximos(user):
     hoje = timezone.localdate()
@@ -58,8 +69,12 @@ def surpresa(request):
 
 
 def contato(request):
+    assunto_inicial = request.GET.get('assunto', '').strip()
+    valid_assuntos = {valor for valor, _ in MensagemContato.ASSUNTOS}
+    initial = {'assunto': assunto_inicial} if assunto_inicial in valid_assuntos else {}
     form = MensagemContatoForm(
         request.POST if request.method == 'POST' else None,
+        initial=initial,
     )
     if request.method == 'POST' and form.is_valid():
         mensagem_contato = form.save()
@@ -86,30 +101,6 @@ def contato(request):
         else:
             messages.success(request, 'Sua mensagem foi enviada com sucesso!')
         return redirect('contato')
-        dados = form.cleaned_data
-        assunto = f"[RondoPesca] {dados['assunto']}"
-        corpo = (
-            f"Nome: {dados['nome']}\n"
-            f"E-mail: {dados['email']}\n\n"
-            f"Mensagem:\n{dados['mensagem']}"
-        )
-        try:
-            EmailMessage(
-                subject=assunto,
-                body=corpo,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[settings.CONTACT_EMAIL],
-                reply_to=[dados['email']],
-            ).send(fail_silently=False)
-        except (OSError, smtplib.SMTPException):
-            logger.exception('Falha ao enviar mensagem do formulário de contato.')
-            messages.error(
-                request,
-                'Não foi possível enviar sua mensagem agora. Tente novamente mais tarde.',
-            )
-        else:
-            messages.success(request, 'Sua mensagem foi enviada com sucesso!')
-            return redirect('contato')
 
     return render(request, 'web/contato.html', {'form': form})
 
@@ -150,10 +141,7 @@ def mensagens_contato(request):
         'status_selecionado': status,
         'assunto_selecionado': assunto,
         'assuntos': MensagemContato.ASSUNTOS,
-        'status_selecionado': status if status in ('nao_lidas', 'lidas') else '',
-        'assunto_selecionado': assunto,
         'busca': busca,
-        'total_nao_lidas': MensagemContato.objects.filter(lida=False).count(),
     })
 
 
@@ -268,10 +256,6 @@ def gerenciar_solicitacoes_senha(request):
     })
 
 
-def surpresa(request):
-    return render(request, 'web/surpresa.html')
-
-
 def dicas(request):
     return render(request, 'web/dicas.html', {
         'dicas_publicadas': Dica.objects.select_related('autor').all(),
@@ -297,6 +281,80 @@ def adicionar_dica(request):
         return redirect('dicas')
 
     return render(request, 'web/adicionar_dica.html', {'form': form})
+
+
+def equipamentos(request):
+    return render(request, 'web/equipamentos.html', {
+        'equipamentos': Equipamento.objects.filter(ativo=True),
+    })
+
+
+def detalhe_equipamento(request, equipamento_id):
+    equipamento = get_object_or_404(
+        Equipamento.objects.filter(ativo=True),
+        pk=equipamento_id,
+    )
+    outros_equipamentos = list(
+        Equipamento.objects.filter(
+            ativo=True,
+            categoria=equipamento.categoria,
+        ).exclude(pk=equipamento.pk)[:4]
+    )
+    if len(outros_equipamentos) < 4:
+        outros_ids = [equipamento.pk, *(item.pk for item in outros_equipamentos)]
+        outros_equipamentos.extend(
+            Equipamento.objects.filter(ativo=True)
+            .exclude(pk__in=outros_ids)
+            .exclude(categoria=equipamento.categoria)[:4 - len(outros_equipamentos)]
+        )
+    fotos_equipamento = []
+    if equipamento.foto:
+        fotos_equipamento.append(equipamento.foto)
+    fotos_equipamento.extend(
+        foto_adicional.foto
+        for foto_adicional in equipamento.fotos_adicionais.all()
+    )
+
+    return render(request, 'web/detalhe_equipamento.html', {
+        'equipamento': equipamento,
+        'outros_equipamentos': outros_equipamentos,
+        'fotos_equipamento': fotos_equipamento,
+    })
+
+
+@login_required(login_url='login')
+def cadastrar_equipamento(request):
+    if not request.user.is_staff:
+        raise PermissionDenied
+
+    form = EquipamentoForm(request.POST if request.method == 'POST' else None)
+    if request.method == 'POST':
+        fotos = request.FILES.getlist('fotos')
+        imagens_validas = bool(fotos)
+        if not fotos:
+            form.add_error(None, 'Adicione pelo menos uma foto do equipamento.')
+        else:
+            campo_imagem = ImageField()
+            for foto in fotos:
+                try:
+                    campo_imagem.clean(foto)
+                except ValidationError:
+                    form.add_error(None, f'A foto "{foto.name}" não é uma imagem válida.')
+                    imagens_validas = False
+
+        if imagens_validas and form.is_valid():
+            equipamento = form.save(commit=False)
+            equipamento.foto = fotos[0]
+            equipamento.save()
+            for foto in fotos[1:]:
+                FotoAdicionalEquipamento.objects.create(
+                    equipamento=equipamento,
+                    foto=foto,
+                )
+            messages.success(request, 'Equipamento cadastrado com sucesso.')
+            return redirect('equipamentos')
+
+    return render(request, 'web/cadastrar_equipamento.html', {'form': form})
 
 
 def comunidade(request):
@@ -370,30 +428,134 @@ def perfil_publico(request, username):
     })
 
 
+@login_required(login_url='login')
+def editar_perfil(request):
+    perfil_usuario, _ = PerfilUsuario.objects.get_or_create(usuario=request.user)
+    secao = request.GET.get('secao', 'pessoal')
+    if secao not in ('pessoal', 'seguranca'):
+        secao = 'pessoal'
+
+    perfil_form = EditarPerfilForm(instance=request.user)
+    bio_form = BioPerfilForm(instance=perfil_usuario)
+    senha_form = SenhaPerfilForm(request.user)
+
+    if request.method == 'POST':
+        if 'salvar_perfil' in request.POST:
+            perfil_form = EditarPerfilForm(request.POST, instance=request.user)
+            bio_form = BioPerfilForm(request.POST, instance=perfil_usuario)
+            secao = 'pessoal'
+            if perfil_form.is_valid() and bio_form.is_valid():
+                perfil_form.save()
+                bio_form.save()
+                messages.success(request, 'Suas informações foram atualizadas.')
+                return redirect('editar_perfil')
+        elif 'alterar_senha' in request.POST:
+            senha_form = SenhaPerfilForm(request.user, request.POST)
+            secao = 'seguranca'
+            if senha_form.is_valid():
+                user = senha_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Sua senha foi alterada.')
+                return redirect(f'{reverse("editar_perfil")}?secao=seguranca')
+
+    return render(request, 'usuarios/pescador/editar_perfil.html', {
+        'perfil_form': perfil_form,
+        'bio_form': bio_form,
+        'senha_form': senha_form,
+        'secao': secao,
+    })
+
+
 def login(request):
+    credenciais_cadastro = None
+    initial = None
+    if request.method == 'GET':
+        credenciais_cadastro = request.session.pop('credenciais_cadastro', None)
+        if credenciais_cadastro:
+            initial = {
+                'username': credenciais_cadastro['username'],
+                'password': credenciais_cadastro['password'],
+            }
+    else:
+        request.session.pop('credenciais_cadastro', None)
+
     form = LoginForm(
         request,
         data=request.POST if request.method == 'POST' else None,
+        initial=initial,
     )
+    if credenciais_cadastro:
+        form.fields['password'].widget.render_value = True
 
     if request.method == 'POST' and form.is_valid():
         auth_login(request, form.get_user())
         return redirect('painel')
 
-    return render(request, 'usuarios/acesso/login.html', {'form': form})
+    response = render(request, 'usuarios/acesso/login.html', {
+        'form': form,
+    })
+    if credenciais_cadastro:
+        response['Cache-Control'] = 'no-store'
+    return response
 
 
 def cadastro(request):
-    form = RegistrationForm(
-        request.POST if request.method == 'POST' else None,
+    etapa = (
+        request.POST.get('etapa')
+        if request.method == 'POST'
+        else request.GET.get('etapa', '1')
     )
+    dados_pessoais = request.session.get('cadastro_dados_pessoais')
 
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Cadastro realizado. Agora você pode entrar na sua conta.')
-        return redirect('login')
+    if etapa == '2' and not dados_pessoais:
+        messages.error(request, 'Preencha primeiro suas informações pessoais.')
+        return redirect('cadastro')
 
-    return render(request, 'usuarios/acesso/cadastro.html', {'form': form})
+    if request.method == 'POST' and request.POST.get('voltar') == '1':
+        return redirect(f'{reverse("cadastro")}?etapa=1')
+
+    if etapa == '2':
+        dados_completos = dict(dados_pessoais)
+        dados_completos.update(request.POST.dict() if request.method == 'POST' else {})
+        form = RegistrationForm(
+            dados_completos if request.method == 'POST' else None,
+            initial=dados_pessoais,
+        )
+        if request.method == 'POST' and form.is_valid():
+            usuario = form.save()
+            request.session.pop('cadastro_dados_pessoais', None)
+            request.session['credenciais_cadastro'] = {
+                'username': usuario.get_username(),
+                'password': form.cleaned_data['password1'],
+            }
+            request.session.set_expiry(60)
+            messages.success(
+                request,
+                'Cadastro realizado. Agora você pode entrar na sua conta.',
+            )
+            return redirect('login')
+        form_fields = tuple(form[name] for name in ('username', 'password1', 'password2'))
+        response = render(request, 'usuarios/acesso/cadastro.html', {
+            'form': form,
+            'form_fields': form_fields,
+            'etapa': 2,
+        })
+        return response
+
+    if request.method == 'POST':
+        form = RegistrationPersonalForm(request.POST)
+        if form.is_valid():
+            request.session['cadastro_dados_pessoais'] = form.cleaned_data
+            request.session.set_expiry(600)
+            return redirect(f'{reverse("cadastro")}?etapa=2')
+    else:
+        form = RegistrationPersonalForm(initial=dados_pessoais)
+
+    return render(request, 'usuarios/acesso/cadastro.html', {
+        'form': form,
+        'form_fields': tuple(form[name] for name in ('first_name', 'last_name', 'email')),
+        'etapa': 1,
+    })
 
 
 def logout(request):

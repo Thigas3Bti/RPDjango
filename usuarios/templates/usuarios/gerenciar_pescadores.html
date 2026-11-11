@@ -9,10 +9,15 @@
 
 {% block content %}
 <div class="dashboard-home fishermen-management-page">
-    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm" aria-labelledby="fishermen-title">
-        <span class="dashboard-kicker">ÁREA ADMINISTRATIVA</span>
-        <h1 class="display-6 fw-bold mt-2 mb-2" id="fishermen-title">Gerenciar pescadores</h1>
-        <p class="mb-0 text-muted">Defina quais usuários têm o status de pescador oficial da comunidade.</p>
+    <section class="dashboard-welcome admin-page-hero mb-4 p-4 p-lg-5 shadow-sm" aria-labelledby="fishermen-title">
+        <div class="admin-page-hero-copy">
+            <span class="dashboard-kicker">ÁREA ADMINISTRATIVA</span>
+            <h1 class="display-6 fw-bold mt-2 mb-2" id="fishermen-title">Gerenciar pescadores</h1>
+            <p class="mb-0">Defina quais usuários têm o status de pescador oficial da comunidade.</p>
+        </div>
+        <span class="admin-page-hero-icon" aria-hidden="true">
+            <i class="bi bi-person-lines-fill"></i>
+        </span>
     </section>
 
     {% if messages %}

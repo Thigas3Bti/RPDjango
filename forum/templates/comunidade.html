@@ -172,7 +172,7 @@
                 <p>Encontre orientações para todos os níveis ou compartilhe seu conhecimento com a comunidade.</p>
                 <div class="d-flex flex-wrap gap-2">
                     <a class="btn btn-outline-success btn-sm" href="{% url 'dicas' %}">Ver dicas</a>
-                    {% if request.user.is_staff %}
+                    {% if pode_comentar %}
                     <a class="btn btn-success btn-sm" href="{% url 'adicionar_dica' %}">Adicionar dica</a>
                     {% endif %}
                 </div>

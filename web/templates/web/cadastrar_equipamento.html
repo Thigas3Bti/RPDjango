@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadastrar equipamento | RondoPesca{% endblock %}
+
+{% block extra_css %}
+<style>
+    .equipment-photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 180px));
+        gap: 1rem;
+    }
+
+    .equipment-photo-tile {
+        position: relative;
+        display: grid;
+        width: 100%;
+        aspect-ratio: 1;
+        place-items: center;
+        overflow: hidden;
+        border: 2px dashed #9ab99a;
+        border-radius: .9rem;
+        background: #f5faf3;
+        color: #347344;
+        cursor: pointer;
+        transition: border-color .2s ease, background .2s ease;
+    }
+
+    .equipment-photo-tile:hover,
+    .equipment-photo-tile:focus-within {
+        border-color: #347344;
+        background-color: #edf6e9;
+    }
+
+    .equipment-photo-tile.has-photo {
+        display: block;
+        border-style: solid;
+        background: #e7efe7;
+    }
+
+    .equipment-photo-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        opacity: 0;
+    }
+
+    .equipment-photo-preview {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .equipment-photo-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .equipment-photo-tile[data-add-photo] {
+        cursor: pointer;
+    }
+
+    .equipment-photo-prompt {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .45rem;
+        padding: .5rem;
+        text-align: center;
+        pointer-events: none;
+    }
+
+    .equipment-photo-prompt i {
+        font-size: 2rem;
+    }
+
+    .equipment-photo-actions {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        padding: .5rem;
+        background: rgba(15, 35, 20, .76);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .16s ease;
+    }
+
+    .equipment-photo-tile.show-actions .equipment-photo-actions {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .equipment-photo-tile.is-dragging {
+        opacity: .45;
+    }
+
+    .equipment-photo-tile.drag-target {
+        outline: 3px solid #347344;
+        outline-offset: 2px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <header class="position-relative text-center mb-4 pt-5">
+        <a href="{% url 'equipamentos' %}" class="btn btn-outline-success position-absolute top-0 start-0">
+            <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Voltar
+        </a>
+        <div>
+            <span class="dashboard-kicker">ADMINISTRAÇÃO</span>
+            <h1 class="display-6 fw-bold mt-2 mb-0">Cadastrar equipamento</h1>
+        </div>
+    </header>
+
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 720px;">
+        <div class="card-body p-4 p-lg-5">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label for="{{ form.nome.id_for_label }}" class="form-label fw-semibold">{{ form.nome.label }}</label>
+                    {{ form.nome }}
+                    {% for error in form.nome.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold" for="equipmentPhotoInput">Fotos do equipamento</label>
+                    <p class="form-text mt-0">Adicione pelo menos uma foto. Arraste as imagens para ordenar; clique em uma imagem para trocar ou excluir.</p>
+                    <div class="equipment-photo-grid" id="equipmentPhotoGrid">
+                        <div class="equipment-photo-tile" data-photo-tile data-add-photo>
+                            <input class="equipment-photo-input" id="equipmentPhotoInput" type="file" accept="image/*"
+                                aria-label="Adicionar foto do equipamento">
+                            <span class="equipment-photo-prompt">
+                                <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                                <span>Adicionar foto</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {% for field in form %}
+                {% if field.name != 'nome' %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endfor %}
+
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="bi bi-check-circle me-2" aria-hidden="true"></i>Salvar equipamento
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const photoGrid = document.getElementById('equipmentPhotoGrid');
+        let draggedTile = null;
+
+        function createAddTile() {
+            const tile = document.createElement('div');
+            tile.className = 'equipment-photo-tile';
+            tile.dataset.photoTile = '';
+            tile.dataset.addPhoto = '';
+
+            const input = document.createElement('input');
+            input.className = 'equipment-photo-input';
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.setAttribute('aria-label', 'Adicionar outra foto do equipamento');
+
+            const prompt = document.createElement('span');
+            prompt.className = 'equipment-photo-prompt';
+            prompt.innerHTML = '<i class="bi bi-plus-circle" aria-hidden="true"></i><span>Adicionar foto</span>';
+            tile.append(input, prompt);
+            return tile;
+        }
+
+        function showPhoto(tile, input, file) {
+            if (tile.dataset.previewUrl) {
+                URL.revokeObjectURL(tile.dataset.previewUrl);
+            }
+            const previewUrl = URL.createObjectURL(file);
+            tile.dataset.previewUrl = previewUrl;
+            tile.classList.add('has-photo');
+            tile.removeAttribute('data-add-photo');
+            tile.draggable = true;
+
+            const preview = document.createElement('button');
+            preview.className = 'equipment-photo-preview';
+            preview.type = 'button';
+            preview.dataset.togglePhotoActions = '';
+            preview.setAttribute('aria-label', 'Mostrar opções da foto');
+            preview.setAttribute('aria-expanded', 'false');
+            const image = document.createElement('img');
+            image.src = previewUrl;
+            image.alt = 'Pré-visualização da foto selecionada';
+            preview.appendChild(image);
+
+            const actions = document.createElement('div');
+            actions.className = 'equipment-photo-actions';
+
+            const replaceButton = document.createElement('button');
+            replaceButton.className = 'btn btn-sm btn-light';
+            replaceButton.type = 'button';
+            replaceButton.dataset.replacePhoto = '';
+            replaceButton.innerHTML = '<i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>Trocar foto';
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'btn btn-sm btn-outline-light';
+            deleteButton.type = 'button';
+            deleteButton.dataset.deletePhoto = '';
+            deleteButton.innerHTML = '<i class="bi bi-trash me-1" aria-hidden="true"></i>Excluir foto';
+
+            actions.append(replaceButton, deleteButton);
+            tile.replaceChildren(input, preview, actions);
+        }
+
+        function onPhotoChange(input) {
+            if (!input.files.length) {
+                return;
+            }
+            const tile = input.closest('[data-photo-tile]');
+            input.name = 'fotos';
+            showPhoto(tile, input, input.files[0]);
+            if (!photoGrid.querySelector('[data-add-photo]')) {
+                photoGrid.appendChild(createAddTile());
+            }
+        }
+
+        photoGrid.addEventListener('click', function (event) {
+            const replaceButton = event.target.closest('[data-replace-photo]');
+            if (replaceButton) {
+                replaceButton.closest('[data-photo-tile]').querySelector('input[type="file"]').click();
+                return;
+            }
+
+            const deleteButton = event.target.closest('[data-delete-photo]');
+            if (deleteButton) {
+                const tile = deleteButton.closest('[data-photo-tile]');
+                URL.revokeObjectURL(tile.dataset.previewUrl);
+                tile.remove();
+                return;
+            }
+
+            const actions = event.target.closest('.equipment-photo-actions');
+            if (actions) {
+                const tile = actions.closest('[data-photo-tile]');
+                tile.classList.remove('show-actions');
+                tile.querySelector('[data-toggle-photo-actions]').setAttribute('aria-expanded', 'false');
+                return;
+            }
+
+            const preview = event.target.closest('[data-toggle-photo-actions]');
+            if (preview) {
+                const tile = preview.closest('[data-photo-tile]');
+                tile.classList.toggle('show-actions');
+                preview.setAttribute('aria-expanded', String(tile.classList.contains('show-actions')));
+                return;
+            }
+
+            const addTile = event.target.closest('[data-add-photo]');
+            if (addTile && !event.target.matches('input')) {
+                addTile.querySelector('input[type="file"]').click();
+            }
+        });
+
+        photoGrid.addEventListener('change', function (event) {
+            const input = event.target;
+            if (input.matches('input[type="file"]')) {
+                onPhotoChange(input);
+            }
+        });
+
+        photoGrid.addEventListener('dragstart', function (event) {
+            const tile = event.target.closest('.equipment-photo-tile.has-photo');
+            if (!tile) {
+                return;
+            }
+            draggedTile = tile;
+            tile.classList.add('is-dragging');
+            event.dataTransfer.effectAllowed = 'move';
+        });
+
+        photoGrid.addEventListener('dragover', function (event) {
+            if (!draggedTile) {
+                return;
+            }
+            event.preventDefault();
+            const target = event.target.closest('.equipment-photo-tile.has-photo');
+            if (!target || target === draggedTile) {
+                return;
+            }
+            target.classList.add('drag-target');
+            const rect = target.getBoundingClientRect();
+            const midpointY = rect.top + rect.height / 2;
+            const before = event.clientY < midpointY
+                || (Math.abs(event.clientY - midpointY) < rect.height / 4
+                    && event.clientX < rect.left + rect.width / 2);
+            photoGrid.insertBefore(draggedTile, before ? target : target.nextSibling);
+        });
+
+        photoGrid.addEventListener('dragleave', function (event) {
+            const tile = event.target.closest('.equipment-photo-tile');
+            if (tile) {
+                tile.classList.remove('drag-target');
+            }
+        });
+
+        photoGrid.addEventListener('dragend', function () {
+            photoGrid.querySelectorAll('.equipment-photo-tile').forEach(function (tile) {
+                tile.classList.remove('is-dragging', 'drag-target');
+            });
+            draggedTile = null;
+        });
+
+        photoGrid.addEventListener('drop', function (event) {
+            event.preventDefault();
+        });
+    });
+</script>
+{% endblock %}

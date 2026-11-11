@@ -4,7 +4,7 @@
 {% block title %}Dicas de Pesca | RondoPesca{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/forum/dicas.css' %}?v=20261109-1">
+<link rel="stylesheet" href="{% static 'css/forum/dicas.css' %}?v=20261111-2">
 {% endblock %}
 
 {% block content %}
@@ -58,8 +58,16 @@
                         <option value="veterano">Veterano</option>
                     </select>
                 </div>
+                {% if pode_adicionar_dica %}
+                <a class="btn btn-success text-nowrap" href="{% url 'adicionar_dica' %}">
+                    <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Adicionar nova dica
+                </a>
+                {% endif %}
             </div>
         </div>
+        {% if not pode_adicionar_dica %}
+        <p class="small text-muted mb-3">Somente pescadores oficiais podem adicionar dicas. Peça a um administrador para promover sua conta.</p>
+        {% endif %}
         <p class="small text-muted mb-3" id="estado-filtro-dicas" aria-live="polite">Exibindo todos os níveis.</p>
 
     <div class="row g-3" id="lista-niveis-dicas">
@@ -71,11 +79,13 @@
                         <span class="d-block small text-muted fw-normal mt-1">Entenda o que preparar antes de arremessar.</span>
                     </summary>
                     <ul class="mt-3 mb-0 ps-3">
-                        <li class="mb-2"><strong>Conheça as regras do local:</strong> confirme quais espécies podem ser pescadas, limites de captura, períodos de defeso, licença necessária e regras específicas da área. Consulte os órgãos ambientais responsáveis; a legislação pode mudar conforme o lugar e a época.</li>
-                        <li class="mb-2"><strong>Escolha um conjunto simples:</strong> use uma vara e um molinete ou carretilha adequados ao tipo de pesca. Confira as indicações de linha e peso de arremesso do fabricante; equipamento equilibrado facilita o controle e o aprendizado.</li>
-                        <li class="mb-2"><strong>Monte e revise a linha:</strong> pratique um nó apropriado para o tipo de linha e para o anzol, snap ou girador usado. Aperte os nós com cuidado, umedeça monofilamento antes de apertá-lo e substitua trechos ásperos, desfiados ou danificados.</li>
-                        <li class="mb-2"><strong>Treine o arremesso em segurança:</strong> verifique se há pessoas, árvores ou obstáculos atrás e ao redor. Faça movimentos controlados, sem força exagerada; primeiro priorize direção e precisão, depois aumente a distância.</li>
-                        <li><strong>Leve o essencial:</strong> água, proteção solar, alicate, recipiente para recolher o lixo e um meio de comunicação. Em embarcações, use colete salva-vidas adequado; avise alguém sobre seu destino e horário previsto de retorno.</li>
+                        <li class="mb-2"><strong>Confira as regras:</strong> veja se precisa de licença e quais são os limites, períodos e espécies permitidos no local.</li>
+                        <li class="mb-2"><strong>Comece com equipamento simples:</strong> escolha vara, linha e isca adequadas ao tipo de pesca e siga as indicações do fabricante.</li>
+                        <li class="mb-2"><strong>Revise a linha e os nós:</strong> pratique o nó antes de sair e troque a linha se estiver gasta ou desfiada.</li>
+                        <li class="mb-2"><strong>Arremesse com cuidado:</strong> confira se há pessoas ou obstáculos por perto e pratique primeiro a precisão.</li>
+                        <li class="mb-2"><strong>Prepare o que vai levar:</strong> água, proteção solar, alicate e um saco para o lixo ajudam em qualquer pescaria.</li>
+                        <li class="mb-2"><strong>Cuide da segurança:</strong> avise alguém sobre seu destino; em embarcações, use colete salva-vidas.</li>
+                        <li><strong>Tenha paciência:</strong> observe o local e aprenda com cada tentativa, mesmo quando não houver captura.</li>
                     </ul>
                 </details>
             </div>
@@ -88,14 +98,15 @@
                         <span class="d-block small text-muted fw-normal mt-1">Aprenda a procurar o peixe e a adaptar sua estratégia.</span>
                     </summary>
                     <ul class="mt-3 mb-0 ps-3">
-                        <li class="mb-2"><strong>Observe a água antes de escolher o ponto:</strong> margens com vegetação, galhadas, pedras, mudanças de profundidade e encontros de corrente podem concentrar abrigo ou alimento. São pistas, não garantias: considere a espécie, a estação e as condições do dia. Observe também sinais de atividade, como peixes caçando, insetos na superfície ou pequenas presas; evite se aproximar fazendo sombra ou ruído desnecessário.</li>
-                        <li class="mb-2"><strong>Combine isca e espécie:</strong> informe-se sobre a alimentação e o tamanho das presas da espécie-alvo. Iscas naturais e artificiais pedem apresentações diferentes; use apenas iscas permitidas no local e evite introduzir espécies ou organismos na água. Prenda a isca com firmeza, mas sem esconder completamente sua ação; confira-a após um arremesso ou contato com vegetação.</li>
-                        <li class="mb-2"><strong>Teste a apresentação com método:</strong> varie uma coisa de cada vez — profundidade, velocidade, pausas, cor ou tamanho. Isso ajuda a entender qual mudança pode ter feito diferença, em vez de trocar várias partes do conjunto ao mesmo tempo. Comece explorando áreas próximas e depois amplie a distância; arremessos precisos para pontos promissores costumam ser mais úteis do que apenas lançar o mais longe possível.</li>
-                        <li class="mb-2"><strong>Entenda o que a linha informa:</strong> mantenha contato com a isca sem deixá-la presa ou rígida demais. Um toque, uma parada inesperada ou uma mudança de peso podem indicar uma mordida ou contato com o fundo; recolha o excesso de linha com calma e observe antes de reagir.</li>
-                        <li class="mb-2"><strong>Ajuste o freio do molinete ou carretilha:</strong> não o deixe totalmente travado. A linha deve sair de modo controlado quando o peixe puxa; teste a regulagem antes de pescar e faça ajustes progressivos de acordo com o conjunto, o nó e os obstáculos. Aprenda também a lançar com o freio de arremesso adequado: na carretilha, uma regulagem incorreta pode causar cabeleira e perda de linha.</li>
-                        <li class="mb-2"><strong>Trabalhe a isca com regularidade:</strong> use movimentos compatíveis com o tipo de isca e faça pausas para observar a resposta. Se não houver atividade após várias tentativas em profundidades diferentes, mude o ponto ou a estratégia em vez de insistir indefinidamente no mesmo lugar.</li>
-                        <li class="mb-2"><strong>Cuide do peixe capturado:</strong> deixe alicate ou ferramenta de remoção acessível antes de começar. Se a captura e soltura forem permitidas, molhe as mãos, evite apertar guelras e olhos, reduza o tempo fora d'água e apoie o peixe ao devolvê-lo.</li>
-                        <li><strong>Registre as condições:</strong> anote horário, local, nível e transparência da água, clima, isca, profundidade aproximada e resultado, inclusive quando não houver captura. Com o tempo, esses registros ajudam a reconhecer padrões sem transformar uma coincidência em regra.</li>
+                        <li class="mb-2"><strong>Leia o ambiente:</strong> observe margens, pedras, galhos, correnteza e sinais de peixes antes de escolher onde lançar.</li>
+                        <li class="mb-2"><strong>Escolha a isca pensando na espécie:</strong> considere o alimento do peixe e use apenas iscas permitidas na região.</li>
+                        <li class="mb-2"><strong>Mude uma coisa por vez:</strong> teste outra profundidade, velocidade ou cor para descobrir o que funciona.</li>
+                        <li class="mb-2"><strong>Preste atenção à linha:</strong> toques e mudanças de peso podem indicar uma fisgada ou contato com o fundo.</li>
+                        <li class="mb-2"><strong>Regule o freio:</strong> deixe a linha sair de forma controlada e confira o ajuste antes de começar.</li>
+                        <li class="mb-2"><strong>Varie o movimento da isca:</strong> alterne recolhimento e pausas; se não houver ação, tente outro ponto.</li>
+                        <li class="mb-2"><strong>Solte o peixe com cuidado:</strong> quando permitido, molhe as mãos e reduza o tempo fora d'água.</li>
+                        <li class="mb-2"><strong>Anote os resultados:</strong> registre horário, clima, local e isca para comparar suas pescarias.</li>
+                        <li><strong>Evite ruídos e movimentos bruscos:</strong> aproxime-se com calma para não espantar os peixes.</li>
                     </ul>
                 </details>
             </div>
@@ -108,15 +119,16 @@
                         <span class="d-block small text-muted fw-normal mt-1">Ajuste o material e interprete melhor o que acontece na linha.</span>
                     </summary>
                     <ul class="mt-3 mb-0 ps-3">
-                        <li class="mb-2"><strong>Dimensione o conjunto para a situação:</strong> considere a ação e potência da vara, o peso da isca, a distância do arremesso, a corrente e a presença de estruturas. Linha, líder, anzóis e nós devem ser compatíveis entre si e inspecionados antes de cada saída. Respeite as faixas indicadas no equipamento: uma isca fora do peso recomendado pode prejudicar o arremesso e danificar a vara.</li>
-                        <li class="mb-2"><strong>Escolha a linha pensando no ambiente:</strong> monofilamento, fluorocarbono e multifilamento têm elasticidade, visibilidade, resistência à abrasão e comportamento diferentes. Não existe uma opção superior em toda situação; considere profundidade, distância, vegetação, pedras e a técnica usada. O líder deve combinar com o tipo de linha principal e com o risco de abrasão.</li>
-                        <li class="mb-2"><strong>Confira os nós na prática:</strong> use nós adequados aos materiais que serão unidos e treine antes da pescaria. Faça um teste de tração progressiva com cuidado, protegendo as mãos; se o nó escorregar, deformar ou danificar a linha, refaça-o. Reavalie o nó depois de prender uma estrutura ou brigar com um peixe.</li>
-                        <li class="mb-2"><strong>Regule o freio com referência, não no chute:</strong> uma balança pode ajudar a medir a força de saída. Como ponto inicial, alguns pescadores usam cerca de 20–30% da resistência nominal da linha, mas isso não é regra universal: nó, desgaste, vara, espécie e obstáculos podem exigir outro ajuste. Meça a saída da linha pelo conjunto montado, não apenas pela marcação impressa no carretel.</li>
-                        <li class="mb-2"><strong>Controle a linha durante a apresentação:</strong> vento e corrente podem formar barriga na linha e reduzir a percepção dos toques. Ajuste o ângulo do arremesso e recolha o excesso sem tirar o movimento natural da isca. Em água corrente, acompanhe a deriva e altere sua posição quando a linha puxar a isca para fora da zona que deseja explorar.</li>
-                        <li class="mb-2"><strong>Leia a profundidade por etapas:</strong> trabalhe uma faixa de cada vez e observe quanto tempo a isca leva para afundar, onde toca o fundo e como a corrente muda seu percurso. Isso ajuda a repetir uma apresentação produtiva e também reduz enroscos; não deixe uma isca afundando sem controle em áreas desconhecidas.</li>
-                        <li class="mb-2"><strong>Durante a briga, mantenha pressão constante:</strong> preserve a linha tensionada e deixe o freio trabalhar. Evite puxões bruscos ou levantar a vara além do ângulo recomendado pelo fabricante; conduza o peixe para longe de obstáculos sem exceder a capacidade do equipamento. Ajuste sua posição para aproveitar o ângulo e mantenha uma rota segura para recolher o peixe.</li>
-                        <li class="mb-2"><strong>Registre testes comparáveis:</strong> anote montagem, diâmetro e comprimento do líder, peso e tipo de isca, profundidade, cadência e condições da água. Repita a mesma abordagem em situações semelhantes antes de concluir que uma alteração melhorou os resultados.</li>
-                        <li><strong>Faça manutenção preventiva:</strong> verifique passadores, ponteira, fricção, manivela, linha e nós. Remova os trechos desgastados e substitua peças danificadas antes que causem uma ruptura ou prejudiquem o arremesso. Após pescar em água salgada ou com muita sujeira, siga as instruções do fabricante para limpeza e secagem do equipamento.</li>
+                        <li class="mb-2"><strong>Equilibre o conjunto:</strong> combine vara, linha e peso da isca, respeitando os limites indicados pelo fabricante.</li>
+                        <li class="mb-2"><strong>Escolha a linha para o ambiente:</strong> considere distância, profundidade, vegetação e risco de abrasão.</li>
+                        <li class="mb-2"><strong>Teste os nós:</strong> confira se não escorregam e refaça-os se a linha estiver danificada.</li>
+                        <li class="mb-2"><strong>Ajuste o freio gradualmente:</strong> use um ajuste compatível com a linha, a vara e os obstáculos do local.</li>
+                        <li class="mb-2"><strong>Controle a barriga da linha:</strong> vento e corrente podem esconder toques; recolha o excesso sem travar a isca.</li>
+                        <li class="mb-2"><strong>Explore a água por partes:</strong> teste diferentes profundidades e observe onde a isca passa.</li>
+                        <li class="mb-2"><strong>Mantenha pressão constante:</strong> evite puxões bruscos e deixe o freio ajudar durante a briga.</li>
+                        <li class="mb-2"><strong>Compare seus testes:</strong> anote montagem, isca e condições para repetir estratégias promissoras.</li>
+                        <li class="mb-2"><strong>Faça manutenção:</strong> confira linha, nós, passadores e freio antes de cada pescaria.</li>
+                        <li><strong>Planeje o arremesso:</strong> avalie obstáculos e a direção para onde o peixe pode correr.</li>
                     </ul>
                 </details>
             </div>
@@ -129,15 +141,16 @@
                         <span class="d-block small text-muted fw-normal mt-1">Use observação e experiência sem deixar de validar suas hipóteses.</span>
                     </summary>
                     <ul class="mt-3 mb-0 ps-3">
-                        <li class="mb-2"><strong>Formule hipóteses sobre o comportamento:</strong> relacione estrutura, correnteza, temperatura, transparência e alimento disponível ao comportamento provável da espécie. Valide a hipótese no local; não existe uma condição que garanta captura em todos os rios ou estações. Pense em explicações alternativas — por exemplo, mudança de profundidade ou atividade das presas — antes de atribuir o resultado a uma única variável.</li>
-                        <li class="mb-2"><strong>Adapte-se às mudanças:</strong> acompanhe chuva, vento e variações do nível ou da cor da água. Reavalie tanto o ponto quanto a segurança; abandone o local se correnteza, clima ou acesso se tornarem perigosos. Mudanças rápidas podem tornar margens escorregadias, elevar o nível ou dificultar o retorno, portanto combine previamente um plano de saída.</li>
-                        <li class="mb-2"><strong>Compare resultados com cuidado:</strong> analise várias saídas e inclua pescarias sem captura. Considere diferenças de local e condições antes de concluir que determinada cor, horário ou técnica foi a causa do resultado. Registre também o esforço (tempo, número de arremessos ou pontos) para não comparar experiências muito diferentes como se fossem equivalentes.</li>
-                        <li class="mb-2"><strong>Use observação sistemática:</strong> escolha uma pergunta por pescaria, como “a espécie está usando a margem ou o canal?”. Defina o que observar, mantenha as demais variáveis o mais estáveis possível e anote o que contradiz sua expectativa. Esse método reduz decisões baseadas apenas na memória das capturas mais marcantes.</li>
-                        <li class="mb-2"><strong>Refine a apresentação sem perder controle:</strong> ajuste gradualmente comprimento e resistência do líder, peso da isca, posição do anzol e ângulo da linha conforme corrente, estrutura e comportamento observado. Após cada ajuste, confira se o conjunto continua seguro, se o nó está íntegro e se é possível controlar o peixe sem forçar equipamento ou animal.</li>
-                        <li class="mb-2"><strong>Planeje para obstáculos e recuperação:</strong> antes do arremesso, pense na direção provável da briga, em onde ficará e como retirará o peixe da água. Evite lançar em local onde não possa alcançar a linha ou manejar a captura com segurança; um equipamento forte não elimina o risco de prender ou ferir o peixe.</li>
-                        <li class="mb-2"><strong>Pratique captura e soltura responsável:</strong> quando permitida e adequada à espécie, prepare alicate e ferramenta para retirar o anzol antes de capturar, molhe as mãos, apoie o peixe e reduza o tempo fora d'água. Minimize manipulações e fotos; se o peixe estiver muito debilitado, siga orientação local em vez de presumir que soltá-lo imediatamente será sempre suficiente.</li>
-                        <li class="mb-2"><strong>Reduza impactos além do lixo:</strong> evite pisotear vegetação, danificar ninhos e margens ou deixar linhas que possam prender animais. Não transporte água, iscas vivas ou organismos entre ambientes sem orientação adequada, pois isso pode espalhar espécies ou doenças.</li>
-                        <li><strong>Compartilhe conhecimento com responsabilidade:</strong> ajude outros pescadores com explicações sobre técnica e segurança, indique fontes oficiais para regras e evite divulgar coordenadas de áreas frágeis ou vulneráveis. A experiência também se demonstra ao preservar o recurso para a comunidade e para as próximas temporadas.</li>
+                        <li class="mb-2"><strong>Observe padrões:</strong> relacione clima, correnteza, profundidade e alimento disponível ao comportamento dos peixes.</li>
+                        <li class="mb-2"><strong>Adapte-se às mudanças:</strong> chuva e vento alteram as condições; saia se o local ficar inseguro.</li>
+                        <li class="mb-2"><strong>Compare várias pescarias:</strong> considere também os dias sem captura antes de concluir que uma técnica funciona.</li>
+                        <li class="mb-2"><strong>Faça testes organizados:</strong> mude uma variável por vez e anote o que observou.</li>
+                        <li class="mb-2"><strong>Refine a montagem:</strong> ajuste linha, líder e isca conforme a água e os obstáculos, sem exceder os limites do equipamento.</li>
+                        <li class="mb-2"><strong>Planeje como recolher o peixe:</strong> escolha um ponto onde seja possível controlar a linha e agir com segurança.</li>
+                        <li class="mb-2"><strong>Priorize o bem-estar do peixe:</strong> quando a soltura for permitida, use mãos molhadas e reduza o tempo fora d'água.</li>
+                        <li class="mb-2"><strong>Proteja o ambiente:</strong> recolha linhas e lixo e evite danificar margens e vegetação.</li>
+                        <li class="mb-2"><strong>Compartilhe com responsabilidade:</strong> ensine técnicas seguras e consulte fontes oficiais sobre as regras.</li>
+                        <li><strong>Revise suas conclusões:</strong> novas observações podem mostrar que um padrão não se repete em todo lugar.</li>
                     </ul>
                 </details>
             </div>
@@ -160,7 +173,7 @@
             </div>
         {% endif %}
     </div>
-    <p class="small text-muted mt-3 mb-0"><strong>Lembrete:</strong> consulte as normas ambientais e de navegação vigentes para o local. Se houver dúvida sobre a legalidade, segurança ou impacto sobre o peixe, não faça a captura.</p>
+    <p class="small text-muted mt-3 mb-0"><strong>Lembrete:</strong> confira as regras locais e priorize a segurança e o cuidado com o ambiente.</p>
     </section>
 </div>
 {% endblock %}
@@ -172,11 +185,10 @@
         const cards = document.querySelectorAll('.nivel-dica[data-nivel]');
         const estado = document.getElementById('estado-filtro-dicas');
 
-        if (!filtro || !estado || cards.length === 0) {
-            return;
-        }
-
-        filtro.addEventListener('change', function () {
+        function aplicarFiltro() {
+            if (!filtro || !estado) {
+                return;
+            }
             cards.forEach(function (card) {
                 card.hidden = filtro.value !== 'todos' && card.dataset.nivel !== filtro.value;
             });
@@ -184,6 +196,29 @@
             estado.textContent = filtro.value === 'todos'
                 ? 'Exibindo todos os níveis.'
                 : 'Exibindo somente as dicas do nível selecionado.';
+        }
+
+        if (filtro && estado && cards.length > 0) {
+            filtro.addEventListener('change', aplicarFiltro);
+        }
+
+        document.querySelectorAll('.learning-path a[href^="#nivel-"]').forEach(function (link) {
+            link.addEventListener('click', function () {
+                const nivel = document.querySelector(link.getAttribute('href'));
+                if (!nivel) {
+                    return;
+                }
+
+                if (filtro && filtro.value !== nivel.dataset.nivel) {
+                    filtro.value = nivel.dataset.nivel;
+                    aplicarFiltro();
+                }
+
+                const dica = nivel.querySelector('details');
+                if (dica) {
+                    dica.open = true;
+                }
+            });
         });
     });
 </script>
