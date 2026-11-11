@@ -186,6 +186,10 @@
     border-radius: .75rem;
 }
 
+.learning-page #lista-niveis-dicas {
+    align-items: flex-start;
+}
+
 .learning-form-card {
     max-width: 900px;
     margin-inline: auto;
