@@ -530,7 +530,8 @@ class DashboardFishingTipsTests(TestCase):
         self.assertRedirects(response, reverse('dicas'))
         dica = Dica.objects.get(titulo='Ler a correnteza')
         self.assertEqual(dica.autor, user)
-        self.assertEqual(dica.categoria, 'avancado')
+        self.assertEqual(dica.nivel, 'intermediario')
+        self.assertEqual(dica.categoria, 'intermediario')
         tips_response = self.client.get(reverse('dicas'))
         self.assertContains(tips_response, 'Ler a correnteza')
         self.assertContains(tips_response, 'DICA DA COMUNIDADE')
@@ -594,7 +595,7 @@ class DashboardFishingTipsTests(TestCase):
             with override_settings(MEDIA_ROOT=media_directory):
                 response = self.client.post(reverse('adicionar_dica'), {
                     'titulo': 'Dica com imagem',
-                    'categoria': 'iniciante',
+                    'nivel': 'iniciante',
                     'descricao': '',
                     'imagem': image,
                 })
@@ -614,7 +615,7 @@ class DashboardFishingTipsTests(TestCase):
 
         response = self.client.post(reverse('adicionar_dica'), {
             'titulo': 'Dica sem imagem válida',
-            'categoria': 'iniciante',
+            'nivel': 'iniciante',
             'imagem': SimpleUploadedFile(
                 'nao-e-imagem.png',
                 b'conteudo invalido',
@@ -638,7 +639,7 @@ class DashboardFishingTipsTests(TestCase):
         Image.new('RGB', (1, 1), color='green').save(image_buffer, format='PNG')
         response = self.client.post(reverse('adicionar_dica'), {
             'titulo': 'Dica com extensão insegura',
-            'categoria': 'iniciante',
+            'nivel': 'iniciante',
             'imagem': SimpleUploadedFile(
                 'arquivo.php',
                 image_buffer.getvalue(),

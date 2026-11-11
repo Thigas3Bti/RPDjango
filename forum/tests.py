@@ -41,11 +41,29 @@ class ComunidadeTests(TestCase):
         self.assertContains(resposta, publicacao.texto)
         self.assertContains(resposta, self.autor.username)
 
-    def test_forum_exibe_link_para_dicas_e_adicao_so_para_administradores(self):
+    def test_forum_exibe_link_para_adicionar_dica_a_pescadores_oficiais(self):
         resposta_publica = self.client.get(reverse('comunidade'))
 
         self.assertContains(resposta_publica, f'href="{reverse("dicas")}"')
         self.assertNotContains(resposta_publica, f'href="{reverse("adicionar_dica")}"')
+
+        self.client.force_login(self.autor)
+        resposta_pescador = self.client.get(reverse('comunidade'))
+        self.assertContains(
+            resposta_pescador,
+            f'href="{reverse("adicionar_dica")}"',
+        )
+
+        usuario_comum = get_user_model().objects.create_user(
+            username='usuario-comum',
+            password='senha-segura-123',
+        )
+        self.client.force_login(usuario_comum)
+        resposta_usuario = self.client.get(reverse('comunidade'))
+        self.assertNotContains(
+            resposta_usuario,
+            f'href="{reverse("adicionar_dica")}"',
+        )
 
         administrador = get_user_model().objects.create_user(
             username='administrador',
@@ -58,14 +76,25 @@ class ComunidadeTests(TestCase):
         self.assertContains(resposta_admin, f'href="{reverse("dicas")}"')
         self.assertContains(resposta_admin, f'href="{reverse("adicionar_dica")}"')
 
-    def test_pagina_de_dicas_exibe_um_unico_botao_de_adicao_para_admin(self):
+    def test_pagina_de_dicas_exibe_botao_de_adicao_para_pescador_oficial(self):
         rota_adicionar = reverse('adicionar_dica')
         resposta_visitante = self.client.get(reverse('dicas'))
         self.assertNotContains(resposta_visitante, f'href="{rota_adicionar}"')
 
-        self.client.force_login(self.autor)
+        usuario_comum = get_user_model().objects.create_user(
+            username='usuario-comum-dicas',
+            password='senha-segura-123',
+        )
+        self.client.force_login(usuario_comum)
         resposta_usuario = self.client.get(reverse('dicas'))
         self.assertNotContains(resposta_usuario, f'href="{rota_adicionar}"')
+
+        self.client.force_login(self.autor)
+        resposta_pescador = self.client.get(reverse('dicas'))
+        self.assertEqual(
+            resposta_pescador.content.decode().count(f'href="{rota_adicionar}"'),
+            1,
+        )
 
         administrador = get_user_model().objects.create_user(
             username='administrador-dicas',
@@ -79,10 +108,7 @@ class ComunidadeTests(TestCase):
             resposta_admin.content.decode().count(f'href="{rota_adicionar}"'),
             1,
         )
-        self.assertContains(
-            resposta_admin,
-            'Role sobre o texto ou arraste a barra lateral para ver todas as dicas.',
-        )
+        self.assertContains(resposta_admin, 'Exibindo todos os níveis.')
 
     def test_pagina_adicionar_dica_usa_layout_da_pagina_de_dicas(self):
         self.client.force_login(get_user_model().objects.create_user(
