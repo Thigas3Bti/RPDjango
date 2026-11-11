@@ -4,7 +4,7 @@
 {% block title %}Meu perfil | RondoPesca{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/Usuario/perfil.css' %}?v=20261109-3">
+<link rel="stylesheet" href="{% static 'css/Usuario/perfil.css' %}?v=20261111-1">
 {% endblock %}
 
 {% block content %}
@@ -35,8 +35,13 @@
                 </h2>
                 <p class="profile-subtitle mb-2">{{ request.user.email|default:"E-mail não informado" }}</p>
                 <span class="profile-status">
+                    {% if eh_pescador %}
                     <i class="bi bi-patch-check-fill" aria-hidden="true"></i>
-                    Perfil RondoPesca
+                    Pescador oficial
+                    {% else %}
+                    <i class="bi bi-person-fill" aria-hidden="true"></i>
+                    Usuário comum
+                    {% endif %}
                 </span>
             </div>
         </div>

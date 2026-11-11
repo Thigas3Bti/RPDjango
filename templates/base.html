@@ -15,7 +15,7 @@
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <link rel="stylesheet" href="{% static 'css/base/base.css' %}?v=20261103-2">
+    <link rel="stylesheet" href="{% static 'css/base/base.css' %}?v=20261111-1">
 
     <link rel="icon" type="image/png" href="{% static 'images/Icone_Rondopesca.png' %}">
 
@@ -92,6 +92,7 @@
                     <li class="nav-item mb-2"><a href="{% url 'eventos' %}" class="nav-link {% if request.resolver_match.url_name == 'eventos' or request.resolver_match.url_name == 'criar_evento' or request.resolver_match.url_name == 'editar_evento' %}active{% endif %}">Eventos</a></li>
                     {% if request.user.is_staff %}
                     <li class="nav-item mb-2"><a href="{% url 'mensagens_contato' %}" class="nav-link {% if request.resolver_match.url_name == 'mensagens_contato' %}active{% endif %}">Mensagens recebidas</a></li>
+                    <li class="nav-item mb-2"><a href="{% url 'gerenciar_solicitacoes_senha' %}" class="nav-link {% if request.resolver_match.url_name == 'gerenciar_solicitacoes_senha' %}active{% endif %}">Solicitações de senha</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'gerenciar_pescadores' %}" class="nav-link {% if request.resolver_match.url_name == 'gerenciar_pescadores' %}active{% endif %}">Gerenciar pescadores</a></li>
                     {% endif %}
                 </ul>

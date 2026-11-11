@@ -1,9 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.mail import EmailMessage
+from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
@@ -19,10 +22,11 @@ from .forms import (
     LoginForm,
     RegistrationForm,
     MensagemContatoForm,
+    SolicitarRedefinicaoSenhaForm,
 )
 from forum.models import Dica, EventoAgenda
 from usuarios.permissoes import eh_pescador
-from .models import MensagemContato
+from .models import MensagemContato, SolicitacaoRedefinicaoSenha
 from usuarios.models import PerfilUsuario
 logger = logging.getLogger(__name__)
 
@@ -177,6 +181,93 @@ def atualizar_status_mensagem(request, mensagem_id):
     return redirect('mensagens_contato')
 
 
+def solicitar_redefinicao_senha(request):
+    form = SolicitarRedefinicaoSenhaForm(
+        request.POST if request.method == 'POST' else None,
+    )
+    if request.method == 'POST' and form.is_valid():
+        dados = form.cleaned_data
+        SolicitacaoRedefinicaoSenha.objects.create(
+            usuario=dados['usuario'],
+            email=dados['email'],
+            senha_solicitada=make_password(dados['nova_senha']),
+        )
+        return redirect('password_reset_done')
+    return render(request, 'usuarios/acesso/recuperar_senha.html', {'form': form})
+
+
+def solicitacao_senha_enviada(request):
+    return render(request, 'usuarios/acesso/recuperar_senha_enviado.html')
+
+
+@login_required(login_url='login')
+def gerenciar_solicitacoes_senha(request):
+    if not request.user.is_active or not request.user.is_staff:
+        return HttpResponseForbidden()
+
+    if request.method == 'POST':
+        solicitacao = get_object_or_404(
+            SolicitacaoRedefinicaoSenha,
+            pk=request.POST.get('solicitacao_id'),
+            atendida_em__isnull=True,
+        )
+        usuario = get_user_model().objects.filter(
+            username=solicitacao.usuario,
+            email__iexact=solicitacao.email,
+            is_active=True,
+        ).first()
+        if usuario is None:
+            messages.error(
+                request,
+                'Não foi encontrada uma conta ativa que corresponda ao nome de usuário e e-mail informados.',
+            )
+        elif not solicitacao.senha_solicitada:
+            messages.error(
+                request,
+                'Esta solicitação não contém uma nova senha. Peça à pessoa para enviar uma nova solicitação.',
+            )
+        elif request.POST.get('confirmar_identidade') != '1':
+            messages.error(
+                request,
+                'Confirme que verificou a identidade da pessoa antes de aprovar a alteração.',
+            )
+        else:
+            with transaction.atomic():
+                usuario.password = solicitacao.senha_solicitada
+                usuario.save(update_fields=['password'])
+                solicitacao.senha_solicitada = ''
+                solicitacao.atendida_em = timezone.now()
+                solicitacao.atendida_por = request.user
+                solicitacao.save(update_fields=[
+                    'senha_solicitada',
+                    'atendida_em',
+                    'atendida_por',
+                ])
+            messages.success(
+                request,
+                f'A nova senha solicitada para {usuario.username} foi ativada. Avise a pessoa por um canal seguro.',
+            )
+            return redirect('gerenciar_solicitacoes_senha')
+    elif request.method != 'GET':
+        return HttpResponseNotAllowed(['GET', 'POST'])
+
+    solicitacoes = []
+    for solicitacao in SolicitacaoRedefinicaoSenha.objects.all():
+        usuario = get_user_model().objects.filter(
+            username=solicitacao.usuario,
+            email__iexact=solicitacao.email,
+            is_active=True,
+        ).first()
+        solicitacoes.append({
+            'solicitacao': solicitacao,
+            'usuario_encontrado': usuario is not None,
+        })
+
+    return render(request, 'web/solicitacoes_senha.html', {
+        'solicitacoes': solicitacoes,
+    })
+
+
 def surpresa(request):
     return render(request, 'web/surpresa.html')
 
@@ -265,6 +356,17 @@ def perfil(request):
         'foto_form': foto_form,
         'bio_form': bio_form,
         'editar_bio': editar_bio,
+        'eh_pescador': eh_pescador(request.user),
+    })
+
+
+def perfil_publico(request, username):
+    usuario = get_object_or_404(get_user_model(), username=username, is_active=True)
+    perfil_usuario = PerfilUsuario.objects.filter(usuario=usuario).first()
+    return render(request, 'usuarios/pescador/perfil_publico.html', {
+        'usuario_perfil': usuario,
+        'perfil_usuario': perfil_usuario,
+        'eh_pescador': eh_pescador(usuario),
     })
 
 

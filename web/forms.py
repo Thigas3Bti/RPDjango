@@ -1,6 +1,10 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    UserCreationForm,
+)
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -174,6 +178,66 @@ class LoginForm(AuthenticationForm):
                 else _('Usuário não encontrado.')
             )
             raise ValidationError(message, code='invalid_login')
+
+
+class SolicitarRedefinicaoSenhaForm(forms.Form):
+    usuario = forms.CharField(
+        label='Nome de usuário',
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'autocomplete': 'username',
+            'placeholder': 'Seu nome de usuário',
+        }),
+    )
+    email = forms.EmailField(
+        label='E-mail cadastrado',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'autocomplete': 'email',
+            'placeholder': 'voce@exemplo.com',
+        }),
+    )
+    nova_senha = forms.CharField(
+        label='Nova senha desejada',
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'autocomplete': 'new-password',
+            'placeholder': 'Digite sua nova senha',
+        }),
+    )
+    confirmar_senha = forms.CharField(
+        label='Confirme a nova senha',
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'autocomplete': 'new-password',
+            'placeholder': 'Digite novamente sua nova senha',
+        }),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.error_messages['required'] = _('Este campo é obrigatório.')
+        self.fields['nova_senha'].help_text = (
+            'Use pelo menos 8 caracteres. Evite senhas comuns ou formadas apenas por números.'
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        nova_senha = cleaned_data.get('nova_senha')
+        confirmar_senha = cleaned_data.get('confirmar_senha')
+
+        if nova_senha and confirmar_senha and nova_senha != confirmar_senha:
+            self.add_error('confirmar_senha', _('As senhas informadas não são iguais.'))
+        if nova_senha:
+            try:
+                validate_password(nova_senha)
+            except ValidationError as error:
+                self.add_error('nova_senha', error)
+        return cleaned_data
 
 
 class RegistrationForm(UserCreationForm):
