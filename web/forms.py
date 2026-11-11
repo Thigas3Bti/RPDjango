@@ -5,12 +5,50 @@ from django.contrib.auth.forms import (
     PasswordChangeForm,
     UserCreationForm,
 )
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from forum.models import Dica
 from .models import Equipamento, MensagemContato
 from usuarios.models import PerfilUsuario
+
+
+class EditarPerfilForm(forms.ModelForm):
+    class Meta:
+        model = get_user_model()
+        fields = ['first_name', 'last_name', 'username', 'email']
+        labels = {
+            'first_name': 'Nome',
+            'last_name': 'Sobrenome',
+            'username': 'Nome de usuário',
+            'email': 'E-mail',
+        }
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'given-name',
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'family-name',
+            }),
+            'username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'username',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'email',
+            }),
+        }
+
+
+class SenhaPerfilForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
 
 
 class FotoPerfilForm(forms.ModelForm):
@@ -52,41 +90,33 @@ class BioPerfilForm(forms.ModelForm):
         labels = {'bio': 'Sobre você'}
 
 
-class EditarPerfilForm(forms.ModelForm):
+class EquipamentoForm(forms.ModelForm):
     class Meta:
-        model = get_user_model()
-        fields = ['first_name', 'last_name', 'username', 'email']
+        model = Equipamento
+        fields = ['nome', 'categoria', 'descricao', 'uso']
         labels = {
-            'first_name': 'Nome',
-            'last_name': 'Sobrenome',
-            'username': 'Nome de usuário',
-            'email': 'E-mail',
+            'nome': 'Nome do equipamento',
+            'categoria': 'Categoria',
+            'descricao': 'Descrição',
+            'uso': 'Uso recomendado',
         }
         widgets = {
-            'first_name': forms.TextInput(attrs={
+            'nome': forms.TextInput(attrs={
                 'class': 'form-control',
-                'autocomplete': 'given-name',
+                'placeholder': 'Ex.: Vara de spinning 2,10 m',
             }),
-            'last_name': forms.TextInput(attrs={
+            'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'descricao': forms.Textarea(attrs={
                 'class': 'form-control',
-                'autocomplete': 'family-name',
+                'rows': 4,
+                'placeholder': 'Descreva o equipamento e quando ele é mais útil.',
             }),
-            'username': forms.TextInput(attrs={
+            'uso': forms.Textarea(attrs={
                 'class': 'form-control',
-                'autocomplete': 'username',
-            }),
-            'email': forms.EmailInput(attrs={
-                'class': 'form-control',
-                'autocomplete': 'email',
+                'rows': 3,
+                'placeholder': 'Diga em quais situações esse equipamento é indicado.',
             }),
         }
-
-
-class SenhaPerfilForm(PasswordChangeForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs['class'] = 'form-control'
 
 
 class DicaForm(forms.ModelForm):
@@ -129,35 +159,6 @@ class DicaForm(forms.ModelForm):
         if imagem and imagem.size > self.MAX_IMAGE_SIZE:
             raise ValidationError(_('A imagem deve ter no máximo 5 MB.'))
         return imagem
-
-
-class EquipamentoForm(forms.ModelForm):
-    class Meta:
-        model = Equipamento
-        fields = ['nome', 'categoria', 'descricao', 'uso']
-        labels = {
-            'nome': 'Nome do equipamento',
-            'categoria': 'Categoria',
-            'descricao': 'Descrição',
-            'uso': 'Uso recomendado',
-        }
-        widgets = {
-            'nome': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ex.: Vara de spinning 2,10 m',
-            }),
-            'categoria': forms.Select(attrs={'class': 'form-select'}),
-            'descricao': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 4,
-                'placeholder': 'Descreva o equipamento e quando ele é mais útil.',
-            }),
-            'uso': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Diga em quais situações esse equipamento é indicado.',
-            }),
-        }
 
 
 class MensagemContatoForm(forms.ModelForm):
@@ -244,6 +245,66 @@ class LoginForm(AuthenticationForm):
                 else _('Usuário não encontrado.')
             )
             raise ValidationError(message, code='invalid_login')
+
+
+class SolicitarRedefinicaoSenhaForm(forms.Form):
+    usuario = forms.CharField(
+        label='Nome de usuário',
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'autocomplete': 'username',
+            'placeholder': 'Seu nome de usuário',
+        }),
+    )
+    email = forms.EmailField(
+        label='E-mail cadastrado',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'autocomplete': 'email',
+            'placeholder': 'voce@exemplo.com',
+        }),
+    )
+    nova_senha = forms.CharField(
+        label='Nova senha desejada',
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'autocomplete': 'new-password',
+            'placeholder': 'Digite sua nova senha',
+        }),
+    )
+    confirmar_senha = forms.CharField(
+        label='Confirme a nova senha',
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'autocomplete': 'new-password',
+            'placeholder': 'Digite novamente sua nova senha',
+        }),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.error_messages['required'] = _('Este campo é obrigatório.')
+        self.fields['nova_senha'].help_text = (
+            'Use pelo menos 8 caracteres. Evite senhas comuns ou formadas apenas por números.'
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        nova_senha = cleaned_data.get('nova_senha')
+        confirmar_senha = cleaned_data.get('confirmar_senha')
+
+        if nova_senha and confirmar_senha and nova_senha != confirmar_senha:
+            self.add_error('confirmar_senha', _('As senhas informadas não são iguais.'))
+        if nova_senha:
+            try:
+                validate_password(nova_senha)
+            except ValidationError as error:
+                self.add_error('nova_senha', error)
+        return cleaned_data
 
 
 class RegistrationForm(UserCreationForm):

@@ -3,18 +3,20 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import tempfile
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
+from django.contrib.auth.hashers import check_password, make_password
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
-from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
 from forum.models import Dica
 from .models import Equipamento, MensagemContato
+from .models import SolicitacaoRedefinicaoSenha
 from usuarios.models import PerfilUsuario
 
 
@@ -102,6 +104,73 @@ class ContactMessagesAdminTests(TestCase):
         self.assertContains(response, 'Mensagens recebidas')
         self.assertContains(response, mensagem.nome)
 
+    def test_staff_user_can_filter_messages_by_status_subject_and_search(self):
+        MensagemContato.objects.create(**self.dados_mensagem)
+        mensagem_lida = MensagemContato.objects.create(
+            **{
+                **self.dados_mensagem,
+                'nome': 'Outra pessoa',
+                'assunto': 'duvida',
+                'mensagem': 'Mensagem de dúvida para filtrar.',
+            },
+            lida=True,
+        )
+        self.client.force_login(User.objects.create_user(
+            username='admin',
+            password='senha',
+            is_staff=True,
+        ))
+
+        response = self.client.get(reverse('mensagens_contato'), {
+            'status': 'lidas',
+            'assunto': 'duvida',
+            'q': 'Outra pessoa',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, mensagem_lida.mensagem)
+        self.assertEqual(response.context['total_nao_lidas'], 1)
+
+    def test_staff_user_can_mark_message_read_and_unread(self):
+        mensagem = MensagemContato.objects.create(**self.dados_mensagem)
+        self.client.force_login(User.objects.create_user(
+            username='admin',
+            password='senha',
+            is_staff=True,
+        ))
+        url = reverse('atualizar_status_mensagem', args=[mensagem.id])
+
+        response = self.client.post(url, {'status': 'lida'})
+
+        self.assertRedirects(response, reverse('mensagens_contato'))
+        mensagem.refresh_from_db()
+        self.assertTrue(mensagem.lida)
+
+    def test_message_status_update_rejects_get(self):
+        self.client.force_login(User.objects.create_user(
+            username='admin',
+            password='senha',
+            is_staff=True,
+        ))
+
+        response = self.client.get(
+            reverse('atualizar_status_mensagem', args=[1]),
+        )
+
+        self.assertEqual(response.status_code, 405)
+
+    def test_non_staff_cannot_change_message_status(self):
+        mensagem = MensagemContato.objects.create(**self.dados_mensagem)
+        self.client.force_login(User.objects.create_user(username='pescador'))
+
+        response = self.client.post(
+            reverse('atualizar_status_mensagem', args=[mensagem.id]),
+            {'status': 'lida'},
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+
 class PerfilEdicaoTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -127,6 +196,15 @@ class PerfilEdicaoTests(TestCase):
         self.assertContains(response, 'Gosto de pesca esportiva.')
         self.assertContains(response, 'Editar')
         self.assertContains(response, 'Cancelar')
+        self.assertContains(response, 'Usuário comum')
+
+    def test_perfil_identifica_pescador_oficial(self):
+        pescadores, _ = Group.objects.get_or_create(name='Pescador')
+        self.user.groups.add(pescadores)
+
+        response = self.client.get(reverse('perfil'))
+
+        self.assertContains(response, 'Pescador oficial')
 
     def test_perfil_salva_bio(self):
         response = self.client.post(
@@ -169,65 +247,6 @@ class PerfilEdicaoTests(TestCase):
         self.assertRedirects(response, reverse('perfil'))
         self.perfil.refresh_from_db()
         self.assertTrue(self.perfil.foto)
-
-    def test_staff_user_can_filter_messages_by_status_subject_and_search(self):
-        MensagemContato.objects.create(**self.dados_mensagem)
-        lida = MensagemContato.objects.create(
-            **{
-                **self.dados_mensagem,
-                'nome': 'Outra pessoa',
-                'assunto': 'duvida',
-                'mensagem': 'Mensagem de dúvida para filtrar.',
-            },
-            lida=True,
-        )
-        self.client.force_login(User.objects.create_user(
-            username='admin',
-            password='senha',
-            is_staff=True,
-        ))
-
-        response = self.client.get(reverse('mensagens_contato'), {
-            'status': 'lidas',
-            'assunto': 'duvida',
-            'q': 'Outra pessoa',
-        })
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.message.mensagem)
-        self.assertContains(response, 'Solicitar cargo de pescador profissional')
-        self.assertEqual(response.context['total_nao_lidas'], 1)
-
-    def test_staff_user_can_mark_message_read_and_unread(self):
-        mensagem = MensagemContato.objects.create(**self.dados_mensagem)
-        self.client.force_login(User.objects.create_user(
-            username='admin',
-            password='senha',
-            is_staff=True,
-        ))
-        url = reverse('atualizar_status_mensagem', args=[mensagem.id])
-
-        response = self.client.post(url, {'status': 'lida'})
-
-        self.assertRedirects(response, reverse('mensagens_contato'))
-        self.message.refresh_from_db()
-        self.assertTrue(self.message.lida)
-
-    def test_message_status_update_rejects_get(self):
-        self.client.force_login(User.objects.create_user(
-            username='admin',
-            password='senha',
-            is_staff=True,
-        ))
-
-        response = self.client.post(url, {'status': 'nao_lida'})
-
-        self.assertEqual(response.status_code, 405)
-
-    def test_non_staff_cannot_change_message_status(self):
-        mensagem = MensagemContato.objects.create(**self.dados_mensagem)
-        self.client.force_login(User.objects.create_user(username='pescador'))
-
 
 class EquipamentosTests(TestCase):
     def setUp(self):
@@ -373,7 +392,7 @@ class ContatoViewTests(TestCase):
         self.assertContains(response, 'csrfmiddlewaretoken')
         self.assertContains(response, f'href="{reverse("home")}"')
         self.assertContains(response, 'Voltar')
-        self.assertNotContains(response, 'href="/contato/"')
+        self.assertContains(response, 'href="/contato/"')
 
     def test_contact_form_sends_message_to_site_email(self):
         response = self.client.post(reverse('contato'), {
@@ -430,7 +449,7 @@ class ContatoViewTests(TestCase):
         self.assertContains(response, 'Cadastre-se e explore mais.')
         self.assertContains(response, 'Cadastre-se grátis')
         self.assertContains(response, f'href="{reverse("contato")}"')
-        self.assertContains(response, 'Falar conosco')
+        self.assertContains(response, 'Fale conosco')
 
 
 class SurpresaViewTests(TestCase):
@@ -497,9 +516,9 @@ class DashboardFishingTipsTests(TestCase):
             response,
             'images/banner_tela_inicio.jpg',
         )
-        self.assertContains(response, 'images/galeria/local-1.jpg')
-        self.assertContains(response, 'images/galeria/local-2.jpg')
-        self.assertContains(response, 'images/galeria/local-3.jpg')
+        self.assertContains(response, 'images/local1.jpg')
+        self.assertContains(response, 'images/local2.jpg')
+        self.assertContains(response, 'images/local3.jpg')
         self.assertContains(response, f'href="{reverse("dicas")}"')
         self.assertNotContains(response, 'id="lista-niveis-dicas"')
 
@@ -792,6 +811,120 @@ class RegistrationTests(TestCase):
 
         self.assertRedirects(response, reverse('cadastro'))
         self.assertEqual(User.objects.count(), 0)
+
+
+class PasswordResetTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='recuperar-senha',
+            email='pessoa@example.com',
+            password='SenhaAntigaSegura123!',
+        )
+
+    def test_login_exibe_link_de_recuperacao(self):
+        response = self.client.get(reverse('login'))
+
+        self.assertContains(response, 'Esqueci minha senha')
+        self.assertContains(response, f'href="{reverse("password_reset")}"')
+
+    def test_solicitacao_fica_disponivel_para_administrador(self):
+        resposta = self.client.post(
+            reverse('password_reset'),
+            {
+                'usuario': self.user.username,
+                'email': self.user.email,
+                'nova_senha': 'NovaPescaSegura2026!',
+                'confirmar_senha': 'NovaPescaSegura2026!',
+            },
+        )
+
+        self.assertRedirects(resposta, reverse('password_reset_done'))
+        solicitacao = SolicitacaoRedefinicaoSenha.objects.get()
+        self.assertEqual(solicitacao.usuario, self.user.username)
+        self.assertEqual(solicitacao.email, self.user.email)
+        self.assertTrue(check_password(
+            'NovaPescaSegura2026!',
+            solicitacao.senha_solicitada,
+        ))
+        self.assertNotIn('NovaPescaSegura2026!', solicitacao.senha_solicitada)
+        self.assertContains(
+            self.client.get(resposta.url),
+            'Sua solicitação foi enviada para análise do administrador',
+        )
+
+    def test_administrador_redefine_senha_e_marca_pedido_atendido(self):
+        admin = User.objects.create_user(
+            username='admin-reset',
+            password='senha-admin',
+            is_staff=True,
+        )
+        solicitacao = SolicitacaoRedefinicaoSenha.objects.create(
+            usuario=self.user.username,
+            email=self.user.email,
+            senha_solicitada=make_password('NovaPescaSegura2026!'),
+        )
+        self.client.force_login(admin)
+
+        resposta = self.client.post(
+            reverse('gerenciar_solicitacoes_senha'),
+            {
+                'solicitacao_id': solicitacao.pk,
+                'confirmar_identidade': '1',
+            },
+        )
+
+        self.assertRedirects(resposta, reverse('gerenciar_solicitacoes_senha'))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('NovaPescaSegura2026!'))
+        solicitacao.refresh_from_db()
+        self.assertEqual(solicitacao.atendida_por, admin)
+        self.assertIsNotNone(solicitacao.atendida_em)
+        self.assertEqual(solicitacao.senha_solicitada, '')
+
+    def test_solicitacao_nao_exige_conta_existente_e_mensagem_e_generica(self):
+        resposta = self.client.post(
+            reverse('password_reset'),
+            {
+                'usuario': 'desconhecido',
+                'email': 'desconhecido@example.com',
+                'nova_senha': 'NovaPescaSegura2026!',
+                'confirmar_senha': 'NovaPescaSegura2026!',
+            },
+        )
+
+        self.assertRedirects(resposta, reverse('password_reset_done'))
+        self.assertTrue(
+            SolicitacaoRedefinicaoSenha.objects.filter(
+                usuario='desconhecido',
+            ).exists(),
+        )
+        self.assertContains(
+            self.client.get(resposta.url),
+            'Sua solicitação foi enviada para análise do administrador',
+        )
+
+    def test_usuario_comum_nao_acessa_pedidos_de_redefinicao(self):
+        usuario = User.objects.create_user(username='comum', password='senha')
+        self.client.force_login(usuario)
+
+        resposta = self.client.get(reverse('gerenciar_solicitacoes_senha'))
+
+        self.assertEqual(resposta.status_code, 403)
+
+    def test_solicitacao_rejeita_senhas_diferentes(self):
+        resposta = self.client.post(
+            reverse('password_reset'),
+            {
+                'usuario': self.user.username,
+                'email': self.user.email,
+                'nova_senha': 'NovaPescaSegura2026!',
+                'confirmar_senha': 'OutraSenhaSegura2026!',
+            },
+        )
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'As senhas informadas não são iguais.')
+        self.assertEqual(SolicitacaoRedefinicaoSenha.objects.count(), 0)
 
 
 class UserMenuTests(TestCase):

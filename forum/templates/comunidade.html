@@ -24,14 +24,21 @@
                 <div>
                     <h2 class="mb-1">Tem uma história para contar?</h2>
                     {% if pode_publicar %}
-                    <p class="text-muted mb-0">Compartilhe uma pescaria, uma foto ou uma dúvida com a comunidade.</p>
+                    <p class="text-muted mb-0">
+                        Compartilhe uma pescaria, uma foto ou uma dúvida com a comunidade.
+                        {% if not pode_comentar %}Comentários estão disponíveis para pescadores oficiais.{% endif %}
+                    </p>
                     {% else %}
-                    <p class="text-muted mb-0">Somente pescadores oficiais podem publicar ou comentar. Peça a um administrador para promover sua conta.</p>
+                    <p class="text-muted mb-0">Entre na sua conta para compartilhar uma pescaria, uma foto ou uma dúvida com a comunidade.</p>
                     {% endif %}
                 </div>
                 {% if pode_publicar %}
                 <a class="btn btn-success community-publish-button" href="{% url 'publicar' %}">
                     <i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Publicar
+                </a>
+                {% else %}
+                <a class="btn btn-outline-success community-publish-button" href="{% url 'login' %}?next={% url 'publicar' %}">
+                    <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>Entrar para publicar
                 </a>
                 {% endif %}
             </section>
@@ -51,9 +58,17 @@
                 {% for publicacao in publicacoes %}
                 <article id="publicacao-{{ publicacao.pk }}" class="community-post">
                     <header class="community-post-header">
-                        <span class="community-avatar"><i class="bi bi-person-fill" aria-hidden="true"></i></span>
+                        <a class="community-avatar" href="{% url 'perfil_publico' publicacao.autor.username %}" aria-label="Ver perfil de {{ publicacao.autor.get_full_name|default:publicacao.autor.username }}">
+                            {% if publicacao.autor.perfil_usuario.foto %}
+                            <img src="{{ publicacao.autor.perfil_usuario.foto.url }}" alt="">
+                            {% else %}
+                            <i class="bi bi-person-fill" aria-hidden="true"></i>
+                            {% endif %}
+                        </a>
                         <div>
-                            <div class="community-post-author">{{ publicacao.autor.get_full_name|default:publicacao.autor.username }}</div>
+                            <a class="community-post-author text-decoration-none" href="{% url 'perfil_publico' publicacao.autor.username %}">
+                                {{ publicacao.autor.get_full_name|default:publicacao.autor.username }}
+                            </a>
                             <time class="community-post-time" datetime="{{ publicacao.criada_em|date:'c' }}">{{ publicacao.criada_em|date:"d/m/Y H:i" }}</time>
                         </div>
                         {% if request.user.is_authenticated and publicacao.autor_id == request.user.id or request.user.is_staff %}
@@ -109,7 +124,11 @@
                     <div class="community-comments">
                         {% for comentario in publicacao.comentarios.all %}
                         <div class="community-comment">
-                            <strong>{{ comentario.autor.get_full_name|default:comentario.autor.username }}</strong>
+                            <strong>
+                                <a class="text-decoration-none" href="{% url 'perfil_publico' comentario.autor.username %}">
+                                    {{ comentario.autor.get_full_name|default:comentario.autor.username }}
+                                </a>
+                            </strong>
                             <p>{{ comentario.texto }}</p>
                             {% if request.user.is_authenticated and comentario.autor_id == request.user.id or request.user.is_staff %}
                             <form method="post" action="{% url 'excluir_comentario' comentario.pk %}" onsubmit="return confirm('Tem certeza de que deseja excluir este comentário?');">
@@ -120,7 +139,7 @@
                         </div>
                         {% endfor %}
 
-                        {% if pode_publicar %}
+                        {% if pode_comentar %}
                         <form class="community-comment-form" method="post" action="{% url 'comentar' publicacao.pk %}">
                             {% csrf_token %}
                             {{ comentario_form.texto }}
@@ -129,7 +148,7 @@
                         {% elif not request.user.is_authenticated %}
                         <a class="small link-success" href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Entre para comentar</a>
                         {% else %}
-                        <p class="small text-muted mb-0">Somente pescadores oficiais podem comentar.</p>
+                        <p class="small text-muted mb-0">Comentários estão disponíveis para pescadores oficiais.</p>
                         {% endif %}
                     </div>
                 </article>
@@ -153,7 +172,7 @@
                 <p>Encontre orientações para todos os níveis ou compartilhe seu conhecimento com a comunidade.</p>
                 <div class="d-flex flex-wrap gap-2">
                     <a class="btn btn-outline-success btn-sm" href="{% url 'dicas' %}">Ver dicas</a>
-                    {% if pode_publicar %}
+                    {% if pode_comentar %}
                     <a class="btn btn-success btn-sm" href="{% url 'adicionar_dica' %}">Adicionar dica</a>
                     {% endif %}
                 </div>

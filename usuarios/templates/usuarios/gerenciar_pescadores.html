@@ -1,9 +1,14 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Gerenciar pescadores | RondoPesca{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/base/admin_pages.css' %}?v=20261110-1">
+{% endblock %}
+
 {% block content %}
-<div class="dashboard-home">
+<div class="dashboard-home fishermen-management-page">
     <section class="dashboard-welcome admin-page-hero mb-4 p-4 p-lg-5 shadow-sm" aria-labelledby="fishermen-title">
         <div class="admin-page-hero-copy">
             <span class="dashboard-kicker">ÁREA ADMINISTRATIVA</span>
@@ -29,10 +34,10 @@
     </div>
     {% endif %}
 
-    <section class="card dashboard-card shadow-sm p-4" aria-labelledby="users-title">
+    <section class="card dashboard-card fishermen-table-card shadow-sm p-4" aria-labelledby="users-title">
         <h2 class="h4 fw-bold mb-3" id="users-title">Usuários cadastrados</h2>
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 fishermen-table">
                 <thead>
                     <tr>
                         <th scope="col">Usuário</th>
