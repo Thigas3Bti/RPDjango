@@ -6,7 +6,6 @@ from django.contrib.auth import (
 )
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
 from django.core.mail import EmailMessage
 from django.db.models import Q
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed
@@ -19,7 +18,6 @@ import smtplib
 
 from .forms import (
     BioPerfilForm,
-    DicaForm,
     EditarPerfilForm,
     FotoPerfilForm,
     LoginForm,
@@ -28,8 +26,7 @@ from .forms import (
     RegistrationPersonalForm,
     SenhaPerfilForm,
 )
-from forum.models import Dica, EventoAgenda
-from usuarios.permissoes import eh_pescador
+from forum.models import EventoAgenda
 from .models import MensagemContato
 from usuarios.models import PerfilUsuario
 logger = logging.getLogger(__name__)
@@ -187,33 +184,6 @@ def atualizar_status_mensagem(request, mensagem_id):
 
 def surpresa(request):
     return render(request, 'web/surpresa.html')
-
-
-def dicas(request):
-    return render(request, 'web/dicas.html', {
-        'dicas_publicadas': Dica.objects.select_related('autor').all(),
-        'pode_adicionar_dica': eh_pescador(request.user),
-    })
-
-
-@login_required(login_url='login')
-def adicionar_dica(request):
-    if not request.user.is_staff:
-        raise PermissionDenied
-
-    form = DicaForm(
-        data=request.POST if request.method == 'POST' else None,
-        files=request.FILES if request.method == 'POST' else None,
-    )
-
-    if request.method == 'POST' and form.is_valid():
-        dica = form.save(commit=False)
-        dica.autor = request.user
-        dica.save()
-        messages.success(request, 'Sua dica foi adicionada com sucesso.')
-        return redirect('dicas')
-
-    return render(request, 'web/adicionar_dica.html', {'form': form})
 
 
 def comunidade(request):
