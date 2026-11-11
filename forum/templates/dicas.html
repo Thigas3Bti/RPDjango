@@ -4,7 +4,7 @@
 {% block title %}Dicas de Pesca | RondoPesca{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/forum/dicas.css' %}?v=20261109-1">
+<link rel="stylesheet" href="{% static 'css/forum/dicas.css' %}?v=20261111-1">
 {% endblock %}
 
 {% block content %}
@@ -58,8 +58,16 @@
                         <option value="veterano">Veterano</option>
                     </select>
                 </div>
+                {% if pode_adicionar_dica %}
+                <a class="btn btn-success text-nowrap" href="{% url 'adicionar_dica' %}">
+                    <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Adicionar nova dica
+                </a>
+                {% endif %}
             </div>
         </div>
+        {% if not pode_adicionar_dica %}
+        <p class="small text-muted mb-3">Somente pescadores oficiais podem adicionar dicas. Peça a um administrador para promover sua conta.</p>
+        {% endif %}
         <p class="small text-muted mb-3" id="estado-filtro-dicas" aria-live="polite">Exibindo todos os níveis.</p>
 
     <div class="row g-3" id="lista-niveis-dicas">
@@ -144,7 +152,7 @@
         {% if dicas_publicadas %}
             {% for dica in dicas_publicadas %}
                 <div class="col-12 col-xl-6 nivel-dica" data-nivel="{{ dica.nivel }}">
-                    <article class="card dashboard-card learning-community-card h-100 shadow-sm p-4">
+                    <article class="card dashboard-card learning-community-card shadow-sm p-4">
                         <span class="dashboard-kicker">{{ dica.get_nivel_display|upper }} · DICA DA COMUNIDADE</span>
                         <h3 class="h5 fw-bold mt-2">{{ dica.titulo }}</h3>
                         <p class="mb-3">{{ dica.descricao|linebreaksbr }}</p>
@@ -172,11 +180,10 @@
         const cards = document.querySelectorAll('.nivel-dica[data-nivel]');
         const estado = document.getElementById('estado-filtro-dicas');
 
-        if (!filtro || !estado || cards.length === 0) {
-            return;
-        }
-
-        filtro.addEventListener('change', function () {
+        function aplicarFiltro() {
+            if (!filtro || !estado) {
+                return;
+            }
             cards.forEach(function (card) {
                 card.hidden = filtro.value !== 'todos' && card.dataset.nivel !== filtro.value;
             });
@@ -184,6 +191,29 @@
             estado.textContent = filtro.value === 'todos'
                 ? 'Exibindo todos os níveis.'
                 : 'Exibindo somente as dicas do nível selecionado.';
+        }
+
+        if (filtro && estado && cards.length > 0) {
+            filtro.addEventListener('change', aplicarFiltro);
+        }
+
+        document.querySelectorAll('.learning-path a[href^="#nivel-"]').forEach(function (link) {
+            link.addEventListener('click', function () {
+                const nivel = document.querySelector(link.getAttribute('href'));
+                if (!nivel) {
+                    return;
+                }
+
+                if (filtro && filtro.value !== nivel.dataset.nivel) {
+                    filtro.value = nivel.dataset.nivel;
+                    aplicarFiltro();
+                }
+
+                const dica = nivel.querySelector('details');
+                if (dica) {
+                    dica.open = true;
+                }
+            });
         });
     });
 </script>

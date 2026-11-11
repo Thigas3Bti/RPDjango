@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar perfil | RondoPesca{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/Usuario/perfil.css' %}?v=20261110-2">
+{% endblock %}
+
+{% block content %}
+<section class="profile-page profile-edit-page py-2" aria-labelledby="edit-profile-title">
+    <header class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <span class="small text-success fw-semibold text-uppercase">Conta</span>
+            <h1 id="edit-profile-title" class="profile-heading h3 fw-bold mt-1 mb-0">Editar perfil</h1>
+        </div>
+        <a class="btn btn-outline-secondary" href="{% url 'perfil' %}">
+            <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Voltar ao perfil
+        </a>
+    </header>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success" role="status">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="profile-edit-card card shadow-sm">
+        <nav class="profile-edit-nav" aria-label="Tópicos de edição do perfil">
+            <a class="profile-edit-nav-link{% if secao == 'pessoal' %} active{% endif %}"
+                href="?secao=pessoal"{% if secao == 'pessoal' %} aria-current="page"{% endif %}>
+                <i class="bi bi-person-vcard" aria-hidden="true"></i>
+                <span>Informações pessoais</span>
+            </a>
+            <a class="profile-edit-nav-link{% if secao == 'seguranca' %} active{% endif %}"
+                href="?secao=seguranca"{% if secao == 'seguranca' %} aria-current="page"{% endif %}>
+                <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                <span>Informações de segurança</span>
+            </a>
+        </nav>
+
+        <div class="profile-edit-content">
+            {% if secao == 'seguranca' %}
+                <h2 class="h4 fw-bold mb-2">Informações de segurança</h2>
+                <p class="text-muted mb-4">Atualize sua senha para manter sua conta protegida.</p>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% for field in senha_form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="form-text">{{ field.help_text|safe }}</div>{% endif %}
+                            {% for error in field.errors %}<div class="text-danger small mt-1" role="alert">{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    {% for error in senha_form.non_field_errors %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endfor %}
+                    <button class="btn btn-success" type="submit" name="alterar_senha" value="1">Salvar nova senha</button>
+                </form>
+            {% else %}
+                <h2 class="h4 fw-bold mb-2">Informações pessoais</h2>
+                <p class="text-muted mb-4">Edite os dados exibidos no seu perfil.</p>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% for field in perfil_form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}<div class="text-danger small mt-1" role="alert">{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="{{ bio_form.bio.id_for_label }}">{{ bio_form.bio.label }}</label>
+                        {{ bio_form.bio }}
+                        {% for error in bio_form.bio.errors %}<div class="text-danger small mt-1" role="alert">{{ error }}</div>{% endfor %}
+                        <div class="form-text">Máximo de 500 caracteres.</div>
+                    </div>
+                    {% for error in perfil_form.non_field_errors %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endfor %}
+                    <button class="btn btn-success" type="submit" name="salvar_perfil" value="1">Salvar alterações</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

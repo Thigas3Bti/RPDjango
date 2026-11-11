@@ -30,9 +30,16 @@
                     {% if request.user.is_authenticated %}
                     <li class="nav-item">
                         <div class="dropdown">
-                            <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button"
-                                data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu do usuário">
-                                <i class="bi bi-person-circle" aria-hidden="true"></i>
+                            <button class="btn btn-outline-light btn-sm dropdown-toggle header-profile-toggle"
+                                type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                aria-label="Menu de {{ request.user.username }}">
+                                {% if request.user.perfil_usuario.foto %}
+                                <img class="header-profile-avatar"
+                                    src="{{ request.user.perfil_usuario.foto.url }}" alt="" aria-hidden="true">
+                                {% else %}
+                                <i class="bi bi-person-circle header-profile-avatar-placeholder" aria-hidden="true"></i>
+                                {% endif %}
+                                <span>{{ request.user.username }}</span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="{% url 'perfil' %}">Ver perfil</a></li>

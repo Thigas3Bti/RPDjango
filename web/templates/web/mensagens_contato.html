@@ -4,11 +4,16 @@
 
 {% block content %}
 <div class="dashboard-home">
-    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm">
-        <span class="dashboard-kicker">ÁREA ADMINISTRATIVA</span>
-        <h1 class="display-6 fw-bold mt-2 mb-2">Mensagens recebidas</h1>
-        <p class="mb-0 text-muted">Problemas, dúvidas e sugestões enviados pelo formulário de contato.</p>
-        <p class="mb-0 mt-2"><strong>{{ total_nao_lidas }}</strong> mensagem(ns) não lida(s)</p>
+    <section class="dashboard-welcome admin-page-hero mb-4 p-4 p-lg-5 shadow-sm">
+        <div class="admin-page-hero-copy">
+            <span class="dashboard-kicker">ÁREA ADMINISTRATIVA</span>
+            <h1 class="display-6 fw-bold mt-2 mb-2">Mensagens recebidas</h1>
+            <p class="mb-0">Problemas, dúvidas e sugestões enviados pelo formulário de contato.</p>
+            <p class="mb-0 mt-2"><strong>{{ total_nao_lidas }}</strong> mensagem(ns) não lida(s)</p>
+        </div>
+        <span class="admin-page-hero-icon" aria-hidden="true">
+            <i class="bi bi-envelope-paper-fill"></i>
+        </span>
     </section>
 
     <form method="get" class="card dashboard-card shadow-sm p-3 mb-4">

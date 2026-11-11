@@ -1,45 +1,49 @@
-from django.conf import settings
 from django.db import models
 
 
-class Dica(models.Model):
+class Equipamento(models.Model):
     CATEGORIAS = [
-        ('iniciante', 'Iniciante'),
-        ('intermediario', 'Intermediário'),
-        ('avancado', 'Avançado'),
-        ('veterano', 'Veterano'),
+        ('vara', 'Vara'),
+        ('linha', 'Linha'),
+        ('anzol', 'Anzol'),
+        ('molinete', 'Molinete / carretilha'),
+        ('isca', 'Isca'),
+        ('seguranca', 'Segurança'),
+        ('acessorio', 'Acessório'),
+        ('outro', 'Outro'),
     ]
 
-    NIVEIS = [
-        ('iniciante', 'Iniciante'),
-        ('intermediario', 'Intermediário'),
-        ('avancado', 'Avançado'),
-        ('veterano', 'Veterano'),
-    ]
-
-    titulo = models.CharField(max_length=120)
-    nivel = models.CharField(max_length=20, choices=NIVEIS, default='iniciante')
-    categoria = models.CharField(
-        max_length=20,
-        choices=CATEGORIAS,
-        default='iniciante',
-    )
-    descricao = models.TextField(blank=True)
-    imagem = models.ImageField(upload_to='dicas/', blank=True)
-    autor = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='dicas_publicadas',
-    )
-    criada_em = models.DateTimeField(auto_now_add=True)
+    nome = models.CharField('Nome do equipamento', max_length=120)
+    categoria = models.CharField('Categoria', max_length=30, choices=CATEGORIAS, default='outro')
+    foto = models.ImageField('Foto do equipamento', upload_to='equipamentos/', blank=False, null=True)
+    descricao = models.TextField('Descrição')
+    uso = models.TextField('Uso recomendado', blank=True)
+    ativo = models.BooleanField('Ativo', default=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-criada_em']
-        verbose_name = 'Dica'
-        verbose_name_plural = 'Dicas'
+        ordering = ['categoria', 'nome']
+        verbose_name = 'Equipamento'
+        verbose_name_plural = 'Equipamentos'
 
     def __str__(self):
-        return self.titulo
+        return self.nome
+
+
+class FotoAdicionalEquipamento(models.Model):
+    equipamento = models.ForeignKey(
+        Equipamento,
+        on_delete=models.CASCADE,
+        related_name='fotos_adicionais',
+    )
+    foto = models.ImageField('Foto adicional', upload_to='equipamentos/')
+
+    class Meta:
+        verbose_name = 'Foto adicional de equipamento'
+        verbose_name_plural = 'Fotos adicionais de equipamentos'
+
+    def __str__(self):
+        return f'Foto de {self.equipamento.nome}'
 
 
 class MensagemContato(models.Model):

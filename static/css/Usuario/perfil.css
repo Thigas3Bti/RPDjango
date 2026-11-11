@@ -101,9 +101,56 @@
         font-weight: 600;
     }
 
+    .profile-back-button {
+            margin-bottom: 1rem;
+        }
+
+        .profile-edit-link {
+            flex: 0 0 auto;
+        }
+
+        .profile-edit-card {
+        display: grid;
+        grid-template-columns: minmax(13rem, 0.32fr) minmax(0, 1fr);
+        overflow: hidden;
+        border: 1px solid #e2eae1;
+        border-radius: 1rem;
+    }
+
+    .profile-edit-nav {
+        padding: 1rem 0;
+        border-right: 1px solid #e8eee7;
+        background: #f8fbf7;
+    }
+
+    .profile-edit-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.9rem 1.25rem;
+        border-left: 3px solid transparent;
+        color: #405849;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .profile-edit-nav-link:hover,
+    .profile-edit-nav-link.active {
+        color: #24583b;
+        background: #eaf4e8;
+    }
+
+    .profile-edit-nav-link.active {
+        border-left-color: #39804a;
+    }
+
+    .profile-edit-content {
+        min-width: 0;
+        padding: clamp(1.25rem, 4vw, 2rem);
+    }
+
     .profile-details {
         padding: clamp(1.25rem, 4vw, 2rem);
-        border-top: 1px solid #e8eee7;
     }
 
     .profile-bio {
@@ -219,8 +266,36 @@
 
     @media (max-width: 575.98px) {
         .profile-hero {
-            align-items: flex-start;
+            align-items: center;
             gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .profile-edit-card {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .profile-edit-nav {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            padding: 0;
+            border-right: 0;
+            border-bottom: 1px solid #e8eee7;
+        }
+
+        .profile-edit-nav-link {
+            justify-content: center;
+            flex-direction: column;
+            gap: 0.35rem;
+            padding: 0.75rem 0.5rem;
+            border-left: 0;
+            border-bottom: 3px solid transparent;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .profile-edit-nav-link.active {
+            border-bottom-color: #39804a;
         }
 
         .profile-avatar-trigger {

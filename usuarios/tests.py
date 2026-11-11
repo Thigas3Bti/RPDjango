@@ -3,6 +3,8 @@ from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.urls import reverse
 
+from .permissoes import eh_pescador
+
 
 class GerenciarPescadoresTests(TestCase):
     def setUp(self):
@@ -15,6 +17,18 @@ class GerenciarPescadoresTests(TestCase):
             username='usuario',
             password='senha-segura-123',
         )
+
+    def test_eh_pescador_reconhece_grupo_admin_e_usuario_sem_permissao(self):
+        self.assertFalse(eh_pescador(self.usuario))
+        self.assertTrue(eh_pescador(self.administrador))
+
+        grupo, _ = Group.objects.get_or_create(name='Pescador')
+        self.usuario.groups.add(grupo)
+        self.assertTrue(eh_pescador(self.usuario))
+
+        self.usuario.is_active = False
+        self.usuario.save(update_fields=['is_active'])
+        self.assertFalse(eh_pescador(self.usuario))
 
     def test_only_staff_can_manage_official_fishermen(self):
         response = self.client.get(reverse('gerenciar_pescadores'))
@@ -40,6 +54,7 @@ class GerenciarPescadoresTests(TestCase):
         response = self.client.get(reverse('gerenciar_pescadores'))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'admin-page-hero')
         self.assertContains(response, self.usuario.username)
         self.assertContains(response, 'Promover')
 

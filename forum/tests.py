@@ -8,7 +8,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Comentario, Curtida, EventoAgenda, Publicacao
+from .models import Comentario, Curtida, Dica, EventoAgenda, Publicacao
 
 
 class ComunidadeTests(TestCase):
@@ -41,11 +41,29 @@ class ComunidadeTests(TestCase):
         self.assertContains(resposta, publicacao.texto)
         self.assertContains(resposta, self.autor.username)
 
-    def test_forum_exibe_link_para_dicas_e_adicao_so_para_administradores(self):
+    def test_forum_exibe_link_para_adicionar_dica_a_pescadores_oficiais(self):
         resposta_publica = self.client.get(reverse('comunidade'))
 
         self.assertContains(resposta_publica, f'href="{reverse("dicas")}"')
         self.assertNotContains(resposta_publica, f'href="{reverse("adicionar_dica")}"')
+
+        self.client.force_login(self.autor)
+        resposta_pescador = self.client.get(reverse('comunidade'))
+        self.assertContains(
+            resposta_pescador,
+            f'href="{reverse("adicionar_dica")}"',
+        )
+
+        usuario_comum = get_user_model().objects.create_user(
+            username='usuario-comum',
+            password='senha-segura-123',
+        )
+        self.client.force_login(usuario_comum)
+        resposta_usuario = self.client.get(reverse('comunidade'))
+        self.assertNotContains(
+            resposta_usuario,
+            f'href="{reverse("adicionar_dica")}"',
+        )
 
         administrador = get_user_model().objects.create_user(
             username='administrador',
@@ -57,6 +75,70 @@ class ComunidadeTests(TestCase):
 
         self.assertContains(resposta_admin, f'href="{reverse("dicas")}"')
         self.assertContains(resposta_admin, f'href="{reverse("adicionar_dica")}"')
+
+    def test_pagina_de_dicas_exibe_botao_de_adicao_para_pescador_oficial(self):
+        rota_adicionar = reverse('adicionar_dica')
+        resposta_visitante = self.client.get(reverse('dicas'))
+        self.assertNotContains(resposta_visitante, f'href="{rota_adicionar}"')
+
+        usuario_comum = get_user_model().objects.create_user(
+            username='usuario-comum-dicas',
+            password='senha-segura-123',
+        )
+        self.client.force_login(usuario_comum)
+        resposta_usuario = self.client.get(reverse('dicas'))
+        self.assertNotContains(resposta_usuario, f'href="{rota_adicionar}"')
+
+        self.client.force_login(self.autor)
+        resposta_pescador = self.client.get(reverse('dicas'))
+        self.assertEqual(
+            resposta_pescador.content.decode().count(f'href="{rota_adicionar}"'),
+            1,
+        )
+
+        administrador = get_user_model().objects.create_user(
+            username='administrador-dicas',
+            password='senha-segura-789',
+            is_staff=True,
+        )
+        self.client.force_login(administrador)
+        resposta_admin = self.client.get(reverse('dicas'))
+
+        self.assertEqual(
+            resposta_admin.content.decode().count(f'href="{rota_adicionar}"'),
+            1,
+        )
+        self.assertContains(resposta_admin, 'Exibindo todos os níveis.')
+
+    def test_pagina_adicionar_dica_usa_layout_da_pagina_de_dicas(self):
+        self.client.force_login(get_user_model().objects.create_user(
+            username='autor-dica-layout',
+            password='senha-segura-123',
+            is_staff=True,
+        ))
+
+        resposta = self.client.get(reverse('adicionar_dica'))
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'css/forum/dicas.css')
+        self.assertContains(resposta, 'class="card dashboard-card learning-form-card')
+        self.assertContains(resposta, 'Compartilhe sua dica de pesca')
+
+    def test_dica_da_comunidade_mantem_altura_natural_ao_lado_do_nivel_aberto(self):
+        Dica.objects.create(
+            autor=self.autor,
+            titulo='Dica curta',
+            nivel='iniciante',
+            categoria='iniciante',
+            descricao='Texto curto.',
+        )
+
+        resposta = self.client.get(reverse('dicas'))
+
+        self.assertContains(
+            resposta,
+            '<article class="card dashboard-card learning-community-card shadow-sm p-4">',
+        )
 
     def test_menu_lateral_mantem_dicas_ativa_nas_paginas_do_forum(self):
         self.client.force_login(self.autor)
@@ -93,6 +175,18 @@ class ComunidadeTests(TestCase):
         self.assertContains(resposta_feed, 'Dica de isca')
         self.assertContains(resposta_feed, 'Experimente uma isca adequada à espécie.')
         self.assertContains(resposta_feed, 'Rio Madeira')
+
+    def test_formulario_publicacao_exibe_cabecalho_com_layout_de_fotos(self):
+        self.client.force_login(self.autor)
+
+        resposta = self.client.get(reverse('publicar'))
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'community-publish-hero')
+        self.assertContains(resposta, 'community-publish-hero-art')
+        self.assertContains(resposta, 'bi-camera-fill')
+        self.assertContains(resposta, 'Conte sua história de pesca')
+        self.assertContains(resposta, 'Começar a publicar')
 
     def test_autor_pode_editar_publicacao_e_ve_acoes_com_icones(self):
         publicacao = Publicacao.objects.create(

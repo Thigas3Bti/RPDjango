@@ -1,10 +1,15 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    PasswordChangeForm,
+    UserCreationForm,
+)
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from .models import Dica, MensagemContato
+from forum.models import Dica
+from .models import Equipamento, MensagemContato
 from usuarios.models import PerfilUsuario
 
 
@@ -47,6 +52,43 @@ class BioPerfilForm(forms.ModelForm):
         labels = {'bio': 'Sobre você'}
 
 
+class EditarPerfilForm(forms.ModelForm):
+    class Meta:
+        model = get_user_model()
+        fields = ['first_name', 'last_name', 'username', 'email']
+        labels = {
+            'first_name': 'Nome',
+            'last_name': 'Sobrenome',
+            'username': 'Nome de usuário',
+            'email': 'E-mail',
+        }
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'given-name',
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'family-name',
+            }),
+            'username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'username',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'email',
+            }),
+        }
+
+
+class SenhaPerfilForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+
+
 class DicaForm(forms.ModelForm):
     MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
@@ -87,6 +129,35 @@ class DicaForm(forms.ModelForm):
         if imagem and imagem.size > self.MAX_IMAGE_SIZE:
             raise ValidationError(_('A imagem deve ter no máximo 5 MB.'))
         return imagem
+
+
+class EquipamentoForm(forms.ModelForm):
+    class Meta:
+        model = Equipamento
+        fields = ['nome', 'categoria', 'descricao', 'uso']
+        labels = {
+            'nome': 'Nome do equipamento',
+            'categoria': 'Categoria',
+            'descricao': 'Descrição',
+            'uso': 'Uso recomendado',
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex.: Vara de spinning 2,10 m',
+            }),
+            'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'descricao': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Descreva o equipamento e quando ele é mais útil.',
+            }),
+            'uso': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Diga em quais situações esse equipamento é indicado.',
+            }),
+        }
 
 
 class MensagemContatoForm(forms.ModelForm):
@@ -180,6 +251,9 @@ class RegistrationForm(UserCreationForm):
 
     error_messages = {
         'password_mismatch': _('As senhas informadas não são iguais.'),
+        'duplicate_username': _(
+            'Já existe alguém cadastrado com esse nome de usuário '
+        ),
     }
 
     class Meta(UserCreationForm.Meta):
@@ -231,7 +305,60 @@ class RegistrationForm(UserCreationForm):
             raise ValidationError(_('Informe um endereço de email válido.'))
         return email
 
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        user_model = get_user_model()
+        username_field = user_model.USERNAME_FIELD
+        if user_model._default_manager.filter(
+            **{f'{username_field}__iexact': username},
+        ).exists():
+            raise ValidationError(
+                self.error_messages['duplicate_username'],
+                code='duplicate_username',
+            )
+        return username
+
     def _get_validation_exclusions(self):
         exclusions = super()._get_validation_exclusions()
         exclusions.add('email')
         return exclusions
+
+
+class RegistrationPersonalForm(forms.ModelForm):
+    class Meta:
+        model = get_user_model()
+        fields = ('first_name', 'last_name', 'email')
+        labels = {
+            'first_name': 'Nome',
+            'last_name': 'Sobrenome',
+            'email': 'E-mail',
+        }
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Seu nome',
+                'autocomplete': 'given-name',
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Seu sobrenome',
+                'autocomplete': 'family-name',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'voce@exemplo.com',
+                'autocomplete': 'email',
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.required = True
+            field.error_messages['required'] = _('Este campo é obrigatório.')
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if '@' not in email:
+            raise ValidationError(_('Informe um endereço de email válido.'))
+        return email
