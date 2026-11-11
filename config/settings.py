@@ -40,9 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # Keep the project's runserver command ahead of staticfiles' command override.
+    'web',
     'django.contrib.staticfiles',
     #meus apps
-    'web',
     'usuarios',
     'forum',
     'locais'
