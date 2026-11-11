@@ -199,26 +199,6 @@
     box-shadow: 0 .75rem 2rem rgb(19 49 34 / 9%) !important;
 }
 
-.learning-form-heading {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #e8eee6;
-}
-
-.learning-form-icon {
-    display: grid;
-    flex: 0 0 3rem;
-    width: 3rem;
-    height: 3rem;
-    place-items: center;
-    border-radius: 1rem;
-    background: #e8f3e2;
-    color: var(--learning-green);
-    font-size: 1.3rem;
-}
-
 .learning-form-card form > .mb-3 {
     margin-bottom: 1.25rem !important;
 }
