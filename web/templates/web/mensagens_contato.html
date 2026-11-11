@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Mensagens recebidas | RondoPesca{% endblock %}
+
+{% block content %}
+<div class="dashboard-home">
+    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm">
+        <span class="dashboard-kicker">ÁREA ADMINISTRATIVA</span>
+        <h1 class="display-6 fw-bold mt-2 mb-2">Mensagens recebidas</h1>
+        <p class="mb-0 text-muted">Problemas, dúvidas e sugestões enviados pelo formulário de contato.</p>
+        <p class="mb-0 mt-2"><strong>{{ total_nao_lidas }}</strong> mensagem(ns) não lida(s)</p>
+    </section>
+
+    <form method="get" class="card dashboard-card shadow-sm p-3 mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-4">
+                <label for="filtro-busca" class="form-label">Buscar mensagem</label>
+                <input id="filtro-busca" type="search" name="q" value="{{ busca }}"
+                       class="form-control" placeholder="Nome, e-mail ou conteúdo">
+            </div>
+            <div class="col-12 col-md-3">
+                <label for="filtro-status" class="form-label">Situação</label>
+                <select id="filtro-status" name="status" class="form-select">
+                    <option value="" {% if not status_selecionado %}selected{% endif %}>Todas</option>
+                    <option value="nao_lidas" {% if status_selecionado == 'nao_lidas' %}selected{% endif %}>Não lidas</option>
+                    <option value="lidas" {% if status_selecionado == 'lidas' %}selected{% endif %}>Lidas</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <label for="filtro-assunto" class="form-label">Assunto</label>
+                <select id="filtro-assunto" name="assunto" class="form-select">
+                    <option value="">Todos os assuntos</option>
+                    {% for valor, rotulo in assuntos %}
+                    <option value="{{ valor }}" {% if assunto_selecionado == valor %}selected{% endif %}>{{ rotulo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-success">Filtrar</button>
+                <a href="{% url 'mensagens_contato' %}" class="btn btn-outline-secondary">Limpar</a>
+            </div>
+        </div>
+    </form>
+
+    {% for mensagem in mensagens_contato %}
+    <article class="card dashboard-card shadow-sm p-4 mb-3">
+        <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+            <div>
+                <h2 class="h5 fw-bold mb-1">{{ mensagem.get_assunto_display }}</h2>
+                {% if mensagem.lida %}
+                <span class="badge text-bg-secondary">Lida</span>
+                {% else %}
+                <span class="badge text-bg-primary">Não lida</span>
+                {% endif %}
+            </div>
+            <time class="text-muted small" datetime="{{ mensagem.criada_em|date:'c' }}">
+                {{ mensagem.criada_em|date:"d/m/Y H:i" }}
+            </time>
+        </div>
+        <p class="mb-2"><strong>De:</strong> {{ mensagem.nome }} &lt;{{ mensagem.email }}&gt;</p>
+        <p class="mb-3" style="white-space: pre-wrap;">{{ mensagem.mensagem }}</p>
+        <form method="post" action="{% url 'atualizar_status_mensagem' mensagem.id %}">
+            {% csrf_token %}
+            {% if mensagem.lida %}
+            <input type="hidden" name="status" value="nao_lida">
+            <button type="submit" class="btn btn-outline-primary btn-sm">Marcar como não lida</button>
+            {% else %}
+            <input type="hidden" name="status" value="lida">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Marcar como lida</button>
+            {% endif %}
+        </form>
+    </article>
+    {% empty %}
+    <section class="card dashboard-card shadow-sm p-4">
+        <p class="mb-0 text-muted">Nenhuma mensagem encontrada para esses filtros.</p>
+    </section>
+    {% endfor %}
+</div>
+{% endblock %}
