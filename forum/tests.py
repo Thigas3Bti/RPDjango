@@ -2,6 +2,7 @@ import tempfile
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -22,6 +23,9 @@ class ComunidadeTests(TestCase):
             username='amigo',
             password='senha-segura-456',
         )
+        pescadores, _ = Group.objects.get_or_create(name='Pescador')
+        self.autor.groups.add(pescadores)
+        self.outro_usuario.groups.add(pescadores)
 
     def test_feed_publico_exibe_publicacoes_salvas(self):
         publicacao = Publicacao.objects.create(
@@ -176,6 +180,31 @@ class ComunidadeTests(TestCase):
             resposta,
             f"{reverse('login')}?next={reverse('publicar')}",
         )
+
+    def test_usuario_sem_titulo_nao_pode_publicar_ou_comentar(self):
+        usuario = get_user_model().objects.create_user(
+            username='visitante',
+            password='senha-segura-789',
+        )
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            texto='Publicação existente.',
+        )
+        self.client.force_login(usuario)
+
+        resposta_publicar = self.client.post(reverse('publicar'), {
+            'titulo': 'Não autorizado',
+            'texto': 'Esta publicação não deve ser criada.',
+        })
+        resposta_comentar = self.client.post(
+            reverse('comentar', args=[publicacao.pk]),
+            {'texto': 'Este comentário não deve ser criado.'},
+        )
+
+        self.assertEqual(resposta_publicar.status_code, 403)
+        self.assertEqual(resposta_comentar.status_code, 403)
+        self.assertFalse(Publicacao.objects.filter(titulo='Não autorizado').exists())
+        self.assertFalse(Comentario.objects.filter(autor=usuario).exists())
 
     def test_comentar_e_curtir_publicacao(self):
         publicacao = Publicacao.objects.create(

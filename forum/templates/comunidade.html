@@ -23,11 +23,17 @@
             <section class="community-publish-prompt community-card">
                 <div>
                     <h2 class="mb-1">Tem uma história para contar?</h2>
+                    {% if pode_publicar %}
                     <p class="text-muted mb-0">Compartilhe uma pescaria, uma foto ou uma dúvida com a comunidade.</p>
+                    {% else %}
+                    <p class="text-muted mb-0">Somente pescadores oficiais podem publicar ou comentar. Peça a um administrador para promover sua conta.</p>
+                    {% endif %}
                 </div>
+                {% if pode_publicar %}
                 <a class="btn btn-success community-publish-button" href="{% url 'publicar' %}">
                     <i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Publicar
                 </a>
+                {% endif %}
             </section>
 
             <section class="community-card" aria-labelledby="feed-title">
@@ -114,14 +120,16 @@
                         </div>
                         {% endfor %}
 
-                        {% if request.user.is_authenticated %}
+                        {% if pode_publicar %}
                         <form class="community-comment-form" method="post" action="{% url 'comentar' publicacao.pk %}">
                             {% csrf_token %}
                             {{ comentario_form.texto }}
                             <button class="btn btn-outline-success" type="submit">Comentar</button>
                         </form>
-                        {% else %}
+                        {% elif not request.user.is_authenticated %}
                         <a class="small link-success" href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Entre para comentar</a>
+                        {% else %}
+                        <p class="small text-muted mb-0">Somente pescadores oficiais podem comentar.</p>
                         {% endif %}
                     </div>
                 </article>
