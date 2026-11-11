@@ -14,7 +14,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
 from forum.models import Dica
-from .models import MensagemContato
+from .models import Equipamento, MensagemContato
 from usuarios.models import PerfilUsuario
 
 
@@ -227,6 +227,133 @@ class PerfilEdicaoTests(TestCase):
     def test_non_staff_cannot_change_message_status(self):
         mensagem = MensagemContato.objects.create(**self.dados_mensagem)
         self.client.force_login(User.objects.create_user(username='pescador'))
+
+
+class EquipamentosTests(TestCase):
+    def setUp(self):
+        self.media_dir = TemporaryDirectory()
+        self.settings_override = override_settings(MEDIA_ROOT=self.media_dir.name)
+        self.settings_override.enable()
+        self.addCleanup(self.settings_override.disable)
+        self.addCleanup(self.media_dir.cleanup)
+
+    def _imagem(self, nome):
+        image_buffer = BytesIO()
+        Image.new('RGB', (2, 2), color='green').save(image_buffer, format='PNG')
+        return SimpleUploadedFile(
+            nome,
+            image_buffer.getvalue(),
+            content_type='image/png',
+        )
+
+    def test_catalog_lists_equipment_without_long_descriptions(self):
+        equipamento = Equipamento.objects.create(
+            nome='Vara de teste',
+            categoria='vara',
+            descricao='Descrição detalhada da vara.',
+            uso='Uso recomendado da vara.',
+        )
+
+        response = self.client.get(reverse('equipamentos'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, equipamento.nome)
+        self.assertContains(
+            response,
+            reverse('detalhe_equipamento', args=[equipamento.pk]),
+        )
+        self.assertNotContains(response, equipamento.descricao)
+        self.assertNotContains(response, equipamento.uso)
+
+    def test_equipment_detail_shows_details_and_other_equipment(self):
+        equipamento = Equipamento.objects.create(
+            nome='Vara principal',
+            categoria='vara',
+            descricao='Descrição completa do equipamento.',
+            uso='Indicado para pesca em rios.',
+        )
+        relacionado = Equipamento.objects.create(
+            nome='Vara relacionada',
+            categoria='vara',
+            descricao='Outro item para explorar.',
+        )
+
+        response = self.client.get(
+            reverse('detalhe_equipamento', args=[equipamento.pk]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, equipamento.descricao)
+        self.assertContains(response, equipamento.uso)
+        self.assertContains(response, relacionado.nome)
+        self.assertContains(
+            response,
+            reverse('detalhe_equipamento', args=[relacionado.pk]),
+        )
+
+    def test_staff_must_add_at_least_one_photo_to_create_equipment(self):
+        admin = User.objects.create_user(
+            username='equipamento-admin',
+            password='senha-segura-123',
+            is_staff=True,
+        )
+        self.client.force_login(admin)
+
+        response = self.client.post(reverse('cadastrar_equipamento'), {
+            'nome': 'Vara sem foto',
+            'categoria': 'vara',
+            'descricao': 'Descrição do equipamento.',
+            'uso': 'Uso recomendado.',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Adicione pelo menos uma foto')
+        self.assertFalse(Equipamento.objects.exists())
+
+    def test_equipment_photo_controls_follow_the_name_field(self):
+        admin = User.objects.create_user(
+            username='equipamento-admin',
+            password='senha-segura-123',
+            is_staff=True,
+        )
+        self.client.force_login(admin)
+
+        response = self.client.get(reverse('cadastrar_equipamento'))
+
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertLess(html.index('name="nome"'), html.index('id="equipmentPhotoGrid"'))
+        self.assertIn('Trocar foto', html)
+        self.assertIn('Excluir foto', html)
+        self.assertIn("dragstart", html)
+
+    def test_staff_can_upload_multiple_equipment_photos(self):
+        admin = User.objects.create_user(
+            username='equipamento-admin',
+            password='senha-segura-123',
+            is_staff=True,
+        )
+        self.client.force_login(admin)
+
+        response = self.client.post(reverse('cadastrar_equipamento'), {
+            'nome': 'Vara com fotos',
+            'categoria': 'vara',
+            'descricao': 'Descrição do equipamento.',
+            'uso': 'Uso recomendado.',
+            'fotos': [self._imagem('frente.png'), self._imagem('lado.png')],
+        })
+
+        equipamento = Equipamento.objects.get(nome='Vara com fotos')
+        self.assertRedirects(response, reverse('equipamentos'))
+        self.assertTrue(equipamento.foto)
+        self.assertEqual(equipamento.fotos_adicionais.count(), 1)
+
+        response = self.client.get(
+            reverse('detalhe_equipamento', args=[equipamento.pk]),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['fotos_equipamento']), 2)
+
 
 class ContatoViewTests(TestCase):
     def test_surprise_page_renders(self):

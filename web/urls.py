@@ -6,6 +6,13 @@ from . import views
 urlpatterns = [
     path('', views.home, name='home'),
     path('inicio/', views.inicio, name='inicio'),
+    path('equipamentos/', views.equipamentos, name='equipamentos'),
+    path(
+        'equipamentos/<int:equipamento_id>/',
+        views.detalhe_equipamento,
+        name='detalhe_equipamento',
+    ),
+    path('equipamentos/cadastrar/', views.cadastrar_equipamento, name='cadastrar_equipamento'),
     path('contato/', views.contato, name='contato'),
     path('mensagens/', views.mensagens_contato, name='mensagens_contato'),
     path(

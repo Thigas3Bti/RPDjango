@@ -6,9 +6,10 @@ from django.contrib.auth import (
 )
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import EmailMessage
 from django.db.models import Q
+from django.forms import ImageField
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -21,6 +22,7 @@ from .forms import (
     BioPerfilForm,
     DicaForm,
     EditarPerfilForm,
+    EquipamentoForm,
     FotoPerfilForm,
     LoginForm,
     RegistrationForm,
@@ -30,7 +32,7 @@ from .forms import (
 )
 from forum.models import Dica, EventoAgenda
 from usuarios.permissoes import eh_pescador
-from .models import MensagemContato
+from .models import Equipamento, FotoAdicionalEquipamento, MensagemContato
 from usuarios.models import PerfilUsuario
 logger = logging.getLogger(__name__)
 
@@ -62,8 +64,12 @@ def surpresa(request):
 
 
 def contato(request):
+    assunto_inicial = request.GET.get('assunto', '').strip()
+    valid_assuntos = {valor for valor, _ in MensagemContato.ASSUNTOS}
+    initial = {'assunto': assunto_inicial} if assunto_inicial in valid_assuntos else {}
     form = MensagemContatoForm(
         request.POST if request.method == 'POST' else None,
+        initial=initial,
     )
     if request.method == 'POST' and form.is_valid():
         mensagem_contato = form.save()
@@ -214,6 +220,80 @@ def adicionar_dica(request):
         return redirect('dicas')
 
     return render(request, 'web/adicionar_dica.html', {'form': form})
+
+
+def equipamentos(request):
+    return render(request, 'web/equipamentos.html', {
+        'equipamentos': Equipamento.objects.filter(ativo=True),
+    })
+
+
+def detalhe_equipamento(request, equipamento_id):
+    equipamento = get_object_or_404(
+        Equipamento.objects.filter(ativo=True),
+        pk=equipamento_id,
+    )
+    outros_equipamentos = list(
+        Equipamento.objects.filter(
+            ativo=True,
+            categoria=equipamento.categoria,
+        ).exclude(pk=equipamento.pk)[:4]
+    )
+    if len(outros_equipamentos) < 4:
+        outros_ids = [equipamento.pk, *(item.pk for item in outros_equipamentos)]
+        outros_equipamentos.extend(
+            Equipamento.objects.filter(ativo=True)
+            .exclude(pk__in=outros_ids)
+            .exclude(categoria=equipamento.categoria)[:4 - len(outros_equipamentos)]
+        )
+    fotos_equipamento = []
+    if equipamento.foto:
+        fotos_equipamento.append(equipamento.foto)
+    fotos_equipamento.extend(
+        foto_adicional.foto
+        for foto_adicional in equipamento.fotos_adicionais.all()
+    )
+
+    return render(request, 'web/detalhe_equipamento.html', {
+        'equipamento': equipamento,
+        'outros_equipamentos': outros_equipamentos,
+        'fotos_equipamento': fotos_equipamento,
+    })
+
+
+@login_required(login_url='login')
+def cadastrar_equipamento(request):
+    if not request.user.is_staff:
+        raise PermissionDenied
+
+    form = EquipamentoForm(request.POST if request.method == 'POST' else None)
+    if request.method == 'POST':
+        fotos = request.FILES.getlist('fotos')
+        imagens_validas = bool(fotos)
+        if not fotos:
+            form.add_error(None, 'Adicione pelo menos uma foto do equipamento.')
+        else:
+            campo_imagem = ImageField()
+            for foto in fotos:
+                try:
+                    campo_imagem.clean(foto)
+                except ValidationError:
+                    form.add_error(None, f'A foto "{foto.name}" não é uma imagem válida.')
+                    imagens_validas = False
+
+        if imagens_validas and form.is_valid():
+            equipamento = form.save(commit=False)
+            equipamento.foto = fotos[0]
+            equipamento.save()
+            for foto in fotos[1:]:
+                FotoAdicionalEquipamento.objects.create(
+                    equipamento=equipamento,
+                    foto=foto,
+                )
+            messages.success(request, 'Equipamento cadastrado com sucesso.')
+            return redirect('equipamentos')
+
+    return render(request, 'web/cadastrar_equipamento.html', {'form': form})
 
 
 def comunidade(request):

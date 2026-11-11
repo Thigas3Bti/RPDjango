@@ -101,11 +101,15 @@
         font-weight: 600;
     }
 
-    .profile-edit-link {
-        flex: 0 0 auto;
-    }
+    .profile-back-button {
+            margin-bottom: 1rem;
+        }
 
-    .profile-edit-card {
+        .profile-edit-link {
+            flex: 0 0 auto;
+        }
+
+        .profile-edit-card {
         display: grid;
         grid-template-columns: minmax(13rem, 0.32fr) minmax(0, 1fr);
         overflow: hidden;
@@ -265,10 +269,6 @@
             align-items: center;
             gap: 1rem;
             flex-wrap: wrap;
-        }
-
-        .profile-edit-link {
-            margin-left: 0 !important;
         }
 
         .profile-edit-card {

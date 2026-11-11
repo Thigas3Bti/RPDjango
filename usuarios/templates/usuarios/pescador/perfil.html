@@ -8,6 +8,12 @@
 {% endblock %}
 
 {% block content %}
+<div class="profile-back-button">
+    <a href="{% url 'inicio' %}" class="btn btn-outline-success">
+        <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Voltar
+    </a>
+</div>
+
 <section class="profile-page py-2" aria-labelledby="profile-title">
     <header class="mb-4">
         <span class="small text-success fw-semibold text-uppercase">Conta</span>
@@ -39,7 +45,7 @@
                     Perfil RondoPesca
                 </span>
             </div>
-            <a class="btn btn-outline-success ms-auto profile-edit-link" href="{% url 'editar_perfil' %}">
+            <a class="btn btn-outline-success profile-edit-link" href="{% url 'editar_perfil' %}">
                 <i class="bi bi-pencil-square me-1" aria-hidden="true"></i>Editar perfil
             </a>
         </div>

@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from forum.models import Dica
-from .models import MensagemContato
+from .models import Equipamento, MensagemContato
 from usuarios.models import PerfilUsuario
 
 
@@ -129,6 +129,35 @@ class DicaForm(forms.ModelForm):
         if imagem and imagem.size > self.MAX_IMAGE_SIZE:
             raise ValidationError(_('A imagem deve ter no máximo 5 MB.'))
         return imagem
+
+
+class EquipamentoForm(forms.ModelForm):
+    class Meta:
+        model = Equipamento
+        fields = ['nome', 'categoria', 'descricao', 'uso']
+        labels = {
+            'nome': 'Nome do equipamento',
+            'categoria': 'Categoria',
+            'descricao': 'Descrição',
+            'uso': 'Uso recomendado',
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex.: Vara de spinning 2,10 m',
+            }),
+            'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'descricao': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Descreva o equipamento e quando ele é mais útil.',
+            }),
+            'uso': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Diga em quais situações esse equipamento é indicado.',
+            }),
+        }
 
 
 class MensagemContatoForm(forms.ModelForm):

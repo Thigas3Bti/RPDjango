@@ -97,6 +97,7 @@
                     <li class="nav-item mb-2"><a href="{% url 'inicio' %}" class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">Início</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'comunidade' %}" class="nav-link {% if request.resolver_match.url_name == 'comunidade' %}active{% endif %}">Comunidade</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'dicas' %}" class="nav-link {% if request.resolver_match.url_name == 'dicas' or request.resolver_match.url_name == 'adicionar_dica' %}active{% endif %}">Dicas</a></li>
+                    <li class="nav-item mb-2"><a href="{% url 'equipamentos' %}" class="nav-link {% if request.resolver_match.url_name == 'equipamentos' or request.resolver_match.url_name == 'cadastrar_equipamento' %}active{% endif %}">Equipamentos</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'locais' %}" class="nav-link {% if request.resolver_match.url_name == 'locais' %}active{% endif %}">Locais de pesca</a></li>
                     <li class="nav-item mb-2"><a href="{% url 'eventos' %}" class="nav-link {% if request.resolver_match.url_name == 'eventos' or request.resolver_match.url_name == 'criar_evento' or request.resolver_match.url_name == 'editar_evento' %}active{% endif %}">Eventos</a></li>
                     {% if request.user.is_staff %}
