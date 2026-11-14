@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Comunidade | RondoPesca{% endblock %}
 
@@ -48,7 +49,7 @@
                     <h2 id="feed-title"><i class="bi bi-chat-square-text me-2 text-success" aria-hidden="true"></i>Publicações</h2>
                     <form method="get">
                         <label class="visually-hidden" for="feed-sort">Ordenar publicações</label>
-                        <select id="feed-sort" name="ordenar" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <select id="feed-sort" name="ordenar" class="form-select form-select-sm">
                             <option value="recentes" {% if ordenacao != 'popular' %}selected{% endif %}>Mais recentes</option>
                             <option value="popular" {% if ordenacao == 'popular' %}selected{% endif %}>Mais curtidas</option>
                         </select>
@@ -76,7 +77,8 @@
                             <a class="btn btn-sm btn-outline-primary" href="{% url 'editar_publicacao' publicacao.pk %}" aria-label="Editar publicação" title="Editar publicação">
                                 <i class="bi bi-pencil" aria-hidden="true"></i>
                             </a>
-                            <form method="post" action="{% url 'excluir_publicacao' publicacao.pk %}" onsubmit="return confirm('Tem certeza de que deseja excluir esta publicação?');">
+                            <form method="post" action="{% url 'excluir_publicacao' publicacao.pk %}"
+                                data-confirm="Tem certeza de que deseja excluir esta publicação?">
                                 {% csrf_token %}
                                 <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Excluir publicação" title="Excluir publicação">
                                     <i class="bi bi-trash" aria-hidden="true"></i>
@@ -131,7 +133,8 @@
                             </strong>
                             <p>{{ comentario.texto }}</p>
                             {% if request.user.is_authenticated and comentario.autor_id == request.user.id or request.user.is_staff %}
-                            <form method="post" action="{% url 'excluir_comentario' comentario.pk %}" onsubmit="return confirm('Tem certeza de que deseja excluir este comentário?');">
+                            <form method="post" action="{% url 'excluir_comentario' comentario.pk %}"
+                                data-confirm="Tem certeza de que deseja excluir este comentário?">
                                 {% csrf_token %}
                                 <button class="btn btn-sm btn-link text-danger p-0" type="submit">Excluir comentário</button>
                             </form>
@@ -191,4 +194,9 @@
         </aside>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="{% static 'js/forum/comunidade.js' %}"></script>
+<script defer src="{% static 'js/forum/confirmacoes.js' %}"></script>
 {% endblock %}

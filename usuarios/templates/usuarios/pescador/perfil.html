@@ -14,7 +14,8 @@
     </a>
 </div>
 
-<section class="profile-page py-2" aria-labelledby="profile-title">
+<section class="profile-page py-2" aria-labelledby="profile-title"
+    data-open-photo-modal="{% if foto_form.errors %}true{% else %}false{% endif %}">
     <header class="mb-4">
         <span class="small text-success fw-semibold text-uppercase">Conta</span>
         <h1 class="profile-heading h3 fw-bold mt-1 mb-0">Meu perfil</h1>
@@ -201,68 +202,8 @@
         </div>
     </div>
 </div>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const photoInput = document.getElementById('{{ foto_form.foto.id_for_label }}');
-        const photoPreview = document.getElementById('profilePhotoPreview');
-        const photoPlaceholder = document.getElementById('profilePhotoPlaceholder');
-        const photoModal = document.getElementById('profilePhotoModal');
-        const originalPreviewSrc = photoPreview.getAttribute('src');
-        let selectedPreviewUrl = null;
+{% endblock %}
 
-        photoInput.addEventListener('change', function () {
-            const file = photoInput.files[0];
-            if (!file) {
-                return;
-            }
-
-            if (selectedPreviewUrl) {
-                URL.revokeObjectURL(selectedPreviewUrl);
-            }
-            selectedPreviewUrl = URL.createObjectURL(file);
-            photoPreview.src = selectedPreviewUrl;
-            photoPreview.classList.remove('d-none');
-            photoPlaceholder.classList.add('d-none');
-        });
-
-        photoModal.addEventListener('hidden.bs.modal', function () {
-            photoInput.value = '';
-            photoPreview.src = originalPreviewSrc;
-            photoPreview.classList.toggle('d-none', !originalPreviewSrc);
-            photoPlaceholder.classList.toggle('d-none', Boolean(originalPreviewSrc));
-            if (selectedPreviewUrl) {
-                URL.revokeObjectURL(selectedPreviewUrl);
-                selectedPreviewUrl = null;
-            }
-        });
-
-        const editButton = document.getElementById('editBioButton');
-        const cancelButton = document.getElementById('cancelBioButton');
-        const display = document.getElementById('bioDisplay');
-        const form = document.getElementById('bioEditForm');
-
-        function setBioEditing(editing) {
-            display.classList.toggle('d-none', editing);
-            form.classList.toggle('d-none', !editing);
-            editButton.classList.toggle('d-none', editing);
-            editButton.setAttribute('aria-expanded', String(editing));
-        }
-
-        editButton.addEventListener('click', function () {
-            setBioEditing(true);
-            form.querySelector('textarea').focus();
-        });
-        cancelButton.addEventListener('click', function () {
-            form.querySelector('textarea').value = form.dataset.savedBio;
-            setBioEditing(false);
-        });
-    });
-</script>
-{% if foto_form.errors %}
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('profilePhotoModal')).show();
-    });
-</script>
-{% endif %}
+{% block extra_js %}
+<script defer src="{% static 'js/usuarios/perfil.js' %}"></script>
 {% endblock %}

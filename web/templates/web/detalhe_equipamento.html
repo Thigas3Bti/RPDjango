@@ -1,94 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ equipamento.nome }} | Equipamentos de pesca{% endblock %}
 
 {% block extra_css %}
-<style>
-    .equipment-detail-page {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .equipment-detail-image-wrap {
-        height: 420px;
-        overflow: hidden;
-        border-radius: 1rem;
-        background: #edf5ee;
-    }
-
-    .equipment-detail-image {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-
-    .equipment-gallery-main {
-        height: 420px;
-        background: #edf5ee;
-    }
-
-    .equipment-gallery-main .carousel-item {
-        height: 420px;
-    }
-
-    .equipment-gallery-main img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-
-    .equipment-gallery-thumbnails {
-        display: flex;
-        gap: .65rem;
-        padding: .85rem;
-        overflow-x: auto;
-    }
-
-    .equipment-gallery-thumbnail {
-        flex: 0 0 4.5rem;
-        width: 4.5rem;
-        height: 4.5rem;
-        padding: .15rem;
-        border: 2px solid transparent;
-        border-radius: .6rem;
-        background: #fff;
-    }
-
-    .equipment-gallery-thumbnail.active,
-    .equipment-gallery-thumbnail:hover {
-        border-color: #347344;
-    }
-
-    .equipment-gallery-thumbnail img {
-        width: 100%;
-        height: 100%;
-        border-radius: .4rem;
-        object-fit: cover;
-    }
-
-    .equipment-recommendation-image {
-        display: block;
-        width: 100%;
-        height: 170px;
-        object-fit: cover;
-        background: #edf5ee;
-    }
-
-    .equipment-recommendation-card {
-        color: inherit;
-        text-decoration: none;
-        transition: transform .18s ease, box-shadow .18s ease;
-    }
-
-    .equipment-recommendation-card:hover,
-    .equipment-recommendation-card:focus-visible {
-        color: inherit;
-        transform: translateY(-2px);
-        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .12) !important;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/web/equipamentos.css' %}?v=20261114-2">
 {% endblock %}
 
 {% block content %}
@@ -102,7 +18,8 @@
             <div class="col-12 col-lg-6">
                 <div class="equipment-detail-image-wrap h-100">
                     {% if fotos_equipamento %}
-                    <div id="equipmentPhotoCarousel" class="carousel slide">
+                    <div id="equipmentPhotoCarousel" class="carousel slide equipment-gallery-carousel"
+                        data-bs-wrap="false" data-bs-touch="false">
                         <div class="carousel-inner equipment-gallery-main">
                             {% for foto in fotos_equipamento %}
                             <div class="carousel-item{% if forloop.first %} active{% endif %}">
@@ -111,11 +28,28 @@
                             {% endfor %}
                         </div>
                         {% if fotos_equipamento|length > 1 %}
+                        <button class="carousel-control-prev equipment-gallery-control" type="button"
+                            data-bs-target="#equipmentPhotoCarousel" data-bs-slide="prev"
+                            data-equipment-gallery-prev
+                            aria-label="Foto anterior">
+                            <span class="equipment-gallery-chevron equipment-gallery-chevron-prev"
+                                aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next equipment-gallery-control" type="button"
+                            data-bs-target="#equipmentPhotoCarousel" data-bs-slide="next"
+                            data-equipment-gallery-next
+                            aria-label="Próxima foto">
+                            <span class="equipment-gallery-chevron equipment-gallery-chevron-next"
+                                aria-hidden="true"></span>
+                        </button>
+                        {% endif %}
+                        {% if fotos_equipamento|length > 1 %}
                         <div class="equipment-gallery-thumbnails" aria-label="Fotos do equipamento">
                             {% for foto in fotos_equipamento %}
                             <button class="equipment-gallery-thumbnail{% if forloop.first %} active{% endif %}"
                                 type="button" data-bs-target="#equipmentPhotoCarousel"
                                 data-bs-slide-to="{{ forloop.counter0 }}"
+                                data-equipment-gallery-thumbnail
                                 aria-label="Mostrar foto {{ forloop.counter }} de {{ equipamento.nome }}"
                                 {% if forloop.first %}aria-current="true"{% endif %}>
                                 <img src="{{ foto.url }}" alt="" loading="lazy">
@@ -181,4 +115,8 @@
     </section>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="{% static 'js/web/equipment-gallery.js' %}?v=20261114-4"></script>
 {% endblock %}

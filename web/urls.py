@@ -36,5 +36,6 @@ urlpatterns = [
     path('painel/', views.painel, name='painel'),
     path('perfil/', views.perfil, name='perfil'),
     path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
+    path('perfil/editar/senha/', views.alterar_senha, name='alterar_senha'),
     path('perfil/<str:username>/', views.perfil_publico, name='perfil_publico'),
 ]

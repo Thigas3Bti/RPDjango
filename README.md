@@ -139,12 +139,14 @@ O padrão do projeto é Gmail (`smtp.gmail.com`), porta `587`, com TLS. Para con
 ```text
 RPDjango/
   config/       Configurações e URLs principais do Django
-  web/          Páginas gerais, login, contato, dicas e perfil
+  web/          Páginas gerais, contato, equipamentos e recursos compartilhados
+    views/      Views organizadas por funcionalidade
+    forms/      Formulários organizados por funcionalidade
   usuarios/     Perfis e gerenciamento de pescadores
   forum/        Comunidade, publicações, comentários e eventos
   locais/       Cadastro e consulta de locais de pesca
   templates/    Templates globais do site
-  static/       CSS, JavaScript e imagens
+  static/       CSS, JavaScript e imagens (separados por área)
   media/        Arquivos enviados, como fotos
   manage.py     Comandos de administração do Django
   requeriments.txt

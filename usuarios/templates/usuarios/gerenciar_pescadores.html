@@ -49,7 +49,7 @@
                 <tbody>
                     {% for usuario in usuarios %}
                     <tr>
-                        <td>{{ usuario.get_full_name|default:usuario.username }}</td>
+                        <td>{{ usuario.username }}</td>
                         <td>{{ usuario.email|default:"—" }}</td>
                         <td>
                             {% if usuario.pk in pescadores_ids %}

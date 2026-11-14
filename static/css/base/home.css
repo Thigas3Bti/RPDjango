@@ -23,6 +23,7 @@ body { background: var(--rondo-fundo); color: var(--site-color-203a28); }
 .navbar-rondo .navbar-brand,
 .navbar-rondo .navbar-brand:hover,
 .navbar-rondo .navbar-brand:focus { color: var(--site-color-fff); }
+.navbar-rondo .navbar-brand span { color: var(--rondo-verde); }
 .navbar-rondo .nav-link { color: var(--site-color-fff); }
 .navbar-rondo .nav-link:hover { color: var(--rondo-verde); }
 .navbar-brand img { width: 42px; height: 42px; object-fit: contain; }

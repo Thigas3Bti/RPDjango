@@ -15,7 +15,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
 from forum.models import Dica
-from .models import Equipamento, MensagemContato
+from .models import Equipamento, FotoAdicionalEquipamento, MensagemContato
 from .models import SolicitacaoRedefinicaoSenha
 from usuarios.models import PerfilUsuario
 
@@ -281,6 +281,7 @@ class EquipamentosTests(TestCase):
             response,
             reverse('detalhe_equipamento', args=[equipamento.pk]),
         )
+        self.assertNotContains(response, 'bi-eye-fill')
         self.assertNotContains(response, equipamento.descricao)
         self.assertNotContains(response, equipamento.uso)
 
@@ -290,6 +291,11 @@ class EquipamentosTests(TestCase):
             categoria='vara',
             descricao='Descrição completa do equipamento.',
             uso='Indicado para pesca em rios.',
+            foto=self._imagem('vara-principal.png'),
+        )
+        FotoAdicionalEquipamento.objects.create(
+            equipamento=equipamento,
+            foto=self._imagem('vara-principal-lado.png'),
         )
         relacionado = Equipamento.objects.create(
             nome='Vara relacionada',
@@ -309,6 +315,14 @@ class EquipamentosTests(TestCase):
             response,
             reverse('detalhe_equipamento', args=[relacionado.pk]),
         )
+        self.assertContains(response, 'Foto anterior')
+        self.assertContains(response, 'Próxima foto')
+        self.assertContains(response, 'data-bs-wrap="false"')
+        self.assertContains(response, 'data-bs-touch="false"')
+        self.assertContains(response, 'equipment-gallery-chevron-prev')
+        self.assertContains(response, 'equipment-gallery-chevron-next')
+        self.assertContains(response, 'data-equipment-gallery-thumbnail')
+        self.assertContains(response, '/static/js/web/equipment-gallery.js?v=20261114-4')
 
     def test_staff_must_add_at_least_one_photo_to_create_equipment(self):
         admin = User.objects.create_user(
@@ -342,9 +356,17 @@ class EquipamentosTests(TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
         self.assertLess(html.index('name="nome"'), html.index('id="equipmentPhotoGrid"'))
-        self.assertIn('Trocar foto', html)
-        self.assertIn('Excluir foto', html)
-        self.assertIn("dragstart", html)
+        self.assertContains(response, '/static/js/web/equipment-form.js')
+        equipment_script = (
+            Path(__file__).resolve().parent.parent
+            / 'static'
+            / 'js'
+            / 'web'
+            / 'equipment-form.js'
+        ).read_text(encoding='utf-8')
+        self.assertIn('Trocar foto', equipment_script)
+        self.assertIn('Excluir foto', equipment_script)
+        self.assertIn('dragstart', equipment_script)
 
     def test_staff_can_upload_multiple_equipment_photos(self):
         admin = User.objects.create_user(
@@ -1078,8 +1100,20 @@ class EditarPerfilTests(TestCase):
         response = self.client.get(reverse('editar_perfil'), {'secao': 'seguranca'})
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Alterar senha')
+        self.assertNotContains(response, 'Senha antiga')
+        self.assertNotContains(response, 'new_password1')
+        self.assertContains(
+            response,
+            f'href="{reverse("alterar_senha")}"',
+        )
+
+        response = self.client.get(
+            reverse('alterar_senha'),
+        )
+        self.assertContains(response, 'Etapa 1 de 2')
         self.assertContains(response, 'Senha antiga')
-        self.assertContains(response, 'Salvar nova senha')
+        self.assertNotContains(response, 'Nova senha')
 
     def test_usuario_edita_dados_pessoais_e_bio(self):
         response = self.client.post(reverse('editar_perfil'), {
@@ -1101,15 +1135,36 @@ class EditarPerfilTests(TestCase):
 
     def test_usuario_altera_senha_sem_perder_a_sessao(self):
         response = self.client.post(
-            f'{reverse("editar_perfil")}?secao=seguranca',
+            f'{reverse("alterar_senha")}?etapa=1',
             {
+                'etapa': '1',
+                'verificar_senha_atual': '1',
+                'senha_atual': 'CurrentPass123!',
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            f'{reverse("alterar_senha")}?etapa=2',
+        )
+
+        response = self.client.get(
+            reverse('alterar_senha'),
+            {'etapa': '2'},
+        )
+        self.assertContains(response, 'Etapa 2 de 2')
+        self.assertContains(response, 'Nova senha')
+        self.assertNotContains(response, 'Senha antiga')
+
+        response = self.client.post(
+            f'{reverse("alterar_senha")}?etapa=2',
+            {
+                'etapa': '2',
                 'alterar_senha': '1',
-                'old_password': 'CurrentPass123!',
                 'new_password1': 'NewSecurePass456!',
                 'new_password2': 'NewSecurePass456!',
             },
         )
-
         self.assertRedirects(
             response,
             f'{reverse("editar_perfil")}?secao=seguranca',
@@ -1117,6 +1172,34 @@ class EditarPerfilTests(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password('NewSecurePass456!'))
         self.assertEqual(self.client.get(reverse('perfil')).status_code, 200)
+
+    def test_senha_incorreta_na_primeira_etapa_nao_avanca(self):
+        response = self.client.post(
+            f'{reverse("alterar_senha")}?etapa=1',
+            {
+                'etapa': '1',
+                'verificar_senha_atual': '1',
+                'senha_atual': 'senha-incorreta',
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'A senha antiga está incorreta.')
+        self.assertContains(response, 'Etapa 1 de 2')
+        self.assertNotIn(
+            'editar_perfil_senha_step2_user',
+            self.client.session,
+        )
+
+    def test_etapa_de_nova_senha_exige_confirmar_a_senha_atual(self):
+        response = self.client.get(
+            reverse('alterar_senha'),
+            {'etapa': '2'},
+        )
+        self.assertRedirects(
+            response,
+            f'{reverse("alterar_senha")}?etapa=1',
+        )
 
     def test_edicao_exige_login(self):
         self.client.logout()

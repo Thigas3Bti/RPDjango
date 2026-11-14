@@ -43,7 +43,7 @@
                 </button>
                 {% endif %}
                 <!-- Logo/marca do site com dois tons de verde -->
-                <a class="brand text-decoration-none" href="{% url 'home' %}">Rondo<span>Pesca</span></a>
+                <a class="brand text-decoration-none" href="{% if request.user.is_authenticated %}{% url 'inicio' %}{% else %}{% url 'home' %}{% endif %}">Rondo<span>Pesca</span></a>
             </div>
             <!-- Lado direito do cabeçalho com data e botão de login -->
             <div class="header-right d-flex align-items-center gap-3">
