@@ -285,6 +285,58 @@ class EquipamentosTests(TestCase):
         self.assertNotContains(response, equipamento.descricao)
         self.assertNotContains(response, equipamento.uso)
 
+    def test_staff_can_delete_equipment_and_its_photos(self):
+        admin = User.objects.create_user(
+            username='equipamento-admin',
+            password='senha-segura-123',
+            is_staff=True,
+        )
+        self.client.force_login(admin)
+        equipamento = Equipamento.objects.create(
+            nome='Vara para excluir',
+            categoria='vara',
+            descricao='Descrição do equipamento.',
+            foto=self._imagem('vara-excluir.png'),
+        )
+        foto_adicional = FotoAdicionalEquipamento.objects.create(
+            equipamento=equipamento,
+            foto=self._imagem('vara-excluir-adicional.png'),
+        )
+        caminho_foto = equipamento.foto.name
+        caminho_foto_adicional = foto_adicional.foto.name
+        lista = self.client.get(reverse('equipamentos'))
+        self.assertContains(lista, reverse('excluir_equipamento', args=[equipamento.pk]))
+
+        response = self.client.post(
+            reverse('excluir_equipamento', args=[equipamento.pk]),
+        )
+
+        self.assertRedirects(response, reverse('equipamentos'))
+        self.assertFalse(Equipamento.objects.filter(pk=equipamento.pk).exists())
+        self.assertFalse(FotoAdicionalEquipamento.objects.filter(pk=foto_adicional.pk).exists())
+        self.assertFalse(equipamento.foto.storage.exists(caminho_foto))
+        self.assertFalse(foto_adicional.foto.storage.exists(caminho_foto_adicional))
+
+    def test_non_staff_cannot_delete_equipment(self):
+        equipamento = Equipamento.objects.create(
+            nome='Vara protegida',
+            categoria='vara',
+            descricao='Descrição do equipamento.',
+        )
+        self.client.force_login(User.objects.create_user(
+            username='usuario-comum',
+            password='senha-segura-123',
+        ))
+
+        response = self.client.post(
+            reverse('excluir_equipamento', args=[equipamento.pk]),
+        )
+
+        self.assertEqual(response.status_code, 403)
+        lista = self.client.get(reverse('equipamentos'))
+        self.assertNotContains(lista, 'Excluir equipamento')
+        self.assertTrue(Equipamento.objects.filter(pk=equipamento.pk).exists())
+
     def test_equipment_detail_shows_details_and_other_equipment(self):
         equipamento = Equipamento.objects.create(
             nome='Vara principal',

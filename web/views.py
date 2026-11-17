@@ -306,6 +306,26 @@ def cadastrar_equipamento(request):
     return render(request, 'web/cadastrar_equipamento.html', {'form': form})
 
 
+@login_required(login_url='login')
+@require_POST
+def excluir_equipamento(request, equipamento_id):
+    if not request.user.is_active or not request.user.is_staff:
+        raise PermissionDenied
+
+    equipamento = get_object_or_404(Equipamento, pk=equipamento_id)
+    fotos = [equipamento.foto, *(item.foto for item in equipamento.fotos_adicionais.all())]
+    equipamento.delete()
+    for foto in fotos:
+        if foto and not (
+            Equipamento.objects.filter(foto=foto.name).exists()
+            or FotoAdicionalEquipamento.objects.filter(foto=foto.name).exists()
+        ):
+            foto.storage.delete(foto.name)
+
+    messages.success(request, 'Equipamento excluído com sucesso.')
+    return redirect('equipamentos')
+
+
 def comunidade(request):
     return render(request, 'comunidade.html')
 

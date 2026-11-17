@@ -136,6 +136,56 @@ class PaginaLocaisTests(TestCase):
         self.assertEqual(local.nome, 'Rio Machado atualizado')
         self.assertEqual(local.descricao, 'Descrição original.')
 
+    def test_pescador_pode_excluir_local_e_suas_fotos(self):
+        pescador, _ = Group.objects.get_or_create(name='Pescador')
+        self.usuario.groups.add(pescador)
+        self.client.force_login(self.usuario)
+        gif = (
+            b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,'
+            b'\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02'
+            b'D\x01\x00;'
+        )
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                local = LocalPesca.objects.create(
+                    nome='Rio para excluir',
+                    descricao='Local de teste.',
+                    cadastrado_por=self.usuario,
+                    foto=SimpleUploadedFile('local.gif', gif, content_type='image/gif'),
+                )
+                foto_adicional = FotoLocal.objects.create(
+                    local=local,
+                    arquivo=SimpleUploadedFile('galeria.gif', gif, content_type='image/gif'),
+                )
+                caminhos = [local.foto.name, foto_adicional.arquivo.name]
+                response = self.client.get(reverse('locais'))
+                self.assertContains(response, reverse('excluir_local', args=[local.pk]))
+
+                response = self.client.post(
+                    reverse('excluir_local', args=[local.pk]),
+                )
+
+                self.assertRedirects(response, reverse('locais'))
+                self.assertFalse(LocalPesca.objects.filter(pk=local.pk).exists())
+                self.assertFalse(FotoLocal.objects.filter(pk=foto_adicional.pk).exists())
+                self.assertFalse(local.foto.storage.exists(caminhos[0]))
+                self.assertFalse(foto_adicional.arquivo.storage.exists(caminhos[1]))
+
+    def test_usuario_sem_permissao_nao_pode_excluir_local(self):
+        local = LocalPesca.objects.create(
+            nome='Rio protegido',
+            descricao='Local de teste.',
+            cadastrado_por=self.usuario,
+        )
+        self.client.force_login(self.usuario)
+
+        response = self.client.post(reverse('excluir_local', args=[local.pk]))
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(LocalPesca.objects.filter(pk=local.pk).exists())
+
     def test_iniciante_nao_pode_editar_local(self):
         self.client.force_login(self.usuario)
         local = LocalPesca.objects.create(

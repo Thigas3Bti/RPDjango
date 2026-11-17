@@ -10,6 +10,11 @@ urlpatterns = [
         views.detalhe_equipamento,
         name='detalhe_equipamento',
     ),
+    path(
+        'equipamentos/<int:equipamento_id>/excluir/',
+        views.excluir_equipamento,
+        name='excluir_equipamento',
+    ),
     path('equipamentos/cadastrar/', views.cadastrar_equipamento, name='cadastrar_equipamento'),
     path('contato/', views.contato, name='contato'),
     path('mensagens/', views.mensagens_contato, name='mensagens_contato'),

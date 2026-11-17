@@ -4,7 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from usuarios.permissoes import eh_pescador
 
@@ -95,6 +95,26 @@ def editar_local(request, pk):
         'form': form,
         'local': local,
     })
+
+
+@login_required(login_url='login')
+@require_POST
+def excluir_local(request, pk):
+    if not eh_pescador(request.user):
+        raise PermissionDenied
+
+    local = get_object_or_404(LocalPesca, pk=pk)
+    fotos = [local.foto, *(item.arquivo for item in local.fotos.all())]
+    local.delete()
+    for foto in fotos:
+        if foto and not (
+            LocalPesca.objects.filter(foto=foto.name).exists()
+            or FotoLocal.objects.filter(arquivo=foto.name).exists()
+        ):
+            foto.storage.delete(foto.name)
+
+    messages.success(request, 'Local de pesca excluído com sucesso.')
+    return redirect('locais')
 
 
 def detalhe_local_principal(request, slug):
