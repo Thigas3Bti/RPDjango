@@ -77,7 +77,7 @@ python -m pip install --upgrade pip
 python -m pip install -r requeriments.txt
 ```
 
-O arquivo tem o nome `requeriments.txt` no projeto; use esse nome exatamente como está escrito.
+O arquivo tem o nome `requeriments.txt` no projeto.
 
 **Preparar o banco e iniciar o site**
 
