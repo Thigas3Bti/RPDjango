@@ -37,8 +37,6 @@
             </p>
         </div>
     </section>
-    <script defer src="{% static 'js/circuito_eventos.js' %}?v=20261103-1"></script>
-
     {% if messages %}
     <div class="mb-3" aria-live="polite">
         {% for message in messages %}
@@ -106,7 +104,8 @@
                 {% if request.user == evento.organizador %}
                 <div class="d-flex gap-2">
                     <a class="btn btn-outline-success btn-sm" href="{% url 'editar_evento' evento.pk %}">Editar</a>
-                    <form method="post" action="{% url 'excluir_evento' evento.pk %}" onsubmit="return confirm('Deseja remover este evento da agenda?');">
+                    <form method="post" action="{% url 'excluir_evento' evento.pk %}"
+                        data-confirm="Deseja remover este evento da agenda?">
                         {% csrf_token %}
                         <button class="btn btn-outline-danger btn-sm" type="submit">Excluir</button>
                     </form>
@@ -146,4 +145,9 @@
     </div>
     {% endfor %}
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="{% static 'js/circuito_eventos.js' %}?v=20261103-1"></script>
+<script defer src="{% static 'js/forum/confirmacoes.js' %}"></script>
 {% endblock %}

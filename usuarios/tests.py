@@ -50,12 +50,16 @@ class GerenciarPescadoresTests(TestCase):
         self.assertFalse(grupo.user_set.filter(pk=self.usuario.pk).exists())
 
     def test_staff_can_promote_and_remove_fisherman_status(self):
+        self.usuario.first_name = 'Nome'
+        self.usuario.last_name = 'Padrão'
+        self.usuario.save(update_fields=['first_name', 'last_name'])
         self.client.force_login(self.administrador)
         response = self.client.get(reverse('gerenciar_pescadores'))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'admin-page-hero')
         self.assertContains(response, self.usuario.username)
+        self.assertNotContains(response, 'Nome Padrão')
         self.assertContains(response, 'Promover')
 
         response = self.client.post(

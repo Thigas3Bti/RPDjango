@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Perfil de {{ usuario_perfil.get_full_name|default:usuario_perfil.username }} | RondoPesca{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/Usuario/perfil.css' %}?v=20261111-1">
+{% endblock %}
+
+{% block content %}
+<section class="profile-page py-2" aria-labelledby="profile-title">
+    <header class="mb-4">
+        <span class="small text-success fw-semibold text-uppercase">Comunidade</span>
+        <h1 class="profile-heading h3 fw-bold mt-1 mb-0">Perfil do pescador</h1>
+    </header>
+
+    <div class="profile-card card shadow-sm mb-4">
+        <div class="profile-hero">
+            {% if perfil_usuario and perfil_usuario.foto %}
+                <img class="profile-avatar-image profile-public-avatar" src="{{ perfil_usuario.foto.url }}" alt="Foto de {{ usuario_perfil.get_full_name|default:usuario_perfil.username }}">
+            {% else %}
+                <span class="profile-avatar-placeholder profile-public-avatar" aria-hidden="true">
+                    <i class="bi bi-person-fill"></i>
+                </span>
+            {% endif %}
+            <div class="min-w-0">
+                <h2 id="profile-title" class="profile-name h4 fw-bold mb-2">
+                    {{ usuario_perfil.get_full_name|default:usuario_perfil.username }}
+                </h2>
+                <p class="profile-subtitle mb-2">@{{ usuario_perfil.username }}</p>
+                <span class="profile-status">
+                    {% if eh_pescador %}
+                    <i class="bi bi-patch-check-fill" aria-hidden="true"></i>
+                    Pescador oficial
+                    {% else %}
+                    <i class="bi bi-person-fill" aria-hidden="true"></i>
+                    Usuário comum
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        <div class="profile-details">
+            <h3 class="h5 fw-bold mb-3">Informações públicas</h3>
+            <dl class="row g-3 mb-0">
+                <div class="col-12 col-md-6">
+                    <div class="profile-detail">
+                        <dt class="profile-detail-label">Membro desde</dt>
+                        <dd class="profile-detail-value">{{ usuario_perfil.date_joined|date:"d/m/Y" }}</dd>
+                    </div>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <section class="profile-bio card shadow-sm mb-4" aria-labelledby="profile-bio-title">
+        <h3 id="profile-bio-title" class="h5 fw-bold mb-3">Sobre</h3>
+        <div class="profile-bio-content">
+            {% if perfil_usuario and perfil_usuario.bio %}
+                {{ perfil_usuario.bio|linebreaksbr }}
+            {% else %}
+                <p class="mb-0 text-muted profile-bio-empty">Este usuário ainda não adicionou uma apresentação.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <a class="btn btn-outline-success" href="{% url 'comunidade' %}">
+        <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Voltar à comunidade
+    </a>
+</section>
+{% endblock %}

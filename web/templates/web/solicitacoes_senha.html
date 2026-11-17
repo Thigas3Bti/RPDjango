@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Solicitações de senha | RondoPesca{% endblock %}
+
+{% block content %}
+<div class="dashboard-home admin-messages-page">
+    <section class="dashboard-welcome mb-4 p-4 p-lg-5 shadow-sm">
+        <span class="dashboard-kicker">ÁREA ADMINISTRATIVA</span>
+        <h1 class="display-6 fw-bold mt-2 mb-2">Solicitações de redefinição de senha</h1>
+        <p class="mb-0 text-muted">A nova senha foi escolhida pela pessoa e está armazenada protegida. Confirme a identidade antes de aprovar; nunca será exibida nesta página.</p>
+    </section>
+
+    {% if messages %}
+    <div class="mb-3" aria-live="polite">
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}" role="status">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% for item in solicitacoes %}
+    <article class="card dashboard-card shadow-sm p-4 mb-3">
+        <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+            <div>
+                <h2 class="h5 fw-bold mb-1">{{ item.solicitacao.usuario }}</h2>
+                <p class="text-muted mb-1">{{ item.solicitacao.email }}</p>
+                {% if item.solicitacao.atendida_em %}
+                <span class="badge text-bg-success">Atendida por {{ item.solicitacao.atendida_por.username|default:"outro administrador" }}</span>
+                {% elif item.usuario_encontrado %}
+                <span class="badge text-bg-warning">Pendente</span>
+                {% else %}
+                <span class="badge text-bg-secondary">Conta não localizada</span>
+                {% endif %}
+            </div>
+            <time class="text-muted small" datetime="{{ item.solicitacao.criada_em|date:'c' }}">
+                {{ item.solicitacao.criada_em|date:"d/m/Y H:i" }}
+            </time>
+        </div>
+
+        {% if item.usuario_encontrado and not item.solicitacao.atendida_em %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="solicitacao_id" value="{{ item.solicitacao.pk }}">
+            {% if item.solicitacao.senha_solicitada %}
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="confirmar_identidade" value="1" id="confirmar-identidade-{{ item.solicitacao.pk }}" required>
+                <label class="form-check-label" for="confirmar-identidade-{{ item.solicitacao.pk }}">
+                    Confirmei a identidade da pessoa e que o nome de usuário e o e-mail conferem.
+                </label>
+            </div>
+            <button type="submit" class="btn btn-success">Confirmar e ativar nova senha</button>
+            {% else %}
+            <p class="small text-muted mb-0">Esta solicitação não contém uma nova senha. Peça à pessoa para enviar outra solicitação.</p>
+            {% endif %}
+        </form>
+        {% elif not item.usuario_encontrado and not item.solicitacao.atendida_em %}
+        <p class="small text-muted mb-0">O nome de usuário e o e-mail não correspondem a uma conta ativa. Confirme os dados antes de qualquer alteração.</p>
+        {% endif %}
+    </article>
+    {% empty %}
+    <section class="card dashboard-card shadow-sm p-4">
+        <p class="mb-0 text-muted">Ainda não há solicitações de senha.</p>
+    </section>
+    {% endfor %}
+</div>
+{% endblock %}

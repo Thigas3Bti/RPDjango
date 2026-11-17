@@ -1,0 +1,89 @@
+.admin-messages-page > .dashboard-welcome,
+.fishermen-management-page > .dashboard-welcome {
+    border: 1px solid var(--site-color-d3e5d2);
+    border-left: 5px solid var(--site-color-347344);
+    border-radius: 1rem;
+    background: linear-gradient(115deg, var(--site-color-fcfdfb) 0%, var(--site-color-edf6e9) 72%, var(--site-color-e4f0df) 100%);
+    color: var(--site-color-203a28);
+}
+
+.admin-messages-page > .dashboard-welcome h1,
+.fishermen-management-page > .dashboard-welcome h1 {
+    color: var(--site-color-123b2b);
+}
+
+.admin-messages-page > .dashboard-welcome .dashboard-kicker,
+.fishermen-management-page > .dashboard-welcome .dashboard-kicker {
+    color: var(--site-color-347344);
+}
+
+.admin-messages-page > .dashboard-welcome p.text-muted,
+.fishermen-management-page > .dashboard-welcome p.text-muted {
+    color: var(--site-color-526457) !important;
+}
+
+.admin-messages-page > .dashboard-welcome > p:not(.text-muted) {
+    color: var(--site-color-203a28);
+}
+
+.message-filter-actions .btn {
+    flex: 1 1 auto;
+    white-space: nowrap;
+}
+
+.message-card {
+    min-width: 0;
+}
+
+.message-card > .d-flex {
+    align-items: flex-start;
+}
+
+.message-card time {
+    white-space: nowrap;
+}
+
+.message-sender {
+    overflow-wrap: anywhere;
+}
+
+.message-body {
+    overflow-wrap: anywhere;
+    padding: 1rem;
+    border-left: 3px solid var(--site-color-76ad3d);
+    border-radius: 0 .5rem .5rem 0;
+    background-color: var(--site-color-f8faf7);
+    line-height: 1.65;
+    white-space: pre-wrap;
+}
+
+.fishermen-table {
+    min-width: 42rem;
+}
+
+.fishermen-table thead th {
+    background-color: var(--site-color-edf6e9);
+    color: var(--site-color-123b2b);
+    font-size: .9rem;
+    white-space: nowrap;
+}
+
+.fishermen-table td:first-child,
+.fishermen-table td:nth-child(2) {
+    overflow-wrap: anywhere;
+}
+
+.fishermen-table td:last-child,
+.fishermen-table td:last-child form {
+    white-space: nowrap;
+}
+
+@media (max-width: 575.98px) {
+    .message-card {
+        padding: 1rem !important;
+    }
+
+    .message-card time {
+        white-space: normal;
+    }
+}

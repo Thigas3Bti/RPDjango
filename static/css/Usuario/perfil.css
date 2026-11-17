@@ -74,6 +74,12 @@
         object-fit: cover;
     }
 
+    .profile-public-avatar {
+        flex: 0 0 6rem;
+        width: 6rem;
+        height: 6rem;
+    }
+
     .profile-avatar-placeholder {
         color: #39804a;
         font-size: 3.7rem;

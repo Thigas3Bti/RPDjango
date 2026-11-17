@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .models import Comentario, Curtida, Dica, EventoAgenda, Publicacao
+from usuarios.models import PerfilUsuario
 
 
 class ComunidadeTests(TestCase):
@@ -40,6 +41,53 @@ class ComunidadeTests(TestCase):
         self.assertContains(resposta, publicacao.titulo)
         self.assertContains(resposta, publicacao.texto)
         self.assertContains(resposta, self.autor.username)
+        self.assertContains(
+            resposta,
+            f'href="{reverse("perfil_publico", args=[self.autor.username])}"',
+        )
+
+    def test_perfil_publico_do_autor_exibe_bio_e_tipo_de_conta_sem_email(self):
+        PerfilUsuario.objects.create(
+            usuario=self.autor,
+            bio='Gosto de pescar no rio.',
+        )
+        self.autor.email = 'privado@example.com'
+        self.autor.save(update_fields=['email'])
+
+        resposta = self.client.get(
+            reverse('perfil_publico', args=[self.autor.username]),
+        )
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'Gosto de pescar no rio.')
+        self.assertContains(resposta, 'Pescador oficial')
+        self.assertNotContains(resposta, 'privado@example.com')
+
+    def test_feed_exibe_foto_de_perfil_do_autor(self):
+        conteudo_gif = (
+            b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,'
+            b'\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02'
+            b'D\x01\x00;'
+        )
+        with tempfile.TemporaryDirectory() as pasta_midias:
+            with override_settings(MEDIA_ROOT=pasta_midias):
+                perfil = PerfilUsuario.objects.create(usuario=self.autor)
+                perfil.foto.save(
+                    'avatar.gif',
+                    SimpleUploadedFile(
+                        'avatar.gif',
+                        conteudo_gif,
+                        content_type='image/gif',
+                    ),
+                )
+                Publicacao.objects.create(
+                    autor=self.autor,
+                    texto='Publicação com foto de perfil.',
+                )
+                resposta = self.client.get(reverse('comunidade'))
+
+        self.assertContains(resposta, 'src="/media/perfis/avatar.gif"')
 
     def test_forum_exibe_link_para_adicionar_dica_a_pescadores_oficiais(self):
         resposta_publica = self.client.get(reverse('comunidade'))
@@ -275,7 +323,7 @@ class ComunidadeTests(TestCase):
             f"{reverse('login')}?next={reverse('publicar')}",
         )
 
-    def test_usuario_sem_titulo_nao_pode_publicar_ou_comentar(self):
+    def test_usuario_comum_pode_publicar_mas_nao_pode_comentar(self):
         usuario = get_user_model().objects.create_user(
             username='visitante',
             password='senha-segura-789',
@@ -295,10 +343,37 @@ class ComunidadeTests(TestCase):
             {'texto': 'Este comentário não deve ser criado.'},
         )
 
-        self.assertEqual(resposta_publicar.status_code, 403)
+        nova_publicacao = Publicacao.objects.get(titulo='Não autorizado')
+        self.assertRedirects(
+            resposta_publicar,
+            f"{reverse('comunidade')}#publicacao-{nova_publicacao.pk}",
+        )
         self.assertEqual(resposta_comentar.status_code, 403)
-        self.assertFalse(Publicacao.objects.filter(titulo='Não autorizado').exists())
+        self.assertTrue(Publicacao.objects.filter(
+            titulo='Não autorizado',
+            autor=usuario,
+        ).exists())
         self.assertFalse(Comentario.objects.filter(autor=usuario).exists())
+
+    def test_usuario_comum_ve_botao_para_publicar_mas_nao_formulario_de_comentario(self):
+        publicacao = Publicacao.objects.create(
+            autor=self.autor,
+            texto='Publicação existente.',
+        )
+        usuario_comum = get_user_model().objects.create_user(
+            username='usuario-comum',
+            password='senha-segura-987',
+        )
+        self.client.force_login(usuario_comum)
+
+        resposta = self.client.get(reverse('comunidade'))
+
+        self.assertContains(resposta, f'href="{reverse("publicar")}"')
+        self.assertContains(resposta, 'Comentários estão disponíveis para pescadores oficiais.')
+        self.assertNotContains(
+            resposta,
+            f'action="{reverse("comentar", args=[publicacao.pk])}"',
+        )
 
     def test_comentar_e_curtir_publicacao(self):
         publicacao = Publicacao.objects.create(

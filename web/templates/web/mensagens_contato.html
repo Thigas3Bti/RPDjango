@@ -1,9 +1,14 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Mensagens recebidas | RondoPesca{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/base/admin_pages.css' %}?v=20261110-1">
+{% endblock %}
+
 {% block content %}
-<div class="dashboard-home">
+<div class="dashboard-home admin-messages-page">
     <section class="dashboard-welcome admin-page-hero mb-4 p-4 p-lg-5 shadow-sm">
         <div class="admin-page-hero-copy">
             <span class="dashboard-kicker">ÁREA ADMINISTRATIVA</span>
@@ -16,7 +21,7 @@
         </span>
     </section>
 
-    <form method="get" class="card dashboard-card shadow-sm p-3 mb-4">
+    <form method="get" class="card dashboard-card message-filters shadow-sm p-3 mb-4">
         <div class="row g-3 align-items-end">
             <div class="col-12 col-md-4">
                 <label for="filtro-busca" class="form-label">Buscar mensagem</label>
@@ -40,7 +45,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-12 col-md-2 d-flex gap-2">
+            <div class="col-12 col-md-2 d-flex gap-2 message-filter-actions">
                 <button type="submit" class="btn btn-success">Filtrar</button>
                 <a href="{% url 'mensagens_contato' %}" class="btn btn-outline-secondary">Limpar</a>
             </div>
@@ -48,7 +53,7 @@
     </form>
 
     {% for mensagem in mensagens_contato %}
-    <article class="card dashboard-card shadow-sm p-4 mb-3">
+    <article class="card dashboard-card message-card shadow-sm p-4 mb-3">
         <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
             <div>
                 <h2 class="h5 fw-bold mb-1">{{ mensagem.get_assunto_display }}</h2>
@@ -62,8 +67,8 @@
                 {{ mensagem.criada_em|date:"d/m/Y H:i" }}
             </time>
         </div>
-        <p class="mb-2"><strong>De:</strong> {{ mensagem.nome }} &lt;{{ mensagem.email }}&gt;</p>
-        <p class="mb-3" style="white-space: pre-wrap;">{{ mensagem.mensagem }}</p>
+        <p class="message-sender mb-2"><strong>De:</strong> {{ mensagem.nome }} &lt;{{ mensagem.email }}&gt;</p>
+        <p class="message-body mb-3">{{ mensagem.mensagem }}</p>
         <form method="post" action="{% url 'atualizar_status_mensagem' mensagem.id %}">
             {% csrf_token %}
             {% if mensagem.lida %}

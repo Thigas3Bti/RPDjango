@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Recuperar senha | RondoPesca{% endblock %}
+
+{% block content %}
+<section class="login-page">
+    <div class="login-card shadow-sm p-4 p-md-5">
+        <div class="text-center mb-4">
+            <h1 class="h3 fw-bold mb-2">Esqueceu sua senha?</h1>
+            <p class="text-muted mb-0">Informe seus dados e escolha a nova senha. O administrador precisa confirmar sua solicitação antes que ela seja ativada.</p>
+        </div>
+
+        <form method="post" class="login-form">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-3">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% for error in field.errors %}<div class="text-danger small" role="alert">{{ error }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-success w-100 py-2 mt-2">Solicitar troca de senha</button>
+        </form>
+
+        <p class="text-center small mt-4 mb-0">
+            <a class="link-success text-decoration-none" href="{% url 'login' %}">Voltar para entrar</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

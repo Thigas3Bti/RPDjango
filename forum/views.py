@@ -12,7 +12,7 @@ from usuarios.permissoes import eh_pescador
 
 from .forms import ComentarioForm, DicaForm, EventoAgendaForm, PublicacaoForm
 from .models import Comentario, Curtida, Dica, EventoAgenda, Publicacao
-from usuarios.permissoes import eh_pescador
+from usuarios.models import PerfilUsuario
 
 
 def dicas(request):
@@ -143,12 +143,18 @@ def participar_evento(request, evento_id):
 
 
 def comunidade(request):
-    publicacoes = Publicacao.objects.select_related('autor').annotate(
+    publicacoes = Publicacao.objects.select_related(
+        'autor',
+        'autor__perfil_usuario',
+    ).annotate(
         total_curtidas=Count('curtidas'),
     ).prefetch_related(
         Prefetch(
             'comentarios',
-            queryset=Comentario.objects.select_related('autor'),
+            queryset=Comentario.objects.select_related(
+                'autor',
+                'autor__perfil_usuario',
+            ),
         ),
     )
 
@@ -173,15 +179,13 @@ def comunidade(request):
         'publicacoes': publicacoes,
         'ordenacao': request.GET.get('ordenar', 'recentes'),
         'comentario_form': ComentarioForm(),
-        'pode_publicar': eh_pescador(request.user),
+        'pode_publicar': request.user.is_authenticated,
+        'pode_comentar': eh_pescador(request.user),
     })
 
 
 @login_required(login_url='login')
 def publicar(request):
-    if not eh_pescador(request.user):
-        raise PermissionDenied
-
     if request.method == 'POST':
         form = PublicacaoForm(request.POST, request.FILES)
         if form.is_valid():
