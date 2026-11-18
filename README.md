@@ -110,6 +110,34 @@ Para usar outra senha, defina `DEMO_PASSWORD` antes de iniciar o servidor.
 - [Manual do usuário](docs/MANUAL_USUARIO.md)
 - [DER atualizado](docs/DER.md)
 - [Dicionário de dados](docs/DICIONARIO_DADOS.md)
+- [Roteiro da apresentação](docs/APRESENTACAO.md)
+
+**Preparação para entrega ou publicação**
+
+O modo de desenvolvimento deve usar apenas banco SQLite local e dados de demonstração. Antes de publicar ou apresentar em outro computador:
+
+1. Teste com `DEBUG=False`, que é o padrão do projeto.
+2. Defina `SECRET_KEY` com uma chave longa e exclusiva:
+
+```powershell
+$env:SECRET_KEY = "chave-secreta-exclusiva"
+$env:DEBUG = "False"
+$env:ALLOWED_HOSTS = "localhost,127.0.0.1,dominio-do-projeto"
+python manage.py runserver
+```
+
+3. Antes da apresentação, use `DEMO_PASSWORD` com uma senha temporária conhecida pelo grupo.
+4. Remova a conta `demo` e os dados demonstrativos após a apresentação pública, ou mantenha-os somente em ambiente local.
+5. Confira as páginas `/uma-pagina-inexistente/` e os templates `404.html` e `500.html`.
+6. Execute `python manage.py check` e `python manage.py test` antes da entrega.
+
+**Roteiro curto da apresentação**
+
+- **Problema:** explicar a dificuldade de encontrar informações locais sobre pesca em Rondônia e centralizar comunidade, dicas, locais e eventos.
+- **Público:** mostrar como usuários comuns, pescadores e administradores usam o sistema.
+- **Demonstração:** executar login, cadastro de conteúdo, comunidade, locais, eventos, perfil e área administrativa. Não mostrar apenas slides.
+- **Decisões técnicas:** citar Django, SQLite, templates compartilhados, controle de permissões por grupos e dados iniciais automáticos.
+- **Aprendizados:** informar o que o grupo faria diferente e quais dificuldades técnicas encontrou.
 
 **Como usar o site**
 

@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 from django.core.management import get_commands
 from django.test import SimpleTestCase
@@ -20,5 +20,8 @@ class RunserverMigrationTests(SimpleTestCase):
         }
         Command().handle(**options)
 
-        migrate.assert_called_once_with('migrate', interactive=False, verbosity=0)
+        migrate.assert_has_calls([
+            call('migrate', interactive=False, verbosity=0),
+            call('criar_dados_demo', verbosity=0),
+        ])
         runserver.assert_called_once_with(**options)

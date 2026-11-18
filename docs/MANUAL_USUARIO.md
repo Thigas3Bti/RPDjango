@@ -2,6 +2,20 @@
 
 Este manual explica como usar o sistema RondoPesca sem conhecimentos técnicos.
 
+## Como ler este manual
+
+Cada seção indica a tela, o caminho no menu e os principais campos. Para ilustrar as instruções durante uma demonstração, utilize as capturas das telas reais obtidas no navegador; mantenha os exemplos sem dados pessoais.
+
+```text
+Tela ilustrada esperada
++--------------------------------------------------+
+| RondoPesca  |  Menu lateral  |  Usuário          |
+|--------------------------------------------------|
+| Conteúdo da página selecionada                   |
+| Botão principal da tarefa                        |
++--------------------------------------------------+
+```
+
 ## 1. Acessar o sistema
 
 1. Abra o navegador e acesse `http://127.0.0.1:8000/`.
@@ -98,3 +112,16 @@ python manage.py runserver
 ```
 
 Essa conta deve ser removida ou protegida antes de uma publicação pública.
+
+## 12. Checklist visual da demonstração
+
+Use estas telas nesta ordem durante a apresentação:
+
+1. Página inicial: domínio do problema e opções públicas.
+2. Cadastro e login: criação da conta e acesso autenticado.
+3. Comunidade: publicação, comentário e curtida.
+4. Locais de pesca: consulta e cadastro autorizado.
+5. Eventos: consulta, participação e edição pelo organizador.
+6. Perfil: alteração de foto e informações.
+7. Área administrativa: gestão de pescadores, dicas e mensagens.
+8. Página 404: endereço inexistente com navegação de retorno.
