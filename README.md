@@ -10,7 +10,7 @@ Criar um sistema de pesca com informações sobre peixes, tipos de peixe, locais
 
 **O que instalar**
 
-Instale o Python 3.12 ou mais recente e o Git. O projeto usa Django 6.1.1 e Pillow 13.0.0. As demais bibliotecas estão listadas em `requeriments.txt` e serão instaladas junto com o projeto.
+Instale o Python 3.12 ou mais recente e o Git. O projeto usa Django 6.1.1 e Pillow 13.0.0. As demais bibliotecas estão listadas em `requirements.txt` e serão instaladas junto com o projeto.
 
 O banco de dados padrão é SQLite, que já vem com o Python. Não é necessário instalar outro banco para executar o projeto localmente. O site carrega Bootstrap e Bootstrap Icons pela internet, então alguns estilos e ícones precisam de conexão.
 
@@ -74,10 +74,10 @@ Com `(.venv)` aparecendo no terminal, execute:
 
 ```powershell
 python -m pip install --upgrade pip
-python -m pip install -r requeriments.txt
+python -m pip install -r requirements.txt
 ```
 
-O arquivo tem o nome `requeriments.txt` no projeto.
+O arquivo padrão é `requirements.txt` no projeto.
 
 **Preparar o banco e iniciar o site**
 
@@ -100,6 +100,16 @@ python manage.py runserver
 ```
 
 Abra `http://127.0.0.1:8000/` no navegador. 
+
+O comando `runserver` aplica migrações e prepara dados iniciais de demonstração de forma automática.
+A conta administrativa de demonstração é `demo` e a senha padrão é `rondopesca123`.
+Para usar outra senha, defina `DEMO_PASSWORD` antes de iniciar o servidor.
+
+**Documentação complementar**
+
+- [Manual do usuário](docs/MANUAL_USUARIO.md)
+- [DER atualizado](docs/DER.md)
+- [Dicionário de dados](docs/DICIONARIO_DADOS.md)
 
 **Como usar o site**
 
@@ -149,7 +159,11 @@ RPDjango/
   static/       CSS, JavaScript e imagens (separados por área)
   media/        Arquivos enviados, como fotos
   manage.py     Comandos de administração do Django
-  requeriments.txt
+  requirements.txt
+  docs/
+    MANUAL_USUARIO.md
+    DER.md
+    DICIONARIO_DADOS.md
 ```
 
 **Equipe e contribuições**

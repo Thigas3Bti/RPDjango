@@ -11,4 +11,8 @@ class Command(DjangoRunserverCommand):
             interactive=False,
             verbosity=options.get('verbosity', 1),
         )
+        call_command(
+            'criar_dados_demo',
+            verbosity=options.get('verbosity', 1),
+        )
         return super().handle(*args, **options)
